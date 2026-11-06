@@ -42,6 +42,13 @@ public final class DebugLog {
 
     static final int MAX_ENTRIES = 2000;
 
+    /**
+     * The lock is one byte far past the end of the file, not the whole file: another instance still
+     * sees it, but on Windows a whole-file lock also stops anyone (an editor, a second launch's
+     * {@code --report}) from reading the log while the app runs.
+     */
+    static final long LOCK_POSITION = Long.MAX_VALUE - 1;
+
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     private static final Deque<String> ENTRIES = new ArrayDeque<>();
 
@@ -112,7 +119,7 @@ public final class DebugLog {
                 candidate, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.READ);
         FileLock held;
         try {
-            held = opened.tryLock();
+            held = opened.tryLock(LOCK_POSITION, 1, false);
         } catch (OverlappingFileLockException e) {
             held = null;
         }
