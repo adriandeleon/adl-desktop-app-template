@@ -23,3 +23,7 @@ one-line summary written for users.
   does the same when the app cannot start.
 - **A daily update check you can turn off,** shown in the status bar and in About.
 - **Six languages:** English, Spanish, Portuguese, French, Italian and German.
+
+### Changed
+
+- **Links to Pauta point to its new home, [pauta-project.dev](https://pauta-project.dev/).**

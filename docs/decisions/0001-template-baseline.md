@@ -6,7 +6,7 @@
 ## Context
 
 The family's apps (Editora, Torrenta, Termina, Modula, Mirada, nux) share a platform and a set of
-MUSTs, written down as [Pauta (the adl desktop apps guidelines)](https://adriandeleon.github.io/adl-desktop-apps-guidelines/): one command registry and palette, versioned config, Message and Debug Logs, Report a Problem,
+MUSTs, written down as [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/): one command registry and palette, versioned config, Message and Debug Logs, Report a Problem,
 an update check, six languages, NullAway, headless FX tests and a 0.90 coverage floor. Each app grew
 them separately.
 

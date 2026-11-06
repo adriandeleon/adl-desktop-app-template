@@ -19,7 +19,7 @@
 
 <!-- template:start -->
 > [!IMPORTANT]
-> **This is the template for [Pauta (the adl desktop apps guidelines)](https://adriandeleon.github.io/adl-desktop-apps-guidelines/), edition [1.1.0](https://github.com/adriandeleon/adl-desktop-apps-guidelines/blob/v1.1.0/CHANGELOG.md).** Click **Use this template**, clone your new repository, then run:
+> **This is the template for [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [1.1.0](https://github.com/adriandeleon/adl-desktop-apps-guidelines/blob/v1.1.0/CHANGELOG.md).** Click **Use this template**, clone your new repository, then run:
 >
 > ```bash
 > scripts/rename.sh MyApp com.myapp
@@ -38,7 +38,7 @@
 ExampleApp is a keyboard-first JavaFX desktop app for Windows, macOS and Linux. Every action is a
 command you can run from the Command Palette, and nothing leaves your computer unless you ask.
 
-Built to [Pauta (the adl desktop apps guidelines)](https://adriandeleon.github.io/adl-desktop-apps-guidelines/), edition [1.1.0](https://github.com/adriandeleon/adl-desktop-apps-guidelines/blob/v1.1.0/CHANGELOG.md).
+Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [1.1.0](https://github.com/adriandeleon/adl-desktop-apps-guidelines/blob/v1.1.0/CHANGELOG.md).
 
 <p align="center">
   <picture>
