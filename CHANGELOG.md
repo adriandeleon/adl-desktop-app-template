@@ -23,6 +23,13 @@ one-line summary written for users.
   does the same when the app cannot start.
 - **A daily update check you can turn off,** shown in the status bar and in About.
 - **Six languages:** English, Spanish, Portuguese, French, Italian and German.
+- **Menus in the title bar.** Where the system allows it, the window draws its own title bar with the
+  menus and the title in it (Settings → Appearance turns it off; macOS keeps the screen menu bar).
+- **Menus show each command's key binding,** in the active keymap, Emacs sequences included.
+- **Faster start-up from an AOT cache.** Installed builds carry a JDK 25 ahead-of-time cache; the first
+  window appears about a third sooner.
+- **Settings Sync can create its repository.** Settings → Sync → Create on GitHub… makes a private
+  repository with your GitHub CLI (`gh`) and connects to it.
 
 ### Changed
 

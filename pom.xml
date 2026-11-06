@@ -253,6 +253,9 @@
                         <!-- No test asks GitHub for the latest release. -->
                         <exampleapp.updateCheck>off</exampleapp.updateCheck>
                         <exampleapp.updateUrl>http://127.0.0.1:9/latest</exampleapp.updateUrl>
+                        <!-- No test may reach the developer's own, signed-in GitHub CLI: it would create a
+                             real repository. Tests that need gh pass a fake one explicitly. -->
+                        <exampleapp.gh>no-such-gh-in-tests</exampleapp.gh>
                         <!-- A test never writes in the real home folder: the default config folder
                              of anything a test builds lands here. -->
                         <exampleapp.configDir>${project.build.directory}/test-config</exampleapp.configDir>
@@ -490,6 +493,10 @@
                                     <javaOptions>
                                         <javaOption>--enable-native-access=javafx.graphics</javaOption>
                                         <javaOption>-Dprism.order=${prism.pipeline}</javaOption>
+                                        <!-- The AOT cache scripts/aot-train.sh records into the image ($APPDIR is
+                                             the installed app directory). Under the default AOTMode=auto a missing
+                                             or stale cache is a warning and a normal, slower start. -->
+                                        <javaOption>-XX:AOTCache=$APPDIR/exampleapp.aot</javaOption>
                                         <!-- A ceiling, not tuning: without it the JVM may take a quarter of RAM. -->
                                         <javaOption>-Xmx512m</javaOption>
                                         <javaOption>-XX:G1PeriodicGCInterval=30000</javaOption>
@@ -522,6 +529,23 @@
                                         <argument>${project.build.directory}/dist/${jpackage.imageName}</argument>
                                         <argument>${project.basedir}/LICENSE</argument>
                                         <argument>${project.basedir}/NOTICE</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <!-- JDK 25's ahead-of-time cache: a training run of the packaged app records the
+                                 classes a start loads, so the next start skips most loading and verifying.
+                                 After the notices and before the macOS version fix and signing, which seal
+                                 the bundle with the cache inside. Needs a display (Linux: xvfb-run). -->
+                            <execution>
+                                <id>aot-train</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/scripts/aot-train.sh</argument>
+                                        <argument>${project.build.directory}/dist/${jpackage.imageName}</argument>
+                                        <argument>exampleapp.aot</argument>
                                     </arguments>
                                 </configuration>
                             </execution>

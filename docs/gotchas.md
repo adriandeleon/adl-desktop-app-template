@@ -21,4 +21,14 @@ Each of these cost one of the family's apps real time.
   for Settings Sync) must not assume a terminal's `PATH`.
 - **jpackage refuses a version starting with 0 on macOS.** The pom gives jpackage `1.x` there and
   `scripts/fix-mac-bundle-version.sh` writes the real version back.
+- **No `CustomMenuItem` under the macOS screen menu bar.** AppKit cannot draw a JavaFX node, and one
+  such item makes JavaFX quietly refuse the screen bar for the whole menu bar. `AppMenus` uses plain
+  items there, with the chord in the text.
+- **A stage's style is fixed before it first shows.** The title-bar setting therefore applies on the
+  next start, and an unsupported `EXTENDED` style silently becomes `DECORATED` (a header bar drawn under
+  a native title bar), which is why `MainWindow.usesHeaderBar` asks the platform first.
+- **AOT training needs a window on screen.** A headless training run archives almost nothing and still
+  looks successful; `aot-train.sh` uses `xvfb-run` on a Linux machine without a display.
+- **A test must never reach the real `gh`.** The developer's GitHub CLI is signed in, and "Create on
+  GitHub" would make a real repository: the suite sets `exampleapp.gh` to a command that does not exist.
 - **A key value with `{0}` is a MessageFormat pattern**: a single apostrophe in it swallows text.

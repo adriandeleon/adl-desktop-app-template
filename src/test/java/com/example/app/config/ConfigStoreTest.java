@@ -44,6 +44,7 @@ class ConfigStoreTest {
             s.checkForUpdates = false;
             s.lastUpdateCheck = 42;
             s.showStatusBar = false;
+            s.titleBarMenus = false;
             s.window.x = 10.0;
             s.window.y = 20.0;
             s.window.width = 800;
@@ -68,6 +69,7 @@ class ConfigStoreTest {
         assertFalse(s.checkForUpdates);
         assertEquals(42, s.lastUpdateCheck);
         assertFalse(s.showStatusBar);
+        assertFalse(s.titleBarMenus);
         assertEquals(10.0, s.window.x);
         assertEquals(20.0, s.window.y);
         assertEquals(800, s.window.width);

@@ -14,6 +14,7 @@ import com.example.app.config.ConfigStore;
 import com.example.app.config.Settings;
 import com.example.app.i18n.Messages;
 import com.example.app.sync.Git;
+import com.example.app.sync.GitHubCli;
 import com.example.app.sync.SyncEngine;
 import com.example.app.update.UpdateService;
 import org.jspecify.annotations.Nullable;
@@ -35,15 +36,15 @@ public final class AppServices {
     private String keymapState = "";
 
     public AppServices(ConfigStore store, Host host) {
-        this(store, host, new UpdateService(), new SyncEngine(store.dir().resolve("sync"), new Git()));
+        this(store, host, new UpdateService(), new SyncEngine(store.dir().resolve("sync"), new Git()), new GitHubCli());
     }
 
-    AppServices(ConfigStore store, Host host, UpdateService updateService, SyncEngine syncEngine) {
+    AppServices(ConfigStore store, Host host, UpdateService updateService, SyncEngine syncEngine, GitHubCli gitHub) {
         this.store = store;
         this.host = host;
         this.keybindings = build(store.settings());
         this.updates = new UpdateCoordinator(this, updateService::check);
-        this.sync = new SyncController(this, syncEngine);
+        this.sync = new SyncController(this, syncEngine, gitHub);
         store.addListener(settings -> {
             String state = settings.keymap + settings.keybindings;
             if (!state.equals(keymapState)) {

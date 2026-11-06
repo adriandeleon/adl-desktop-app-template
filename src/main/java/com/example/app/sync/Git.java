@@ -22,8 +22,9 @@ public final class Git {
 
     private final String executable;
 
+    /** The user's git, found even from a Finder-launched app (see {@link Executables}). */
     public Git() {
-        this("git");
+        this(Executables.find("git"));
     }
 
     public Git(String executable) {

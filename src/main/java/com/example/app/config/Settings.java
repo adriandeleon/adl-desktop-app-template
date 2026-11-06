@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 public final class Settings {
 
     /** Bump with every change to the shape of this file, and add the matching {@link Migrations} step. */
-    public static final int SCHEMA_VERSION = 2;
+    public static final int SCHEMA_VERSION = 3;
 
     public int schemaVersion = SCHEMA_VERSION;
 
@@ -38,6 +38,12 @@ public final class Settings {
     public long lastUpdateCheck;
 
     public boolean showStatusBar = true;
+
+    /**
+     * The menus and the title in one bar drawn by the app (JavaFX's {@code HeaderBar}), where the
+     * platform supports it and the menus are in the window (not macOS). Applies on the next start.
+     */
+    public boolean titleBarMenus = true;
 
     /** Machine-local: never synced. */
     public Window window = new Window();
