@@ -1,0 +1,32 @@
+name: Bug report
+description: Something in ExampleApp went wrong. Help → Report a Problem (or `exampleapp --report`) fills in the details.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what ExampleApp did instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: If you can make it happen again, how?
+      placeholder: |
+        1. Open …
+        2. Run …
+  # Report a Problem fills the two fields below by their ids; keep `environment` and `report`.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: ExampleApp version, Java, JavaFX, OS. Filled in when you report from the app; otherwise copy it from About → Copy details.
+      render: text
+  - type: textarea
+    id: report
+    attributes:
+      label: Problem report
+      description: The redacted report from the app. Read it before you submit — anything left in it becomes public.
+      render: text

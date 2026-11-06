@@ -1,0 +1,4 @@
+/* The bundled UI font, attached to every scene and dialog (Themes.style). */
+.root {
+    -fx-font-family: "Inter";
+}

@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.github.adriandeleon</groupId>
+    <artifactId>exampleapp</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>ExampleApp</name>
+    <description>A keyboard-first JavaFX desktop app.</description>
+    <url>https://github.com/adriandeleon/ExampleApp</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/license/mit</url>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- A floor, not a ceiling: build and bundle a current JDK (the enforcer range is open-ended). -->
+        <maven.compiler.release>25</maven.compiler.release>
+        <!-- Indirected through a property: the format is ignored when maven.build.timestamp is
+             filtered into a resource directly. -->
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm 'UTC'</maven.build.timestamp.format>
+        <build.timestamp>${maven.build.timestamp}</build.timestamp>
+
+        <!-- A floor too: JavaFX 27 brings the Headless glass platform the FX tests run on. -->
+        <javafx.version>27.0.1</javafx.version>
+        <atlantafx.version>3.0.0</atlantafx.version>
+        <jackson.version>2.22.4</jackson.version>
+
+        <jspecify.version>1.0.1</jspecify.version>
+        <errorprone.version>2.51.0</errorprone.version>
+        <nullaway.version>0.14.3</nullaway.version>
+
+        <junit.version>6.1.3</junit.version>
+        <testfx.version>4.0.18</testfx.version>
+
+        <spotless.version>3.10.4</spotless.version>
+        <palantir.version>2.102.0</palantir.version>
+        <jacoco.version>0.8.16</jacoco.version>
+        <javafx.plugin.version>0.0.8</javafx.plugin.version>
+        <jpackage.plugin.version>1.8.0</jpackage.plugin.version>
+
+        <!-- Prism pipeline per OS (the os-* profiles); this default covers profile-less builds. -->
+        <prism.pipeline>es2,sw</prism.pipeline>
+        <!-- jpackage wants .icns on macOS, .ico on Windows and .png on Linux (os-* profiles). -->
+        <jpackage.icon>${project.basedir}/packaging/icons/exampleapp.png</jpackage.icon>
+        <jpackage.imageName>ExampleApp</jpackage.imageName>
+        <skip.mac.steps>true</skip.mac.steps>
+        <!-- Installers take minutes the dev loop never wants; the release turns them on. -->
+        <skip.installers>true</skip.installers>
+        <!-- Filled by the derive-versions step below; the default covers a build without git. -->
+        <build.commit>unknown</build.commit>
+    </properties>
+
+    <dependencies>
+        <!-- Compile-time only (`requires static org.jspecify`): read by NullAway, nothing ships. -->
+        <dependency>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+            <version>${jspecify.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.mkpaz</groupId>
+            <artifactId>atlantafx-base</artifactId>
+            <version>${atlantafx.version}</version>
+        </dependency>
+        <!-- Versioned JSON config (settings.json) and the update check's release payload. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- TestFX only boots the toolkit (FxToolkit) over JavaFX's built-in Headless glass platform:
+             no display, no xvfb, no Monocle. -->
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-core</artifactId>
+            <version>${testfx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>${testfx.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <!-- Only build-info.properties is filtered: filtering fonts or CSS would corrupt them. -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes><include>com/example/app/build-info.properties</include></includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes><exclude>com/example/app/build-info.properties</exclude></excludes>
+            </resource>
+            <!-- The licence and third-party notices travel inside the jar too. -->
+            <resource>
+                <directory>${project.basedir}</directory>
+                <targetPath>META-INF</targetPath>
+                <filtering>false</filtering>
+                <includes>
+                    <include>LICENSE</include>
+                    <include>NOTICE</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.7.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-build-environment</id>
+                        <goals><goal>enforce</goal></goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion><version>[3.9.0,4.0.0)</version></requireMavenVersion>
+                                <requireJavaVersion><version>[25,)</version></requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- The version as plain numbers for jpackage (no -SNAPSHOT; macOS refuses a leading 0),
+                 and the commit for About and the version flag. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>derive-versions</id>
+                        <phase>initialize</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <exportAntProperties>true</exportAntProperties>
+                            <target>
+                                <loadresource property="jpackage.numericVersion">
+                                    <string value="${project.version}"/>
+                                    <filterchain><tokenfilter><replaceregex pattern="-.*$" replace=""/></tokenfilter></filterchain>
+                                </loadresource>
+                                <loadresource property="jpackage.macVersion">
+                                    <string value="${jpackage.numericVersion}"/>
+                                    <filterchain><tokenfilter><replaceregex pattern="^0\." replace="1."/></tokenfilter></filterchain>
+                                </loadresource>
+                                <condition property="jpackage.appVersion" value="${jpackage.macVersion}" else="${jpackage.numericVersion}">
+                                    <os family="mac"/>
+                                </condition>
+                                <exec executable="git" outputproperty="git.commit" failifexecutionfails="false"
+                                      resultproperty="git.result" errorproperty="git.error">
+                                    <arg value="rev-parse"/>
+                                    <arg value="--short=9"/>
+                                    <arg value="HEAD"/>
+                                </exec>
+                                <condition property="build.commit" value="${git.commit}" else="unknown">
+                                    <equals arg1="${git.result}" arg2="0"/>
+                                </condition>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.16.0</version>
+                <executions>
+                    <!-- The main compile only: NullAway checks every @NullMarked package and fails the
+                         build. Every other Error Prone check is off. Error Prone reaches into javac,
+                         hence .mvn/jvm.config. -->
+                    <execution>
+                        <id>default-compile</id>
+                        <configuration>
+                            <compilerArgs>
+                                <arg>-XDcompilePolicy=simple</arg>
+                                <arg>--should-stop=ifError=FLOW</arg>
+                                <arg>-Xplugin:ErrorProne -XepDisableAllChecks -Xep:NullAway:ERROR -XepOpt:NullAway:OnlyNullMarked=true -XepOpt:NullAway:JSpecifyMode=true</arg>
+                            </compilerArgs>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>com.google.errorprone</groupId>
+                                    <artifactId>error_prone_core</artifactId>
+                                    <version>${errorprone.version}</version>
+                                </path>
+                                <path>
+                                    <groupId>com.uber.nullaway</groupId>
+                                    <artifactId>nullaway</artifactId>
+                                    <version>${nullaway.version}</version>
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </execution>
+                    <!-- The tests compile against the module; UpdateServiceTest serves releases from the
+                         JDK's own HTTP server, a module the app itself does not read. -->
+                    <execution>
+                        <id>default-testCompile</id>
+                        <configuration>
+                            <compilerArgs>
+                                <arg>--add-modules</arg>
+                                <arg>jdk.httpserver</arg>
+                                <arg>--add-reads</arg>
+                                <arg>com.example.app=jdk.httpserver</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <!-- Tests run on the classpath (unnamed module), so they reach package-private members. -->
+                    <useModulePath>false</useModulePath>
+                    <!-- @{argLine} keeps JaCoCo's agent; keep the token first. -->
+                    <argLine>@{argLine} --enable-native-access=ALL-UNNAMED</argLine>
+                    <systemPropertyVariables>
+                        <!-- Headless JavaFX: no display, no xvfb, no Monocle. -->
+                        <glass.platform>Headless</glass.platform>
+                        <prism.order>sw</prism.order>
+                        <java.awt.headless>true</java.awt.headless>
+                        <!-- No test asks GitHub for the latest release. -->
+                        <exampleapp.updateCheck>off</exampleapp.updateCheck>
+                        <exampleapp.updateUrl>http://127.0.0.1:9/latest</exampleapp.updateUrl>
+                        <!-- A test never writes in the real home folder: the default config folder
+                             of anything a test builds lands here. -->
+                        <exampleapp.configDir>${project.build.directory}/test-config</exampleapp.configDir>
+                        <javafx.cachedir>${project.build.directory}/openjfx-cache</javafx.cachedir>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>jacoco-prepare-agent</id>
+                        <goals><goal>prepare-agent</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-report</id>
+                        <phase>test</phase>
+                        <goals><goal>report</goal></goals>
+                    </execution>
+                    <!-- A regression net, not a target: 0.90 lines and methods for the whole build.
+                         Add a per-package floor (about three points below its measured level) for each
+                         package of 300+ lines, and ratchet it up as coverage rises. -->
+                    <execution>
+                        <id>jacoco-check</id>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                        <configuration>
+                            <haltOnFailure>true</haltOnFailure>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.90</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>METHOD</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.90</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.version}</version>
+                <configuration>
+                    <java>
+                        <removeUnusedImports/>
+                        <palantirJavaFormat>
+                            <version>${palantir.version}</version>
+                        </palantirJavaFormat>
+                        <!-- After Palantir, so it has the final say on grouping: JDK, javafx, the rest,
+                             then static imports. -->
+                        <importOrder>
+                            <order>java|javax,javafx,,\#</order>
+                        </importOrder>
+                        <toggleOffOn/>
+                    </java>
+                </configuration>
+                <executions>
+                    <!-- verify, not compile: the run loop stays fast and CI still refuses unformatted code. -->
+                    <execution>
+                        <id>spotless-check</id>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>${javafx.plugin.version}</version>
+                <configuration>
+                    <mainClass>com.example.app/com.example.app.Main</mainClass>
+                    <options>
+                        <option>--enable-native-access=javafx.graphics</option>
+                        <option>-Dprism.order=${prism.pipeline}</option>
+                    </options>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>os-mac</id>
+            <activation><os><family>mac</family></os></activation>
+            <properties>
+                <prism.pipeline>mtl,es2,sw</prism.pipeline>
+                <jpackage.icon>${project.basedir}/packaging/icons/exampleapp.icns</jpackage.icon>
+                <jpackage.imageName>ExampleApp.app</jpackage.imageName>
+                <skip.mac.steps>false</skip.mac.steps>
+            </properties>
+        </profile>
+        <profile>
+            <id>os-windows</id>
+            <activation><os><family>windows</family></os></activation>
+            <properties>
+                <prism.pipeline>d3d,es2,sw</prism.pipeline>
+                <jpackage.icon>${project.basedir}/packaging/icons/exampleapp.ico</jpackage.icon>
+            </properties>
+        </profile>
+
+        <!-- A runnable fat jar for this OS: ./mvnw -Pfatjar package => target/exampleapp-<version>-fat.jar.
+             Main is not an Application subclass, so the jar starts JavaFX from the classpath. -->
+        <profile>
+            <id>fatjar</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.6.2</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals><goal>shade</goal></goals>
+                                <configuration>
+                                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                                    <shadedClassifierName>fat</shadedClassifierName>
+                                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                                    <filters>
+                                        <filter>
+                                            <artifact>*:*</artifact>
+                                            <excludes>
+                                                <exclude>module-info.class</exclude>
+                                                <exclude>META-INF/versions/*/module-info.class</exclude>
+                                                <exclude>META-INF/*.SF</exclude>
+                                                <exclude>META-INF/*.DSA</exclude>
+                                                <exclude>META-INF/*.RSA</exclude>
+                                                <exclude>META-INF/MANIFEST.MF</exclude>
+                                            </excludes>
+                                        </filter>
+                                    </filters>
+                                    <transformers>
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                            <mainClass>com.example.app.Main</mainClass>
+                                        </transformer>
+                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                    </transformers>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
+            Native app image:  ./mvnw clean -Pdist package  =>  target/dist/ExampleApp{.app}
+            Installers too:    ./mvnw clean -Pdist -Dskip.installers=false package  =>  target/installers/
+
+            `clean` is mandatory: an incremental compile can leave synthetic enum-switch classes out of
+            target/classes, and jlink then ships an app whose keyboard fails on the first keypress.
+
+            Every dependency is a real JPMS module, so jpackage links the module path as it is. Add
+            moditect here if you ever depend on an automatic module.
+        -->
+        <profile>
+            <id>dist</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>3.11.0</version>
+                        <executions>
+                            <execution>
+                                <id>collect-modules</id>
+                                <phase>package</phase>
+                                <goals><goal>copy-dependencies</goal></goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.directory}/mods</outputDirectory>
+                                    <includeScope>runtime</includeScope>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>assemble-module-path</id>
+                                <phase>package</phase>
+                                <goals><goal>run</goal></goals>
+                                <configuration>
+                                    <target>
+                                        <copy todir="${project.build.directory}/mods"
+                                              file="${project.build.directory}/${project.build.finalName}.jar"/>
+                                        <!-- JavaFX ships a stub jar and a platform jar that declare the
+                                             same module; keep only the platform one. -->
+                                        <delete>
+                                            <fileset dir="${project.build.directory}/mods" includes="javafx-*-${javafx.version}.jar"/>
+                                        </delete>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <version>${jpackage.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>app-image</id>
+                                <phase>package</phase>
+                                <goals><goal>jpackage</goal></goals>
+                                <configuration>
+                                    <type>APP_IMAGE</type>
+                                    <name>ExampleApp</name>
+                                    <appVersion>${jpackage.appVersion}</appVersion>
+                                    <vendor>Adrián Arturo De León Saldivar</vendor>
+                                    <icon>${jpackage.icon}</icon>
+                                    <destination>${project.build.directory}/dist</destination>
+                                    <module>com.example.app/com.example.app.Main</module>
+                                    <modulePaths>
+                                        <modulePath>${project.build.directory}/mods</modulePath>
+                                    </modulePaths>
+                                    <javaOptions>
+                                        <javaOption>--enable-native-access=javafx.graphics</javaOption>
+                                        <javaOption>-Dprism.order=${prism.pipeline}</javaOption>
+                                        <!-- A ceiling, not tuning: without it the JVM may take a quarter of RAM. -->
+                                        <javaOption>-Xmx512m</javaOption>
+                                        <javaOption>-XX:G1PeriodicGCInterval=30000</javaOption>
+                                    </javaOptions>
+                                    <jLinkOptions>
+                                        <jLinkOption>--strip-debug</jLinkOption>
+                                        <jLinkOption>--no-man-pages</jLinkOption>
+                                        <jLinkOption>--no-header-files</jLinkOption>
+                                        <jLinkOption>--compress=zip-6</jLinkOption>
+                                    </jLinkOptions>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.6.4</version>
+                        <executions>
+                            <!-- In POM order, all bound to `package` after jpackage. Through bash, not as
+                                 the executable: Windows cannot run a .sh directly. -->
+                            <execution>
+                                <id>add-notices</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/scripts/add-notices.sh</argument>
+                                        <argument>${project.build.directory}/dist/${jpackage.imageName}</argument>
+                                        <argument>${project.basedir}/LICENSE</argument>
+                                        <argument>${project.basedir}/NOTICE</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <!-- macOS: write the real version back into Info.plist (jpackage was given a
+                                 1.x stand-in for a 0.x version) and re-seal the bundle after add-notices. -->
+                            <execution>
+                                <id>fix-mac-bundle-version</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/scripts/fix-mac-bundle-version.sh</argument>
+                                        <argument>${project.build.directory}/dist/ExampleApp.app</argument>
+                                        <argument>${jpackage.numericVersion}</argument>
+                                    </arguments>
+                                    <skip>${skip.mac.steps}</skip>
+                                </configuration>
+                            </execution>
+                            <!-- Developer ID signing after every change to the bundle and before the
+                                 installers wrap it. A no-op unless EXAMPLEAPP_MAC_SIGN_IDENTITY is set. -->
+                            <execution>
+                                <id>sign-mac-app</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/scripts/sign-mac-app.sh</argument>
+                                        <argument>${project.build.directory}/dist/ExampleApp.app</argument>
+                                    </arguments>
+                                    <skip>${skip.mac.steps}</skip>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>build-installers</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/scripts/build-installers.sh</argument>
+                                        <argument>${project.build.directory}/dist/${jpackage.imageName}</argument>
+                                        <argument>${jpackage.appVersion}</argument>
+                                        <argument>${project.build.directory}/installers</argument>
+                                        <argument>${jpackage.icon}</argument>
+                                    </arguments>
+                                    <skip>${skip.installers}</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

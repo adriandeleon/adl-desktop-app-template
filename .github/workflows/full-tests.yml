@@ -1,0 +1,78 @@
+name: Full tests
+
+# The whole suite on Linux, macOS and Windows, where ci.yml runs Linux only. Path separators, line
+# endings, case-insensitive file systems, fonts and the JavaFX natives differ between them, and the
+# release ships to all three.
+#
+# Runs every day on master, on a pull request labelled `full-ci`, on demand, and from release.yml
+# before it builds anything (workflow_call). Failing tests are rerun twice; a test that passed only on
+# a rerun is listed in the job summary as flaky, because it still is.
+on:
+  # 05:23 UTC, off the hour, when GitHub's scheduled runs crowd in and are delayed.
+  schedule:
+    - cron: '23 5 * * *'
+  # For a change likely to differ between platforms. `labeled` starts the run when the label goes on.
+  pull_request:
+    branches: [master]
+    types: [labeled, synchronize, opened, reopened]
+  workflow_call: {}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# A new push to a labelled pull request cancels the run for the previous one. Adding some other label
+# must not cancel a run in progress, so that event gets a group of its own (and its jobs skip).
+# Everything else is grouped by event and commit and never cancelled.
+concurrency:
+  group: >-
+    full-tests-${{ (github.event.action == 'labeled' && github.event.label.name != 'full-ci') && github.run_id
+    || github.event.pull_request.number || format('{0}-{1}', github.event_name, github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    # Everything except a pull request runs; a pull request only with the `full-ci` label, and not on
+    # the event of some other label being added.
+    if: ${{ github.event_name != 'pull_request' || (contains(github.event.pull_request.labels.*.name, 'full-ci') && (github.event.action != 'labeled' || github.event.label.name == 'full-ci')) }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15, windows-latest]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # The FX tests run on JavaFX's Headless glass platform (set in the pom), so no runner needs a
+      # display or xvfb.
+      - name: Test
+        timeout-minutes: 35
+        shell: bash
+        run: ./mvnw -B --no-transfer-progress -Dsurefire.rerunFailingTestsCount=2 verify
+
+      - name: Report flaky tests
+        if: always()
+        shell: bash
+        run: java scripts/ci/ReportFlakes.java target/surefire-reports >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test reports
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: surefire-reports-${{ matrix.os }}
+          path: target/surefire-reports
+          retention-days: 7
+          if-no-files-found: ignore

@@ -1,0 +1,16 @@
+# Weekly update pull requests for the Maven dependencies and plugins and for the GitHub Actions. The
+# actions are pinned to commit SHAs with the version in a trailing comment
+# (`uses: owner/action@<sha> # vX.Y.Z`); Dependabot rewrites both together.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10

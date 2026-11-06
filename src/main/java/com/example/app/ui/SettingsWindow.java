@@ -1,0 +1,582 @@
+package com.example.app.ui;
+
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import javafx.util.StringConverter;
+
+import com.example.app.AppInfo;
+import com.example.app.command.Command;
+import com.example.app.command.KeyStroke;
+import com.example.app.command.Keymap;
+import com.example.app.config.Settings;
+import com.example.app.config.ThemeChoice;
+import com.example.app.i18n.Messages;
+import com.example.app.sync.SyncEngine;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * Settings: a sidebar of pages, the page on the right, and a search field on top that hides every
+ * non-matching row and card and opens the page with the best match. There is no Save button: a change
+ * applies as it is made and reaches every window through the config store. Text fields commit on Enter
+ * or focus loss; an invalid value is marked and never committed.
+ */
+public final class SettingsWindow {
+
+    /** The pages, in sidebar order. */
+    public enum Page {
+        GENERAL(Icons.SLIDERS),
+        APPEARANCE(Icons.CONTRAST),
+        KEYMAP(Icons.KEYBOARD),
+        SYNC(Icons.SYNC),
+        ADVANCED(Icons.FOLDER);
+
+        final String icon;
+
+        Page(String icon) {
+            this.icon = icon;
+        }
+
+        String title() {
+            return Messages.tr("settings.page." + name().toLowerCase(java.util.Locale.ROOT));
+        }
+    }
+
+    /** A searchable row and the card it sits in. */
+    record Row(Page page, Node node, VBox card, SettingsSearch.Entry entry) {}
+
+    private final AppServices services;
+    private final Stage stage = new Stage();
+    private final TextField search = new TextField();
+    private final ListView<Page> sidebar = new ListView<>();
+    private final ScrollPane scroll = new ScrollPane();
+    private final Map<Page, VBox> pages = new EnumMap<>(Page.class);
+    private final List<Row> rows = new ArrayList<>();
+    private final List<Runnable> loaders = new ArrayList<>();
+    private final Map<Page, Boolean> pageHits = new EnumMap<>(Page.class);
+
+    private final ComboBox<String> language = new ComboBox<>();
+    private final SettingSwitch updates = new SettingSwitch(Messages.tr("settings.updates.title"));
+    private final SettingSwitch statusBar = new SettingSwitch(Messages.tr("settings.statusBar.title"));
+    private final ComboBox<ThemeChoice> theme = new ComboBox<>();
+    private final ComboBox<String> keymap = new ComboBox<>();
+    private final TextField syncUrl = new TextField();
+    private final TextField syncBranch = new TextField();
+    private final SettingSwitch syncAuto = new SettingSwitch(Messages.tr("settings.sync.auto.title"));
+    private final TextField syncInterval = new TextField();
+    private final Label syncPill = new Label();
+    private final Consumer<Settings> storeListener = s -> load();
+    private final Runnable syncListener = this::loadSyncStatus;
+
+    public SettingsWindow(AppServices services, @Nullable Window owner) {
+        this.services = services;
+        for (Page page : Page.values()) {
+            VBox content = new VBox(14);
+            content.getStyleClass().add("settings-page");
+            content.setPadding(new Insets(18, 22, 18, 22));
+            Label title = new Label(page.title());
+            title.getStyleClass().add("settings-page-title");
+            content.getChildren().add(title);
+            pages.put(page, content);
+        }
+        buildGeneral();
+        buildAppearance();
+        buildKeymap();
+        buildSync();
+        buildAdvanced();
+
+        search.setPromptText(Messages.tr("settings.search"));
+        search.getStyleClass().add("settings-search");
+        search.textProperty().addListener((obs, old, text) -> applySearch(text));
+        sidebar.getItems().setAll(Page.values());
+        sidebar.setCellFactory(v -> new PageCell());
+        sidebar.getStyleClass().add("settings-sidebar");
+        sidebar.getSelectionModel().selectedItemProperty().addListener((obs, old, page) -> {
+            if (page != null) scroll.setContent(pages.get(page));
+        });
+        scroll.setFitToWidth(true);
+        scroll.getStyleClass().add("settings-scroll");
+
+        VBox side = new VBox(8, search, sidebar);
+        side.setPadding(new Insets(10));
+        side.setPrefWidth(220);
+        VBox.setVgrow(sidebar, Priority.ALWAYS);
+
+        Label note = new Label(Messages.tr("settings.footer"));
+        note.getStyleClass().add("muted");
+        note.setWrapText(true);
+        Button close = new Button(Messages.tr("button.close"));
+        close.setDefaultButton(true);
+        close.setOnAction(e -> stage.close());
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox bottom = new HBox(10, note, spacer, close);
+        bottom.setAlignment(Pos.CENTER_LEFT);
+        bottom.setPadding(new Insets(8, 12, 10, 12));
+        bottom.getStyleClass().add("settings-bottom");
+
+        BorderPane root = new BorderPane(scroll, null, null, bottom, side);
+        root.getStyleClass().add("settings-window");
+        Scene scene = Themes.style(new Scene(root, 860, 600));
+        scene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ESCAPE) stage.close();
+        });
+        stage.setScene(scene);
+        stage.setTitle(Messages.tr("settings.title"));
+        if (owner != null) stage.initOwner(owner);
+
+        // One Settings window per app, kept for the session, so these listeners live as long as it does.
+        services.store().addListener(storeListener);
+        services.sync().addListener(syncListener);
+        load();
+        sidebar.getSelectionModel().select(Page.GENERAL);
+    }
+
+    /** Opens the window on a page. */
+    public void show(Page page) {
+        sidebar.getSelectionModel().select(page);
+        stage.show();
+        stage.toFront();
+        search.requestFocus();
+    }
+
+    // ---- pages ----
+
+    private void buildGeneral() {
+        language.getItems().add("");
+        language.getItems().addAll(Messages.available().keySet());
+        language.setConverter(converter(code -> code.isEmpty()
+                ? Messages.tr("settings.language.system")
+                : Messages.available().getOrDefault(code, code)));
+        language.valueProperty()
+                .addListener((obs, old, picked) -> commitIfChanged(picked, s -> s.language, v -> {
+                    services.store().update(s -> s.language = v);
+                    services.echo("status.languageRestart");
+                }));
+        VBox card = card(Page.GENERAL, null);
+        row(card, Page.GENERAL, "settings.language", language, "locale translation");
+        updates.setOnAction(e -> services.store().update(s -> s.checkForUpdates = updates.isSelected()));
+        row(card, Page.GENERAL, "settings.updates", updates, "release version network");
+        statusBar.setOnAction(e -> services.store().update(s -> s.showStatusBar = statusBar.isSelected()));
+        row(card, Page.GENERAL, "settings.statusBar", statusBar, "echo messages");
+        loaders.add(() -> {
+            Settings s = services.settings();
+            language.setValue(s.language);
+            updates.setSelected(s.checkForUpdates);
+            statusBar.setSelected(s.showStatusBar);
+        });
+    }
+
+    private void buildAppearance() {
+        theme.getItems().setAll(ThemeChoice.values());
+        theme.setConverter(converter(t -> Messages.tr("theme." + t.name().toLowerCase(java.util.Locale.ROOT))));
+        theme.valueProperty()
+                .addListener((obs, old, picked) -> commitIfChanged(
+                        picked, s -> s.theme, v -> services.store().update(s -> s.theme = v)));
+        VBox card = card(Page.APPEARANCE, null);
+        row(card, Page.APPEARANCE, "settings.theme", theme, "dark light mode colour color");
+        loaders.add(() -> theme.setValue(services.settings().theme));
+    }
+
+    private void buildKeymap() {
+        keymap.getItems().setAll(Keymap.PRESETS);
+        keymap.setConverter(converter(id -> Keymap.load(id).name()));
+        keymap.valueProperty()
+                .addListener((obs, old, picked) -> commitIfChanged(
+                        picked, s -> s.keymap, v -> services.store().update(s -> s.keymap = v)));
+        VBox presets = card(Page.KEYMAP, null);
+        row(presets, Page.KEYMAP, "settings.keymap", keymap, "emacs cua shortcuts keys");
+        loaders.add(() -> keymap.setValue(services.settings().keymap));
+
+        VBox bindings = card(Page.KEYMAP, Messages.tr("settings.bindings.heading"));
+        for (Command command : services.commands().all()) {
+            TextField field = new TextField();
+            field.setPrefColumnCount(14);
+            field.setAccessibleText(command.title());
+            Button reset = new Button(Messages.tr("settings.bindings.reset"));
+            reset.getStyleClass().add("flat");
+            reset.setOnAction(e -> services.store().update(s -> s.keybindings.remove(command.id())));
+            field.setOnAction(e -> commitBinding(command.id(), field));
+            field.focusedProperty().addListener((obs, was, focused) -> {
+                if (!focused) commitBinding(command.id(), field);
+            });
+            HBox control = new HBox(6, field, reset);
+            control.setAlignment(Pos.CENTER_RIGHT);
+            addRow(
+                    bindings,
+                    Page.KEYMAP,
+                    command.title(),
+                    command.description(),
+                    control,
+                    command.id() + " " + Messages.tr("settings.bindings.heading"));
+            loaders.add(() -> {
+                String user = services.settings().keybindings.get(command.id());
+                field.setText(
+                        user != null
+                                ? user
+                                : services.keybindings().keymap().bindings().getOrDefault(command.id(), ""));
+                field.getStyleClass().remove("invalid");
+                String other = services.keybindings().conflicts().get(command.id());
+                field.setTooltip(
+                        other == null
+                                ? null
+                                : new javafx.scene.control.Tooltip(
+                                        Messages.tr("settings.bindings.conflict", Messages.tr("command." + other))));
+                if (other != null) field.getStyleClass().add("invalid");
+            });
+        }
+    }
+
+    /** Commits a binding: blank unbinds, an unparsable chord is marked and not saved. */
+    void commitBinding(String id, TextField field) {
+        String text = field.getText().trim();
+        if (!text.isEmpty() && KeyStroke.parseSequence(text) == null) {
+            if (!field.getStyleClass().contains("invalid"))
+                field.getStyleClass().add("invalid");
+            return;
+        }
+        field.getStyleClass().remove("invalid");
+        String base = services.keybindings().keymap().bindings().getOrDefault(id, "");
+        String current = services.settings().keybindings.getOrDefault(id, base);
+        if (text.equals(current)) return;
+        services.store().update(s -> {
+            if (text.equals(base)) s.keybindings.remove(id);
+            else s.keybindings.put(id, text);
+        });
+    }
+
+    private void buildSync() {
+        Label subtitle = new Label(Messages.tr("settings.sync.subtitle"));
+        subtitle.setWrapText(true);
+        subtitle.getStyleClass().add("muted");
+        page(Page.SYNC).getChildren().add(subtitle);
+
+        VBox repo = card(Page.SYNC, null);
+        syncUrl.setPromptText("git@github.com:you/" + AppInfo.ID + "-sync.git");
+        syncUrl.setOnAction(e -> commitUrl());
+        syncUrl.focusedProperty().addListener((obs, was, focused) -> {
+            if (!focused) commitUrl();
+        });
+        row(repo, Page.SYNC, "settings.sync.repo", syncUrl, "git github repository url");
+        syncBranch.setPrefColumnCount(8);
+        syncBranch.setOnAction(e -> commitBranch());
+        syncBranch.focusedProperty().addListener((obs, was, focused) -> {
+            if (!focused) commitBranch();
+        });
+        Button connect = new Button(Messages.tr("settings.sync.connect"));
+        connect.getStyleClass().add("accent");
+        connect.setOnAction(e -> {
+            commitUrl();
+            if (!syncUrl.getStyleClass().contains("invalid")) services.sync().syncNow(true);
+        });
+        HBox branchControl = new HBox(6, syncBranch, connect);
+        branchControl.setAlignment(Pos.CENTER_RIGHT);
+        row(repo, Page.SYNC, "settings.sync.branch", branchControl, "branch connect");
+
+        Button now = new Button(Messages.tr("settings.sync.now"));
+        now.setOnAction(e -> services.sync().syncNow(true));
+        Button folder = new Button(Messages.tr("settings.sync.openFolder"));
+        folder.setOnAction(e -> services.host()
+                .openUrl(services.store().dir().resolve("sync").toUri().toString()));
+        syncPill.getStyleClass().add("pill");
+        HBox status = new HBox(8, syncPill, now, folder);
+        status.setAlignment(Pos.CENTER_RIGHT);
+        row(repo, Page.SYNC, "settings.sync.status", status, "status");
+
+        VBox automatic = card(Page.SYNC, null);
+        syncAuto.setOnAction(e -> services.store().update(s -> s.sync.auto = syncAuto.isSelected()));
+        syncInterval.setPrefColumnCount(3);
+        syncInterval.setOnAction(e -> commitInterval());
+        syncInterval.focusedProperty().addListener((obs, was, focused) -> {
+            if (!focused) commitInterval();
+        });
+        HBox autoControl = new HBox(6, syncInterval, new Label(Messages.tr("settings.sync.minutes")), syncAuto);
+        autoControl.setAlignment(Pos.CENTER_RIGHT);
+        row(automatic, Page.SYNC, "settings.sync.auto", autoControl, "interval automatic");
+        Label notes = new Label(Messages.tr("settings.sync.notes"));
+        notes.setWrapText(true);
+        notes.getStyleClass().add("note");
+        addRow(automatic, Page.SYNC, "", Messages.tr("settings.sync.notes"), notes, "private conflict");
+
+        loaders.add(() -> {
+            Settings.Sync s = services.settings().sync;
+            syncUrl.setText(s.repoUrl);
+            syncUrl.getStyleClass().remove("invalid");
+            syncBranch.setText(s.branch);
+            syncAuto.setSelected(s.auto);
+            syncInterval.setText(String.valueOf(s.intervalMinutes));
+            syncInterval.getStyleClass().remove("invalid");
+            loadSyncStatus();
+        });
+    }
+
+    private void commitUrl() {
+        String url = syncUrl.getText().trim();
+        String refused = url.isEmpty() ? null : SyncEngine.checkUrl(url);
+        if (refused != null) {
+            if (!syncUrl.getStyleClass().contains("invalid"))
+                syncUrl.getStyleClass().add("invalid");
+            services.echo("status.sync.invalidUrl", Messages.tr("settings.sync.url." + refused));
+            return;
+        }
+        syncUrl.getStyleClass().remove("invalid");
+        if (!url.equals(services.settings().sync.repoUrl)) services.store().update(s -> s.sync.repoUrl = url);
+    }
+
+    private void commitBranch() {
+        String branch = syncBranch.getText().trim();
+        if (!branch.isEmpty() && !branch.equals(services.settings().sync.branch)) {
+            services.store().update(s -> s.sync.branch = branch);
+        }
+    }
+
+    private void commitInterval() {
+        try {
+            int minutes = Integer.parseInt(syncInterval.getText().trim());
+            if (minutes < 1) throw new NumberFormatException();
+            syncInterval.getStyleClass().remove("invalid");
+            if (minutes != services.settings().sync.intervalMinutes) {
+                services.store().update(s -> s.sync.intervalMinutes = minutes);
+            }
+        } catch (NumberFormatException e) {
+            if (!syncInterval.getStyleClass().contains("invalid"))
+                syncInterval.getStyleClass().add("invalid");
+        }
+    }
+
+    private void loadSyncStatus() {
+        syncPill.setText(services.sync().pillText(System.currentTimeMillis()));
+        syncPill.setAccessibleText(Messages.tr("settings.sync.pill.accessible", syncPill.getText()));
+        syncPill.getStyleClass().removeAll("green", "amber", "red");
+        syncPill.getStyleClass()
+                .add(
+                        switch (services.sync().pill()) {
+                            case CONNECTED, SYNCING -> "green";
+                            case NOT_CONNECTED -> "amber";
+                            case FAILING -> "red";
+                        });
+    }
+
+    private void buildAdvanced() {
+        VBox card = card(Page.ADVANCED, null);
+        Label folder = new Label(AppInfo.tildeHome(services.store().dir().toString()));
+        folder.getStyleClass().add("muted");
+        Button open = new Button(Messages.tr("settings.config.open"));
+        open.setOnAction(e -> services.commands().run("config.openFolder"));
+        HBox folderControl = new HBox(8, folder, open);
+        folderControl.setAlignment(Pos.CENTER_RIGHT);
+        row(card, Page.ADVANCED, "settings.config", folderControl, "folder directory path");
+        Button export = new Button(Messages.tr("command.config.export"));
+        export.setOnAction(e -> services.commands().run("config.export"));
+        Button importButton = new Button(Messages.tr("command.config.import"));
+        importButton.setOnAction(e -> services.commands().run("config.import"));
+        HBox backup = new HBox(8, export, importButton);
+        backup.setAlignment(Pos.CENTER_RIGHT);
+        row(card, Page.ADVANCED, "settings.backup", backup, "export import zip backup");
+    }
+
+    // ---- rows, cards, search ----
+
+    private VBox page(Page page) {
+        return java.util.Objects.requireNonNull(pages.get(page));
+    }
+
+    private VBox card(Page page, @Nullable String heading) {
+        VBox card = new VBox();
+        card.getStyleClass().add("settings-card");
+        if (heading != null) {
+            Label label = new Label(heading);
+            label.getStyleClass().add("settings-card-heading");
+            card.getChildren().add(label);
+        }
+        page(page).getChildren().add(card);
+        return card;
+    }
+
+    private void row(VBox card, Page page, String key, Node control, String keywords) {
+        addRow(card, page, Messages.tr(key + ".title"), Messages.tr(key + ".desc"), control, keywords);
+    }
+
+    private void addRow(VBox card, Page page, String title, String description, Node control, String keywords) {
+        VBox text = new VBox(2);
+        if (!title.isEmpty()) {
+            Label label = new Label(title);
+            label.getStyleClass().add("setting-title");
+            label.setWrapText(true);
+            text.getChildren().add(label);
+        }
+        if (!description.isEmpty() && !(control instanceof Label)) {
+            Label desc = new Label(description);
+            desc.getStyleClass().add("setting-desc");
+            desc.setWrapText(true);
+            text.getChildren().add(desc);
+        }
+        HBox.setHgrow(text, Priority.ALWAYS);
+        HBox row = new HBox(16, text, control);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add("setting-row");
+        if (control instanceof Label) {
+            row.getChildren().setAll(control);
+            HBox.setHgrow(control, Priority.ALWAYS);
+        }
+        card.getChildren().add(row);
+        rows.add(new Row(page, row, card, new SettingsSearch.Entry(title, description, page.title(), keywords)));
+    }
+
+    /** Filters every page by {@code query} and opens the page with the best match. */
+    void applySearch(String query) {
+        Page best = null;
+        int bestScore = 0;
+        for (Page page : Page.values()) pageHits.put(page, false);
+        for (Row row : rows) {
+            int score = SettingsSearch.score(query, row.entry());
+            boolean show = score > 0;
+            row.node().setVisible(show);
+            row.node().setManaged(show);
+            if (show) pageHits.put(row.page(), true);
+            if (score > bestScore) {
+                bestScore = score;
+                best = row.page();
+            }
+        }
+        for (VBox page : pages.values()) {
+            for (Node child : page.getChildren()) {
+                if (child instanceof VBox card && card.getStyleClass().contains("settings-card")) {
+                    boolean any = card.getChildren().stream()
+                            .anyMatch(n -> n.getStyleClass().contains("setting-row") && n.isVisible());
+                    card.setVisible(any);
+                    card.setManaged(any);
+                }
+            }
+        }
+        sidebar.refresh();
+        if (best != null && !query.isBlank()) sidebar.getSelectionModel().select(best);
+    }
+
+    /** Sets every control from the settings. Safe to run at any time. */
+    void load() {
+        loaders.forEach(Runnable::run);
+    }
+
+    /** Commits a picked value; load() setting the value already stored must not write the file again. */
+    private <T> void commitIfChanged(
+            @Nullable T value, java.util.function.Function<Settings, T> current, Consumer<T> commit) {
+        if (value != null && !value.equals(current.apply(services.settings()))) commit.accept(value);
+    }
+
+    private static <T> StringConverter<T> converter(java.util.function.Function<T, String> text) {
+        return new StringConverter<>() {
+            @Override
+            public String toString(@Nullable T value) {
+                return value == null ? "" : text.apply(value);
+            }
+
+            @Override
+            public @Nullable T fromString(String string) {
+                return null;
+            }
+        };
+    }
+
+    // ---- accessors for tests ----
+
+    Stage stage() {
+        return stage;
+    }
+
+    TextField search() {
+        return search;
+    }
+
+    ListView<Page> sidebar() {
+        return sidebar;
+    }
+
+    List<Row> rows() {
+        return rows;
+    }
+
+    Map<Page, Boolean> pageHits() {
+        return pageHits;
+    }
+
+    ComboBox<ThemeChoice> theme() {
+        return theme;
+    }
+
+    ComboBox<String> language() {
+        return language;
+    }
+
+    ComboBox<String> keymap() {
+        return keymap;
+    }
+
+    SettingSwitch updatesSwitch() {
+        return updates;
+    }
+
+    SettingSwitch statusBarSwitch() {
+        return statusBar;
+    }
+
+    TextField syncUrl() {
+        return syncUrl;
+    }
+
+    TextField syncBranch() {
+        return syncBranch;
+    }
+
+    TextField syncInterval() {
+        return syncInterval;
+    }
+
+    SettingSwitch syncAuto() {
+        return syncAuto;
+    }
+
+    Label syncPill() {
+        return syncPill;
+    }
+
+    /** A sidebar row: the page's icon and name, greyed when a search finds nothing on it. */
+    private final class PageCell extends ListCell<Page> {
+        @Override
+        protected void updateItem(@Nullable Page page, boolean empty) {
+            super.updateItem(page, empty);
+            getStyleClass().remove("no-match");
+            if (empty || page == null) {
+                setText(null);
+                setGraphic(null);
+                return;
+            }
+            setText(page.title());
+            setGraphic(Icons.of(page.icon));
+            if (!search.getText().isBlank() && !pageHits.getOrDefault(page, true))
+                getStyleClass().add("no-match");
+        }
+    }
+}

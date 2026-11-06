@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.adriandeleon.ExampleApp</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+
+  <name>ExampleApp</name>
+  <summary>A keyboard-first JavaFX desktop app</summary>
+  <developer id="io.github.adriandeleon">
+    <name>Adrián Arturo De León Saldivar</name>
+  </developer>
+
+  <description>
+    <p>
+      ExampleApp is a keyboard-first desktop application built with JavaFX. It is the same
+      application on Linux, macOS and Windows.
+    </p>
+  </description>
+
+  <!-- The id jpackage installs the menu entry under: <package name>-<launcher name>. The AppImage
+       build rewrites it to the app id. -->
+  <launchable type="desktop-id">exampleapp-ExampleApp.desktop</launchable>
+  <!-- Ties this listing to the deb of that name; a downloaded package has no catalogue to do it. -->
+  <pkgname>exampleapp</pkgname>
+  <icon type="stock">io.github.adriandeleon.ExampleApp</icon>
+
+  <categories>
+    <category>Utility</category>
+  </categories>
+
+  <provides>
+    <binary>exampleapp</binary>
+  </provides>
+
+  <url type="homepage">https://github.com/adriandeleon/ExampleApp</url>
+  <url type="bugtracker">https://github.com/adriandeleon/ExampleApp/issues</url>
+  <url type="vcs-browser">https://github.com/adriandeleon/ExampleApp</url>
+
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </supports>
+
+  <content_rating type="oars-1.1"/>
+
+  <!-- Add each release here by hand (newest first) when you cut it, or software centres list the
+       previous one as the latest. -->
+  <releases>
+    <release version="0.1.0" date="2026-11-06">
+      <description>
+        <p>First release.</p>
+      </description>
+      <url type="details">https://github.com/adriandeleon/ExampleApp/releases/tag/v0.1.0</url>
+    </release>
+  </releases>
+</component>

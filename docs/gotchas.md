@@ -1,0 +1,24 @@
+# Gotchas
+
+Each of these cost one of the family's apps real time.
+
+- **`./mvnw clean -Pdist package`, always with `clean`.** An incremental compile can leave synthetic
+  enum-switch classes out of `target/classes`; jlink then ships an app whose keyboard fails on the
+  first keypress.
+- **Run Spotless on JDK 25.** Palantir Java Format reaches into javac internals and breaks on newer
+  JDKs. CI's Format job pins JDK 25.
+- **`.mvn/jvm.config` is load-bearing.** Error Prone (and so NullAway) needs those `--add-exports`.
+- **`java.awt.headless=true` is the first statement of `main`.** On macOS an initialised AWT
+  contends with JavaFX for the AppKit run loop and hangs.
+- **No `javafx.stage.Popup` for anything that takes keys.** On Windows a Popup does not reliably take
+  OS keyboard focus and the whole app can stop receiving keystrokes. Use `OverlayHost`.
+- **Fonts before stylesheets.** CSS that names a font not yet registered silently falls back to the
+  system face; `Startup` loads fonts first.
+- **Every dialog is a new scene.** Without `Dialogs.styled` it has neither the app CSS nor Inter.
+- **Unix-domain socket paths are short** (about 104 bytes on macOS). A deep config folder gets its
+  socket in the temp folder (`SingleInstance.socketPath`).
+- **A `.app` launched from Finder has a stripped `PATH`.** Anything that runs an external tool (git
+  for Settings Sync) must not assume a terminal's `PATH`.
+- **jpackage refuses a version starting with 0 on macOS.** The pom gives jpackage `1.x` there and
+  `scripts/fix-mac-bundle-version.sh` writes the real version back.
+- **A key value with `{0}` is a MessageFormat pattern**: a single apostrophe in it swallows text.

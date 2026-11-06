@@ -1,0 +1,129 @@
+# JReleaser creates the GitHub release and nothing else: it attaches the files release.yml built and
+# signed (downloaded into ./artifacts), checksums_sha256.txt, and the release notes. It builds nothing;
+# jpackage is host-specific, so each platform builds its own installers in the release matrix.
+#
+# The version comes from JRELEASER_PROJECT_VERSION (release.yml, from the tag). The Homebrew cask and
+# the winget pull request need PACKAGES_TOKEN, a PAT that can write to other repositories; without it
+# release.yml excludes both packagers and the GitHub release still publishes.
+#
+# Check the config, and render the cask and winget manifests, without releasing:
+#   JRELEASER_PROJECT_VERSION=1.2.3 jreleaser config
+#   JRELEASER_PROJECT_VERSION=1.2.3 jreleaser package --basedir .
+
+project:
+  name: ExampleApp
+  description: A keyboard-first JavaFX desktop app.
+  longDescription: |
+    ExampleApp is a keyboard-first desktop application built with JavaFX. It is the same application
+    on Linux, macOS and Windows.
+  links:
+    homepage: https://github.com/adriandeleon/ExampleApp
+    bugTracker: https://github.com/adriandeleon/ExampleApp/issues
+    license: https://github.com/adriandeleon/ExampleApp/blob/master/LICENSE
+  authors:
+    - Adrián Arturo De León Saldivar
+  copyright: Adrián Arturo De León Saldivar
+  license: MIT
+  inceptionYear: '2026'
+  # Read by winget from here, not from the packager.
+  tags:
+    - javafx
+    - desktop
+  # An application, not a command-line tool: makes brew write a cask instead of a formula.
+  stereotype: DESKTOP
+  languages:
+    java:
+      groupId: com.example.app
+      artifactId: exampleapp
+      version: '25'
+
+release:
+  github:
+    owner: adriandeleon
+    name: ExampleApp
+    # JReleaser defaults to main and fails late ("Could not checkout branch main") without this.
+    branch: master
+    tagName: 'v{{projectVersion}}'
+    releaseName: 'ExampleApp {{projectVersion}}'
+    # GitHub's immutable releases reject uploads to a published release: create a draft, upload
+    # everything, then publish. A re-run on the same tag needs `gh release delete vX.Y.Z` first.
+    immutableRelease: true
+    # A tag with a suffix (v1.2.0-rc1) is published as a pre-release.
+    prerelease:
+      pattern: '.*-.*'
+    changelog:
+      # Written by scripts/release-notes.sh in release.yml: the install instructions, then this
+      # version's section of CHANGELOG.md.
+      external: out/release-notes.md
+
+checksum:
+  individual: false
+
+distributions:
+  # One distribution per packager input. A cask takes exactly one artifact, so it serves Apple
+  # Silicon; Intel Macs download the macos-x64 dmg, attached through `files` below.
+  exampleapp:
+    type: NATIVE_PACKAGE
+    artifacts:
+      - path: 'artifacts/ExampleApp-{{projectVersion}}-macos-arm64.dmg'
+        platform: osx-aarch_64
+    brew:
+      active: RELEASE
+      # A token problem costs the tap, not the release.
+      continueOnError: true
+      cask:
+        enabled: true
+        name: exampleapp
+        displayName: ExampleApp
+      repository:
+        active: RELEASE
+        owner: adriandeleon
+        name: homebrew-tap
+        branch: main
+        branchPush: main
+
+  exampleapp-windows:
+    type: NATIVE_PACKAGE
+    executable:
+      name: ExampleApp
+      windowsExtension: exe
+    artifacts:
+      - path: 'artifacts/ExampleApp-{{projectVersion}}-windows-x64.msi'
+        platform: windows-x86_64
+    winget:
+      active: RELEASE
+      continueOnError: true
+      package:
+        identifier: AdrianDeLeon.ExampleApp
+        name: ExampleApp
+        version: '{{projectVersion}}'
+        url: https://github.com/adriandeleon/ExampleApp
+      publisher:
+        name: Adrián Arturo De León Saldivar
+        url: https://github.com/adriandeleon
+        supportUrl: https://github.com/adriandeleon/ExampleApp/issues
+      moniker: exampleapp
+      installer:
+        type: MSI
+        scope: USER
+        upgradeBehavior: INSTALL
+      # The adriandeleon fork of microsoft/winget-pkgs; the pull request is opened from a branch per
+      # release.
+      repository:
+        active: RELEASE
+        owner: adriandeleon
+        name: winget-pkgs
+        branch: master
+        branchPush: 'exampleapp-{{projectVersion}}'
+
+# Everything else in artifacts/. The two distributions above attach the arm64 dmg and the msi, so
+# they are left out here; the release-asset check in release.yml makes sure nothing is missing.
+files:
+  globs:
+    - pattern: 'artifacts/*-macos-x64.dmg'
+    - pattern: 'artifacts/*.deb'
+    - pattern: 'artifacts/*.rpm'
+    - pattern: 'artifacts/*.AppImage'
+    - pattern: 'artifacts/*.tar.gz'
+    - pattern: 'artifacts/*.jar'
+    - pattern: 'artifacts/*.asc'

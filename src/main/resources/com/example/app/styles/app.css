@@ -1,0 +1,238 @@
+/*
+ * App styles. Colours are AtlantaFX -color-* tokens only, never hex literals, so light and dark both
+ * follow. Semantic colours: amber = not durable yet, red = broken, green = verified.
+ */
+
+/* ---- window ---- */
+.welcome {
+    -fx-padding: 40;
+}
+.welcome-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+.muted {
+    -fx-text-fill: -color-fg-muted;
+}
+.hint {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 11px;
+}
+
+/* ---- status bar ---- */
+.status-bar {
+    -fx-padding: 3 10 3 10;
+    -fx-background-color: -color-bg-subtle;
+    -fx-border-color: -color-border-muted transparent transparent transparent;
+    -fx-font-size: 12px;
+    -fx-min-height: 26px;
+}
+.status-bar .echo {
+    -fx-cursor: hand;
+    -fx-text-fill: -color-fg-default;
+}
+.status-bar .echo.error {
+    -fx-text-fill: -color-danger-fg;
+}
+.status-bar .echo.warning {
+    -fx-text-fill: -color-warning-fg;
+}
+.status-bar .unread-errors {
+    -fx-background-color: -color-danger-emphasis;
+    -fx-text-fill: -color-fg-emphasis;
+    -fx-background-radius: 8;
+    -fx-padding: 0 6 0 6;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+}
+.status-bar .status-item {
+    -fx-text-fill: -color-fg-muted;
+}
+.status-bar .update-notice {
+    -fx-padding: 0;
+    -fx-font-weight: bold;
+}
+
+/* ---- overlays: palette, pickers, message log ---- */
+.overlay-backdrop {
+    -fx-background-color: rgba(0, 0, 0, 0.18);
+}
+.command-palette, .message-log {
+    -fx-background-color: -color-bg-overlay;
+    -fx-border-color: -color-border-default;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.28), 24, 0.1, 0, 6);
+}
+.command-palette .list-view, .message-log .list-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.command-palette .list-cell {
+    -fx-font-size: 12.5px;
+    -fx-padding: 7 16 7 16;
+    -fx-background-radius: 6;
+}
+.command-palette .list-cell:selected {
+    -fx-background-color: -color-accent-subtle;
+    -fx-border-color: transparent transparent transparent -color-accent-emphasis;
+    -fx-border-width: 0 0 0 2;
+}
+.command-palette .list-cell .match {
+    -fx-font-weight: bold;
+    -fx-fill: -color-accent-fg;
+}
+.command-palette .list-cell .plain {
+    -fx-fill: -color-fg-default;
+}
+.command-palette .list-cell.unavailable .plain,
+.command-palette .list-cell.unavailable .match {
+    -fx-fill: -color-fg-subtle;
+}
+.key-chip {
+    -fx-background-color: -color-bg-subtle;
+    -fx-border-color: -color-border-default;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 1 6 1 6;
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-accent-fg;
+}
+.palette-description {
+    -fx-text-fill: -color-fg-muted;
+    -fx-padding: 2 10 0 10;
+    -fx-text-overrun: ellipsis;
+}
+.palette-hint {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 11px;
+    -fx-padding: 0 10 2 10;
+}
+.message-log-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 4 0 4;
+}
+.message-log-list .list-cell {
+    -fx-padding: 2 4 2 4;
+    -fx-background-radius: 5;
+}
+.message-log-list .time {
+    -fx-font-family: "JetBrains Mono";
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-fg-muted;
+}
+.message-log-list .error {
+    -fx-text-fill: -color-danger-fg;
+}
+.message-log-list .warning {
+    -fx-text-fill: -color-warning-fg;
+}
+
+/* ---- settings ---- */
+.settings-sidebar .list-cell {
+    -fx-padding: 6 8 6 8;
+    -fx-graphic-text-gap: 8;
+}
+.settings-sidebar .list-cell.no-match {
+    -fx-text-fill: -color-fg-subtle;
+    -fx-opacity: 0.6;
+}
+.icon {
+    -fx-fill: -color-fg-muted;
+}
+.settings-page-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+.settings-card {
+    -fx-background-color: -color-bg-subtle;
+    -fx-background-radius: 8;
+    -fx-border-color: -color-border-muted;
+    -fx-border-radius: 8;
+    -fx-padding: 4 14 4 14;
+}
+.settings-card-heading {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-fg-muted;
+    -fx-padding: 8 0 2 0;
+}
+.setting-row {
+    -fx-padding: 10 0 10 0;
+}
+.setting-title {
+    -fx-font-weight: bold;
+}
+.setting-desc, .note {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 12px;
+}
+.text-field.invalid {
+    -fx-border-color: -color-danger-emphasis;
+}
+.pill {
+    -fx-background-radius: 10;
+    -fx-padding: 2 10 2 10;
+    -fx-font-size: 11.5px;
+}
+.pill.green {
+    -fx-background-color: -color-success-muted;
+    -fx-text-fill: -color-success-fg;
+}
+.pill.amber {
+    -fx-background-color: -color-warning-muted;
+    -fx-text-fill: -color-warning-fg;
+}
+.pill.red {
+    -fx-background-color: -color-danger-muted;
+    -fx-text-fill: -color-danger-fg;
+}
+.setting-switch {
+    -fx-min-width: 56px;
+}
+.setting-switch:selected {
+    -fx-background-color: -color-accent-emphasis;
+    -fx-text-fill: -color-fg-emphasis;
+}
+
+/* ---- about ---- */
+.about-name {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+.about-version {
+    -fx-font-size: 14px;
+    -fx-text-fill: -color-fg-muted;
+}
+.about-tagline {
+    -fx-font-size: 13px;
+    -fx-text-fill: -color-fg-muted;
+}
+.about-update-available {
+    -fx-font-weight: bold;
+    -fx-padding: 0;
+}
+.about-update-current {
+    -fx-text-fill: -color-success-fg;
+}
+.about-update-failed {
+    -fx-text-fill: -color-danger-fg;
+}
+.about-env {
+    -fx-font-family: "JetBrains Mono";
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -color-fg-muted;
+}
+
+/* ---- debug log, report ---- */
+.debug-log-text, .report-text {
+    -fx-font-family: "JetBrains Mono";
+    -fx-font-size: 12px;
+}
+
+/* Keyboard focus, drawn once, last. */
+*:focus-visible {
+    -fx-border-color: -color-accent-emphasis;
+}

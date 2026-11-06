@@ -1,0 +1,614 @@
+# Builds, signs and publishes a release. docs/release.md has the steps and the secrets.
+#
+#   push a tag vX.Y.Z   the full release: the tag must equal the pom version, then the five-target
+#                       matrix, signing, the release-asset check, attestations, JReleaser, and a pull
+#                       request that reopens master at the next -SNAPSHOT.
+#   workflow_dispatch   a dry run: everything up to and including the asset check, then stops.
+#                       Signing without secrets uses ad-hoc (macOS) and throw-away (Linux) keys.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch: {}
+
+# Read-only by default. The build jobs run whatever Maven resolves and must not hold a token that can
+# write; only `publish` and `bump` ask for more, in their own blocks.
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Preflight (tag vs pom version)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # The pom is the single source of truth. A tag that disagrees with it would publish installers
+      # labelled with a version they were not built from, so it fails here, before anything builds.
+      - name: Resolve and check the version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          pom=$(./mvnw -B -q --no-transfer-progress help:evaluate -Dexpression=project.version -DforceStdout)
+          echo "version=$pom" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            tag="${GITHUB_REF_NAME#v}"
+            if [ "$tag" != "$pom" ]; then
+              echo "::error::tag $GITHUB_REF_NAME does not match the pom version $pom. Set <version> to $tag and re-tag."
+              exit 1
+            fi
+            case "$pom" in *-SNAPSHOT)
+              echo "::error::refusing to release a snapshot ($pom)"; exit 1 ;;
+            esac
+            [[ "$pom" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] ||
+              { echo "::error::$pom is not a version (X.Y.Z or X.Y.Z-suffix)"; exit 1; }
+          fi
+          echo "Releasing $pom (${GITHUB_REF_TYPE}: ${GITHUB_REF_NAME})" >> "$GITHUB_STEP_SUMMARY"
+
+  # The whole suite on Linux, macOS and Windows: the build legs below run it too, but only where they
+  # build, and a tag is not otherwise gated on the platforms ci.yml does not cover. (A job that calls
+  # a workflow takes no timeout-minutes; full-tests.yml's own jobs carry theirs.)
+  full-tests:
+    name: Full tests
+    needs: preflight
+    uses: ./.github/workflows/full-tests.yml
+
+  build:
+    name: Build ${{ matrix.target }}
+    needs: [preflight, full-tests]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest,    target: linux-x64,   fatjar: true }
+          - { os: ubuntu-24.04-arm, target: linux-arm64, fatjar: true }
+          - { os: macos-15,         target: macos-arm64, fatjar: false }
+          # The last Intel macOS image GitHub offers, good to about August 2027.
+          - { os: macos-15-intel,   target: macos-x64,   fatjar: false }
+          - { os: windows-latest,   target: windows-x64, fatjar: true }
+    env:
+      VERSION: ${{ needs.preflight.outputs.version }}
+      TARGET: ${{ matrix.target }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # jpackage shells out to each platform's packaging tools, and a fresh runner lacks some.
+      - name: Installer prerequisites
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          case "$RUNNER_OS" in
+            Linux)
+              # rpmbuild for the rpm, fakeroot for the deb, xvfb for the tests and the smoke test,
+              # appstream to validate the AppImage's metainfo.
+              sudo apt-get -o Acquire::Retries=3 update -qq
+              sudo apt-get -o Acquire::Retries=3 install -y -qq fakeroot rpm binutils xvfb appstream
+              ;;
+            Windows)
+              # jpackage builds the MSI with WiX. Pinned: the PATH line names 3.14.
+              choco install wixtoolset --version 3.14.1.20250415 --no-progress -y
+              echo "C:\\Program Files (x86)\\WiX Toolset v3.14\\bin" >> "$GITHUB_PATH"
+              ;;
+          esac
+
+      # The .p12 (Developer ID Application certificate, key and Apple's G2 intermediate) goes into a
+      # throw-away keychain; sign-mac-app.sh and build-installers.sh read the identity from the env.
+      # A tag without the secrets fails: an unsigned dmg in an immutable release cannot be fixed. A dry
+      # run without them builds ad-hoc signed and says so.
+      - name: Import signing certificate (macOS)
+        id: macsign
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "$MACOS_CERT_P12" ] || [ -z "$MACOS_CERT_PASSWORD" ] || [ -z "$APPLE_API_KEY_P8" ] || [ -z "$APPLE_API_KEY_ID" ]; then
+            if [ "$GITHUB_REF_TYPE" = tag ]; then
+              echo "::error title=macOS signing secrets missing::MACOS_CERT_P12, MACOS_CERT_PASSWORD, APPLE_API_KEY_P8 and APPLE_API_KEY_ID are required to release"
+              exit 1
+            fi
+            echo "::warning title=macOS build unsigned::no signing secrets, so this dry run's dmg is ad-hoc signed and not notarized"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          kc="$RUNNER_TEMP/exampleapp-signing.keychain-db"
+          kcpass="$(uuidgen)"
+          security create-keychain -p "$kcpass" "$kc"
+          security set-keychain-settings -lut 3600 "$kc"   # no auto-lock mid-build
+          security unlock-keychain -p "$kcpass" "$kc"
+          p12="$RUNNER_TEMP/exampleapp-signing.p12"
+          printf '%s' "$MACOS_CERT_P12" | base64 --decode > "$p12"
+          if ! security import "$p12" -k "$kc" -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign; then
+            rm -f "$p12"
+            echo "::error title=Certificate import failed::the password does not open MACOS_CERT_P12 (set the secret at the gh prompt; a piped echo adds a newline), or the .p12 was exported without openssl's -legacy"
+            exit 1
+          fi
+          rm -f "$p12"
+          # Lets codesign use the key without a GUI prompt, and puts the keychain on the search list.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$kcpass" "$kc" > /dev/null
+          security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
+          identity="$(security find-identity -v -p codesigning "$kc" | awk -F'"' '/Developer ID Application/ { print $2; exit }')"
+          if [ -z "$identity" ]; then
+            security find-identity -v -p codesigning "$kc"
+            echo "::error title=No Developer ID identity::the .p12 holds no valid Developer ID Application identity"
+            exit 1
+          fi
+          echo "Signing as: $identity"
+          echo "EXAMPLEAPP_MAC_SIGN_IDENTITY=$identity" >> "$GITHUB_ENV"
+          echo "EXAMPLEAPP_MAC_KEYCHAIN=$kc" >> "$GITHUB_ENV"
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+
+      # With the tests: two of these runners (linux-arm64, macos-x64) run nowhere else. The pom builds
+      # the app image, adds the notices, signs it (macOS) and wraps the installers (docs/building-and-packaging.md).
+      - name: Build, test and package
+        shell: bash
+        timeout-minutes: 50
+        run: |
+          run=()
+          if [ "$RUNNER_OS" = Linux ]; then run=(xvfb-run -a); fi
+          "${run[@]}" ./mvnw -B --no-transfer-progress clean -Pdist -Dskip.installers=false verify
+
+      - name: Smoke-test the packaged app
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          case "$RUNNER_OS" in
+            macOS)   launcher="target/dist/ExampleApp.app/Contents/MacOS/ExampleApp" ;;
+            Windows) launcher="target/dist/ExampleApp/ExampleApp.exe" ;;
+            *)       launcher="target/dist/ExampleApp/bin/ExampleApp" ;;
+          esac
+          bash scripts/smoke-test.sh "$launcher" "$RUNNER_TEMP/smoke"
+
+      # Through AppRun and the AppImage runtime, which the image's smoke test never reaches. Extracted
+      # rather than mounted: the runner has no FUSE.
+      - name: Smoke-test the AppImage
+        if: runner.os == 'Linux'
+        shell: bash
+        timeout-minutes: 5
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: bash scripts/smoke-test.sh "$(ls target/installers/*.AppImage)" "$RUNNER_TEMP/smoke-appimage"
+
+      - name: Check the macOS signature
+        if: runner.os == 'macOS'
+        run: codesign --verify --deep --strict --verbose=2 target/dist/ExampleApp.app
+
+      # Apple scans the signed dmg and issues a ticket; stapling attaches it so Gatekeeper accepts the
+      # dmg offline. A rejection prints Apple's log, which names each offending file. The checks at
+      # the end are what Gatekeeper does on a user's Mac.
+      - name: Notarize the dmg (macOS)
+        if: steps.macsign.outputs.enabled == 'true'
+        shell: bash
+        timeout-minutes: 35
+        env:
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          set -euo pipefail
+          # Easy to swap: the issuer is the UUID above the key list, the key ID 10 characters.
+          uuid='^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$'
+          if [ -n "$APPLE_API_ISSUER" ] && ! [[ "$APPLE_API_ISSUER" =~ $uuid ]]; then
+            echo "::error::APPLE_API_ISSUER must be the Issuer ID UUID shown above the team key list"; exit 1
+          fi
+          [[ "$APPLE_API_KEY_ID" =~ ^[A-Z0-9]{10}$ ]] || { echo "::error::APPLE_API_KEY_ID must be the 10-character Key ID"; exit 1; }
+          key="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+          printf '%s' "$APPLE_API_KEY_P8" | base64 --decode > "$key"
+          auth=(--key "$key" --key-id "$APPLE_API_KEY_ID")
+          [ -n "$APPLE_API_ISSUER" ] && auth+=(--issuer "$APPLE_API_ISSUER")   # team keys only
+
+          dmg="$(ls target/installers/*.dmg | head -1)"
+          # The app inside the dmg must still carry our signature: jpackage re-signs ad hoc an image it
+          # believes unsigned. Seconds to check here; Apple takes minutes to say only "invalid".
+          mnt="$(mktemp -d)"
+          hdiutil attach -nobrowse -readonly -mountpoint "$mnt" "$dmg" > /dev/null
+          ok=1
+          codesign -dv --verbose=2 "$mnt"/*.app 2>&1 | grep -q '^Authority=Developer ID Application' || ok=0
+          codesign --verify --deep --strict --verbose=2 "$mnt"/*.app || ok=0
+          hdiutil detach "$mnt" > /dev/null
+          [ "$ok" = 1 ] || { echo "::error::the app inside $(basename "$dmg") lost its Developer ID signature"; exit 1; }
+
+          out="$(xcrun notarytool submit "$dmg" "${auth[@]}" --wait --timeout 30m --output-format json)" || true
+          echo "$out"
+          id="$(printf '%s' "$out" | jq -r '.id // empty')"
+          status="$(printf '%s' "$out" | jq -r '.status // empty')"
+          [ -n "$id" ] && { xcrun notarytool log "$id" "${auth[@]}" || true; }
+          rm -f "$key"
+          [ "$status" = Accepted ] || { echo "::error::notarization returned '${status:-no result}'; Apple's log is above"; exit 1; }
+
+          # The ticket can take a moment to reach Apple's CDN, so stapling is retried.
+          for attempt in 1 2 3 4 5; do
+            xcrun stapler staple "$dmg" && break
+            [ "$attempt" = 5 ] && { echo "::error::notarized, but the ticket could not be stapled"; exit 1; }
+            sleep 20
+          done
+          spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg"
+          hdiutil attach -nobrowse -readonly -mountpoint "$mnt" "$dmg" > /dev/null
+          trap 'hdiutil detach "$mnt" > /dev/null 2>&1 || true' EXIT
+          spctl --assess --type execute --verbose=2 "$mnt"/*.app
+          echo "- ${TARGET}: signed, notarized and stapled" >> "$GITHUB_STEP_SUMMARY"
+
+      # Platform-specific (it carries this OS's JavaFX natives), so built on each runner that ships one.
+      # No `clean`: target/installers must survive.
+      - name: Build the fat jar
+        if: matrix.fatjar
+        shell: bash
+        timeout-minutes: 10
+        run: ./mvnw -B --no-transfer-progress -Pfatjar -DskipTests package
+
+      # One naming scheme for every download: ExampleApp-<version>-<target>.<ext>.
+      - name: Name the downloads
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd target/installers
+          shopt -s nullglob
+          produced=0
+          for file in *; do
+            case "$file" in
+              *.tar.gz) ext=tar.gz ;;
+              *)        ext="${file##*.}" ;;
+            esac
+            mv -v "$file" "ExampleApp-$VERSION-$TARGET.$ext"
+            produced=$((produced + 1))
+          done
+          [ "$produced" -gt 0 ] || { echo "::error::no installer was produced for $TARGET"; exit 1; }
+          if [ "${{ matrix.fatjar }}" = true ]; then
+            cp -v ../exampleapp-*-fat.jar "ExampleApp-$VERSION-$TARGET.jar"
+          fi
+          ls -la
+
+      - name: Upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ExampleApp-${{ matrix.target }}
+          path: target/installers/*
+          retention-days: 14
+          if-no-files-found: error
+
+      # The keychain holds the private key: remove it as soon as the job is done.
+      - name: Remove signing keychain (macOS)
+        if: always() && steps.macsign.outputs.enabled == 'true'
+        shell: bash
+        run: security delete-keychain "$RUNNER_TEMP/exampleapp-signing.keychain-db" || true
+
+  # Signs the Linux downloads (scripts/sign-linux-packages.sh) in a job of its own, so the key is never
+  # on a runner that runs Maven, and once for both architectures. It replaces the build's artifacts
+  # with the signed files and adds the public key as exampleapp-signing-key.asc.
+  #
+  # With LINUX_GPG_KEY the key must match the committed packaging/linux/signing-key.asc, when there is
+  # one (a new repository has none yet: docs/release.md says how to add it). A tag without the secret
+  # fails; a dry run without it signs with a key made for the run, so the step is still exercised.
+  sign-linux:
+    name: Sign Linux packages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Signing tools
+        timeout-minutes: 5
+        run: |
+          sudo apt-get -o Acquire::Retries=3 update -qq
+          sudo apt-get -o Acquire::Retries=3 install -y -qq rpm debsig-verify
+
+      # One directory per artifact: linux/ExampleApp-linux-x64, linux/ExampleApp-linux-arm64.
+      - name: Download the Linux builds
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: ExampleApp-linux-*
+          path: linux
+
+      - name: Sign
+        shell: bash
+        env:
+          LINUX_GPG_KEY: ${{ secrets.LINUX_GPG_KEY }}
+          LINUX_GPG_PASSPHRASE: ${{ secrets.LINUX_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          committed=packaging/linux/signing-key.asc
+          if [ -n "$LINUX_GPG_KEY" ]; then
+            export EXAMPLEAPP_GPG_KEY="$LINUX_GPG_KEY" EXAMPLEAPP_GPG_PASSPHRASE="$LINUX_GPG_PASSPHRASE"
+            if [ -f "$committed" ]; then
+              export EXAMPLEAPP_GPG_EXPECTED_KEY="$committed"
+            elif [ "$GITHUB_REF_TYPE" = tag ]; then
+              echo "::warning title=No committed signing key::$committed does not exist, so LINUX_GPG_KEY is not checked against it. Commit the key's public half (docs/release.md)."
+            fi
+          elif [ "$GITHUB_REF_TYPE" = tag ]; then
+            echo "::error title=Linux signing key missing::LINUX_GPG_KEY is not set; refusing to release unsigned Linux packages"
+            exit 1
+          else
+            echo "::warning title=Throw-away signing key::no LINUX_GPG_KEY, so this dry run signs with a key made for it"
+            export GNUPGHOME="$RUNNER_TEMP/throwaway-gnupg"
+            mkdir -m 700 "$GNUPGHOME"
+            gpg --batch --pinentry-mode loopback --passphrase '' --quick-gen-key 'ExampleApp dry run <dry-run@exampleapp.invalid>' ed25519 sign 1d
+            EXAMPLEAPP_GPG_KEY="$(gpg --batch --armor --export-secret-keys)"
+            export EXAMPLEAPP_GPG_KEY
+            unset GNUPGHOME
+          fi
+          mkdir -p key
+          bash scripts/sign-linux-packages.sh key/exampleapp-signing-key.asc linux/*/
+          bash scripts/check-linux-signatures.sh key/exampleapp-signing-key.asc linux/*/
+          fpr=$(gpg --with-colons --import-options show-only --import key/exampleapp-signing-key.asc | awk -F: '$1 == "fpr" { print $10; exit }')
+          echo "- Linux: signed with \`$fpr\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload signed (linux-x64)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ExampleApp-linux-x64
+          path: linux/ExampleApp-linux-x64/*
+          overwrite: true
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload signed (linux-arm64)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ExampleApp-linux-arm64
+          path: linux/ExampleApp-linux-arm64/*
+          overwrite: true
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload the public key
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ExampleApp-signing-key
+          path: key/exampleapp-signing-key.asc
+          retention-days: 14
+          if-no-files-found: error
+
+  # GitHub releases are immutable: a file missing at publish time can never be added. So every
+  # expected download is checked here, on a dry run too, before anything is published. When you add
+  # or drop a format, change this list (and jreleaser.yml's globs).
+  check-assets:
+    name: Release-asset check
+    needs: [preflight, sign-linux]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VERSION: ${{ needs.preflight.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download every build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: ExampleApp-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: Check the expected files
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=()
+          for target in linux-x64 linux-arm64; do
+            for ext in deb rpm AppImage tar.gz jar; do
+              expected+=("ExampleApp-$VERSION-$target.$ext" "ExampleApp-$VERSION-$target.$ext.asc")
+            done
+          done
+          expected+=("ExampleApp-$VERSION-macos-arm64.dmg" "ExampleApp-$VERSION-macos-x64.dmg")
+          expected+=("ExampleApp-$VERSION-windows-x64.msi" "ExampleApp-$VERSION-windows-x64.jar")
+          expected+=(exampleapp-signing-key.asc)
+          declare -A wanted
+          missing=0
+          for file in "${expected[@]}"; do
+            wanted[$file]=1
+            if [ -s "artifacts/$file" ]; then
+              echo "ok       $file"
+            else
+              echo "::error::missing release asset: $file"
+              missing=$((missing + 1))
+            fi
+          done
+          for file in artifacts/*; do
+            name="$(basename "$file")"
+            [ -n "${wanted[$name]:-}" ] || echo "::warning::unexpected file, not checked: $name"
+          done
+          [ "$missing" = 0 ] || { echo "::error::$missing expected file(s) missing; nothing was published"; exit 1; }
+          echo "- All ${#expected[@]} release assets present" >> "$GITHUB_STEP_SUMMARY"
+
+      # The notes need a CHANGELOG.md section for the version; a dry run falls back to Unreleased.
+      - name: Check the release notes
+        shell: bash
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            bash scripts/release-notes.sh "$VERSION" out/release-notes.md
+          else
+            bash scripts/release-notes.sh "${VERSION%-SNAPSHOT}" out/release-notes.md --allow-missing
+          fi
+          cat out/release-notes.md >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    name: Publish
+    needs: [preflight, check-assets]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The only job that publishes: the release, and the provenance attestations (OIDC + attestations).
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    env:
+      VERSION: ${{ needs.preflight.outputs.version }}
+    steps:
+      # JReleaser reads the history and talks to the API with its own token; nothing here pushes.
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download every build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: ExampleApp-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Release notes
+        run: bash scripts/release-notes.sh "$VERSION" out/release-notes.md
+
+      # A signed statement that each download was built by this workflow from this commit:
+      #   gh attestation verify <file> --repo adriandeleon/ExampleApp
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: 'artifacts/*'
+
+      # Without PACKAGES_TOKEN the Homebrew and winget packagers are excluded outright (one clear line)
+      # rather than left to fail; adding the secret turns them on with no other change.
+      - name: Decide which packagers can run
+        id: packagers
+        shell: bash
+        env:
+          PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+        run: |
+          if [ -n "$PACKAGES_TOKEN" ]; then
+            echo "args=full-release" >> "$GITHUB_OUTPUT"
+          else
+            echo "args=full-release --exclude-packager brew --exclude-packager winget" >> "$GITHUB_OUTPUT"
+            echo "::notice::No PACKAGES_TOKEN: GitHub release only, no Homebrew cask or winget pull request."
+          fi
+
+      # The action and the JReleaser it downloads are both pinned; bump them deliberately.
+      - name: Publish release
+        uses: jreleaser/release-action@90ac653bb9c79d11179e65d81499f3f34527dcd5 # 2.5.0
+        with:
+          version: 1.26.0
+          arguments: ${{ steps.packagers.outputs.args }}
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ env.VERSION }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The tap and the winget fork are other repositories: a PAT with repo scope.
+          JRELEASER_BREW_GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+          JRELEASER_WINGET_GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+
+      - name: Upload JReleaser output
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: jreleaser-logs
+          path: |
+            out/jreleaser/trace.log
+            out/jreleaser/output.properties
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # Reopens master at the next patch -SNAPSHOT, through a pull request (master's required checks refuse
+  # a direct push). Skipped for pre-releases (a tag with a suffix), which do not advance the line.
+  #
+  # A pull request opened with GITHUB_TOKEN triggers no workflows, so its checks do not start by
+  # themselves: close and reopen it (or push to it) to run them. Opening it needs Settings > Actions >
+  # General > "Allow GitHub Actions to create and approve pull requests"; without it the branch is still
+  # pushed and the summary links to it.
+  bump:
+    name: Reopen master for development
+    needs: [preflight, publish]
+    if: github.ref_type == 'tag' && !contains(github.ref_name, '-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      RELEASED: ${{ needs.preflight.outputs.version }}
+    steps:
+      # The one checkout that keeps its credentials: this job pushes a branch.
+      - name: Check out master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Open the pull request
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          current=$(./mvnw -B -q --no-transfer-progress help:evaluate -Dexpression=project.version -DforceStdout)
+          # Only advance when master still sits on the released version; anything else means a person
+          # got there first.
+          if [ "$current" != "$RELEASED" ]; then
+            echo "master is at $current, not $RELEASED: nothing to bump."
+            exit 0
+          fi
+          IFS=. read -r major minor patch <<< "$RELEASED"
+          next="$major.$minor.$((patch + 1))-SNAPSHOT"
+          branch="chore/reopen-$major.$minor.$((patch + 1))"
+          title="chore: reopen master at $next after $GITHUB_REF_NAME"
+          if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
+            echo "$branch already exists: nothing to do."
+            exit 0
+          fi
+
+          ./mvnw -B -q --no-transfer-progress versions:set -DnewVersion="$next" -DgenerateBackupPoms=false
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git commit -am "$title"
+          git push origin "$branch"
+
+          body="$GITHUB_REF_NAME is published. This sets \`pom.xml\` to $next. Close and reopen this pull request to run the required checks (a pull request opened by GITHUB_TOKEN starts no workflows)."
+          if url=$(gh pr create --base master --head "$branch" --title "$title" --body "$body"); then
+            echo "Merge [the pull request]($url) to reopen master at \`$next\`." >> "$GITHUB_STEP_SUMMARY"
+          else
+            compare="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/master...$branch?expand=1"
+            echo "::warning::could not open the pull request; $branch is pushed: $compare"
+            echo "[Open the pull request]($compare) for \`$branch\` and merge it to reopen master at \`$next\`." >> "$GITHUB_STEP_SUMMARY"
+          fi

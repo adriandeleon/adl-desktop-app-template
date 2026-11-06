@@ -1,0 +1,12 @@
+{
+  "name": "Emacs",
+  "notation": "emacs",
+  "bindings": {
+    "palette.show": "M-x",
+    "app.settings": "C-,",
+    "app.quit": "C-x C-c",
+    "view.messageLog": "C-h e",
+    "help.debugLog": "C-h l",
+    "help.about": "C-h C-a"
+  }
+}

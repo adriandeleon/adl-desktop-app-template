@@ -1,0 +1,46 @@
+ExampleApp
+Copyright (c) 2026 Adrián Arturo De León Saldivar
+
+ExampleApp is licensed under the MIT License (see LICENSE).
+
+This product includes the following third-party components, each under its own
+licence. Keep this list in step with the pom: every bundled dependency, font and
+runtime appears here.
+
+--------------------------------------------------------------------------------
+OpenJFX (JavaFX) — https://openjdk.org/projects/openjfx/
+Copyright Oracle and/or its affiliates.
+Licensed under the GNU General Public License, version 2, with the Classpath
+Exception (GPL-2.0-only WITH Classpath-exception-2.0). The javafx.base,
+javafx.graphics and javafx.controls modules are linked unmodified into the
+packaged runtime, with their native libraries. Their own third-party notices:
+https://github.com/openjdk/jfx/tree/master/modules/javafx.graphics/src/main/legal
+
+OpenJDK — https://openjdk.org
+Copyright Oracle and/or its affiliates, and other contributors.
+The packaged app carries a Java runtime linked with jlink from an OpenJDK build
+(Eclipse Temurin). GPL-2.0-only WITH Classpath-exception-2.0. The runtime's own
+notices are in its legal/ directory (lib/runtime/legal on Linux,
+Contents/runtime/Contents/Home/legal on macOS, runtime\legal on Windows).
+
+AtlantaFX — https://github.com/mkpaz/atlantafx
+Copyright (c) 2022 mkpaz. Licensed under the MIT License.
+
+Jackson (jackson-core, jackson-databind, jackson-annotations)
+https://github.com/FasterXML/jackson
+Copyright FasterXML, LLC. Licensed under the Apache License, Version 2.0.
+
+Inter — https://rsms.me/inter/
+Copyright (c) 2016 The Inter Project Authors. Licensed under the SIL Open Font
+License, Version 1.1 (OFL-1.1); the licence travels beside the font files
+(com/example/app/fonts/inter/OFL.txt).
+
+JetBrains Mono — https://www.jetbrains.com/lp/mono/
+Copyright 2020 The JetBrains Mono Project Authors. Licensed under the SIL Open
+Font License, Version 1.1 (OFL-1.1); the licence travels beside the font file
+(com/example/app/fonts/jetbrains-mono/OFL.txt).
+
+--------------------------------------------------------------------------------
+Build-time only (not shipped): JSpecify (Apache-2.0), Error Prone (Apache-2.0),
+NullAway (MIT), JUnit (EPL-2.0), TestFX (EUPL-1.1), JaCoCo (EPL-2.0), Spotless
+(Apache-2.0), Palantir Java Format (Apache-2.0).
