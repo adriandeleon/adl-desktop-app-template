@@ -1,7 +1,7 @@
 # ExampleApp: rules for coding agents
 
 ExampleApp is a JavaFX desktop app: JDK 25+, JavaFX 27+, Maven, one JPMS module (`com.example.app`).
-It follows the [adl Desktop Apps Guidelines](https://adriandeleon.github.io/adl-desktop-apps-guidelines/).
+It follows [Pauta (the adl desktop apps guidelines)](https://adriandeleon.github.io/adl-desktop-apps-guidelines/).
 This file is operational rules, not a changelog: how the app is built lives in [`docs/`](docs/README.md).
 
 ## Essential commands

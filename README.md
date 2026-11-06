@@ -18,8 +18,7 @@
 
 <!-- template:start -->
 > [!IMPORTANT]
-> **This is the [adl Desktop Apps Guidelines](https://adriandeleon.github.io/adl-desktop-apps-guidelines/)
-> template.** Click **Use this template**, clone your new repository, then run:
+> **This is the template for [Pauta (the adl desktop apps guidelines)](https://adriandeleon.github.io/adl-desktop-apps-guidelines/).** Click **Use this template**, clone your new repository, then run:
 >
 > ```bash
 > scripts/rename.sh MyApp com.myapp
@@ -31,12 +30,14 @@
 > names, moves the package folders, gives the Windows installer its own upgrade code, and deletes
 > this box, the rename check in CI and itself. Then replace the icon (`branding/`, then
 > `scripts/make-icons.sh`) and the screenshots, and write your app in `MainWindow`'s placeholder.
-> Everything the guidelines mark MUST is already here and tested: see
+> Everything Pauta marks MUST is already here and tested: see
 > [docs/architecture.md](docs/architecture.md) for where each piece lives.
 <!-- template:end -->
 
 ExampleApp is a keyboard-first JavaFX desktop app for Windows, macOS and Linux. Every action is a
 command you can run from the Command Palette, and nothing leaves your computer unless you ask.
+
+Built to [Pauta (the adl desktop apps guidelines)](https://adriandeleon.github.io/adl-desktop-apps-guidelines/).
 
 <p align="center">
   <picture>

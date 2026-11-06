@@ -1,4 +1,4 @@
-# 1. Start from the adl Desktop Apps Guidelines template
+# 1. Start from the Pauta template
 
 - Status: accepted
 - Date: 2026-11-06
@@ -6,7 +6,7 @@
 ## Context
 
 The family's apps (Editora, Torrenta, Termina, Modula, Mirada, nux) share a platform and a set of
-MUSTs: one command registry and palette, versioned config, Message and Debug Logs, Report a Problem,
+MUSTs, written down as [Pauta (the adl desktop apps guidelines)](https://adriandeleon.github.io/adl-desktop-apps-guidelines/): one command registry and palette, versioned config, Message and Debug Logs, Report a Problem,
 an update check, six languages, NullAway, headless FX tests and a 0.90 coverage floor. Each app grew
 them separately.
 
