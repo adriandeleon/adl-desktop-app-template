@@ -123,7 +123,14 @@ public final class DebugLog {
         if (rotate && opened.size() > 0) {
             Path parent = candidate.getParent();
             if (parent != null) {
-                Files.copy(candidate, parent.resolve(PREVIOUS_FILE), StandardCopyOption.REPLACE_EXISTING);
+                // Read through the channel that holds the lock: Windows refuses any other reader of a
+                // locked file, so copying the path failed there and the session log never attached.
+                // The stream is not closed: that would close the channel and release the lock.
+                opened.position(0);
+                Files.copy(
+                        java.nio.channels.Channels.newInputStream(opened),
+                        parent.resolve(PREVIOUS_FILE),
+                        StandardCopyOption.REPLACE_EXISTING);
             }
         }
         opened.truncate(0);
