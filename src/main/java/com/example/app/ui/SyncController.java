@@ -12,7 +12,9 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.util.Duration;
 
+import com.example.app.AppInfo;
 import com.example.app.i18n.Messages;
+import com.example.app.sync.GitHubCli;
 import com.example.app.sync.SyncEngine;
 import org.jspecify.annotations.Nullable;
 
@@ -35,6 +37,8 @@ public final class SyncController {
 
     private final AppServices services;
     private final SyncEngine engine;
+    private final GitHubCli gitHub;
+    private boolean creating;
     private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
     private final PauseTransition dirty = new PauseTransition(DIRTY_DELAY);
     private @Nullable Timeline interval;
@@ -42,9 +46,10 @@ public final class SyncController {
     private @Nullable String lastError;
     private String lastBindings;
 
-    SyncController(AppServices services, SyncEngine engine) {
+    SyncController(AppServices services, SyncEngine engine, GitHubCli gitHub) {
         this.services = services;
         this.engine = engine;
+        this.gitHub = gitHub;
         this.lastBindings = String.valueOf(services.settings().keybindings);
         dirty.setOnFinished(e -> syncNow(false));
         services.store().addListener(settings -> {
@@ -141,6 +146,42 @@ public final class SyncController {
             if (manual || !wasFailing) services.echo("status.sync.syncFailed", lastError);
         }
         running = false;
+        fire();
+    }
+
+    /** The name "Create on GitHub" suggests: {@code <app>-sync}. */
+    public static String suggestedRepoName() {
+        return AppInfo.ID + "-sync";
+    }
+
+    /**
+     * Creates a private repository on GitHub with the user's gh, connects sync to it and runs the first
+     * sync. Off the FX thread; the outcome is said in the status bar.
+     */
+    public void createOnGitHub(String name) {
+        if (creating) return;
+        creating = true;
+        services.echo("status.sync.creating", name);
+        String description = Messages.tr("settings.sync.repoDescription", AppInfo.NAME);
+        Thread.ofPlatform().daemon().name("github-create").start(() -> {
+            GitHubCli.Created created = gitHub.createPrivate(name.strip(), description);
+            Platform.runLater(() -> created(created));
+        });
+    }
+
+    void created(GitHubCli.Created created) {
+        creating = false;
+        switch (created.problem()) {
+            case NONE -> {
+                services.store().update(s -> s.sync.repoUrl = created.url());
+                services.echo("status.sync.created", created.url());
+                syncNow(true);
+            }
+            case BAD_NAME -> services.echo("status.sync.invalidRepoName", created.detail());
+            case NOT_INSTALLED -> services.echo("status.sync.cannotFindGh");
+            case NOT_SIGNED_IN -> services.echo("status.sync.cannotUseGh");
+            case FAILED -> services.echo("status.sync.createFailed", created.detail());
+        }
         fire();
     }
 

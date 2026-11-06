@@ -232,6 +232,25 @@
     -fx-font-size: 12px;
 }
 
+/* ---- title bar and menus ---- */
+.header-bar {
+    -fx-background-color: -color-bg-subtle;
+    -fx-border-color: transparent transparent -color-border-muted transparent;
+    -fx-min-height: 34px;
+}
+.header-bar .menu-bar {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.header-title {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 12.5px;
+}
+.menu-item-chord {
+    -fx-text-fill: -color-fg-muted;
+    -fx-font-size: 11px;
+}
+
 /* Keyboard focus, drawn once, last. */
 *:focus-visible {
     -fx-border-color: -color-accent-emphasis;

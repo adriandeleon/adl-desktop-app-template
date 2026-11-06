@@ -32,6 +32,15 @@ class MigrationsTest {
     }
 
     @Test
+    void anAdditiveVersionMigratesByIdentity() {
+        ObjectNode v2 =
+                JsonNodeFactory.instance.objectNode().put("schemaVersion", 2).put("keymap", "emacs");
+        ObjectNode v3 = Migrations.migrate(v2);
+        assertEquals(3, Migrations.versionOf(v3));
+        assertEquals("emacs", v3.get("keymap").asText());
+    }
+
+    @Test
     void anUnknownOldVersionHasNoPath() {
         ObjectNode v0 = JsonNodeFactory.instance.objectNode().put("schemaVersion", 0);
         assertThrows(IllegalStateException.class, () -> Migrations.migrate(v0));

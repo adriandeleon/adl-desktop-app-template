@@ -29,6 +29,15 @@ public final class Startup {
     /** {@code -D<app>.smokeTest=<file>}: write {@code window-shown} there once the window is up, then exit. */
     public static final String SMOKE_TEST = AppInfo.ID + ".smokeTest";
 
+    /**
+     * {@code -D<app>.aotTrain=1}: the AOT training run ({@code scripts/aot-train.sh}). Exit once the
+     * window has been up long enough to load what a real start loads: the JavaFX scene, control and
+     * CSS classes that are worth archiving are not touched until something paints.
+     */
+    public static final String AOT_TRAIN = AppInfo.ID + ".aotTrain";
+
+    static final javafx.util.Duration AOT_SETTLE = javafx.util.Duration.millis(2500);
+
     private static final Logger LOG = Logger.getLogger(Startup.class.getName());
 
     /** What is running, so {@code App.stop} can close it. */
@@ -76,7 +85,16 @@ public final class Startup {
         services.updates().scheduleStartupCheck();
         services.sync().startAutomatic();
         smokeTest(System.getProperty(SMOKE_TEST), host);
+        aotTrain(System.getProperty(AOT_TRAIN), host);
         return new Running(services, window, instance);
+    }
+
+    /** Ends an AOT training run after the window has settled. */
+    static void aotTrain(@Nullable String flag, Host host) {
+        if (flag == null || flag.isBlank()) return;
+        javafx.animation.PauseTransition settle = new javafx.animation.PauseTransition(AOT_SETTLE);
+        settle.setOnFinished(e -> host.exit());
+        settle.play();
     }
 
     /** The packaged-app smoke test: proves the JVM, JavaFX and the first window came up. */

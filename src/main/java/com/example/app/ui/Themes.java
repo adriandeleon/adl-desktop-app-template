@@ -6,6 +6,9 @@ import javafx.application.Application;
 import javafx.application.ColorScheme;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.layout.HeaderBar;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
 import atlantafx.base.theme.PrimerDark;
@@ -39,6 +42,18 @@ public final class Themes {
         for (Window window : Window.getWindows()) {
             Scene scene = window.getScene();
             if (scene != null) scene.getPreferences().setColorScheme(dark ? ColorScheme.DARK : ColorScheme.LIGHT);
+            if (window instanceof Stage stage) titleButtons(stage);
+        }
+    }
+
+    /**
+     * Tells a window that draws its own title bar ({@code StageStyle.EXTENDED}) whether the system's
+     * window buttons sit on light or dark: without it they keep the OS's colours and can vanish on a
+     * dark title bar.
+     */
+    public static void titleButtons(Stage stage) {
+        if (stage.getStyle() == StageStyle.EXTENDED) {
+            HeaderBar.setSystemColorScheme(stage, isDark() ? ColorScheme.DARK : ColorScheme.LIGHT);
         }
     }
 

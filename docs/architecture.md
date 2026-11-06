@@ -32,7 +32,11 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
 - `AppServices`: the long-lived parts shared by every window: `ConfigStore`, `CommandRegistry`,
   effective `Keybindings`, `MessageLog`, `UpdateCoordinator`, `SyncController`, and the `Host` (browser,
   file choosers, exit), the one seam the tests replace.
-- `MainWindow`: menus, the content placeholder, `StatusBar`, and an `OverlayHost` (the root
+- `AppMenus`: the menu bar, every row a command with its key binding drawn beside it (Emacs
+  sequences too). No accelerators: see the class comment for why.
+- `MainWindow`: the title bar (a JavaFX `HeaderBar` holding the menus and the title, where the platform
+  supports extended windows and the menus are in the window; a plain menu row otherwise, and the screen
+  menu bar on macOS), the content placeholder, `StatusBar`, and an `OverlayHost` (the root
   `StackPane`) that carries the in-scene overlays. **Put your app's content in `placeholder()`.**
 - `Commands`: every command, in one place. Menus, buttons, the palette and keys all run them by id.
 - `Picker`: the one list chooser; the Command Palette is a `Picker` over commands, and the theme,

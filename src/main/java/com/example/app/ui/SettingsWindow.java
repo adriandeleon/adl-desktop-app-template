@@ -17,6 +17,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -81,6 +82,7 @@ public final class SettingsWindow {
     private final SettingSwitch updates = new SettingSwitch(Messages.tr("settings.updates.title"));
     private final SettingSwitch statusBar = new SettingSwitch(Messages.tr("settings.statusBar.title"));
     private final ComboBox<ThemeChoice> theme = new ComboBox<>();
+    private final SettingSwitch titleBar = new SettingSwitch(Messages.tr("settings.titleBar.title"));
     private final ComboBox<String> keymap = new ComboBox<>();
     private final TextField syncUrl = new TextField();
     private final TextField syncBranch = new TextField();
@@ -197,7 +199,15 @@ public final class SettingsWindow {
                         picked, s -> s.theme, v -> services.store().update(s -> s.theme = v)));
         VBox card = card(Page.APPEARANCE, null);
         row(card, Page.APPEARANCE, "settings.theme", theme, "dark light mode colour color");
-        loaders.add(() -> theme.setValue(services.settings().theme));
+        titleBar.setOnAction(e -> {
+            services.store().update(s -> s.titleBarMenus = titleBar.isSelected());
+            services.echo("status.titleBarRestart");
+        });
+        row(card, Page.APPEARANCE, "settings.titleBar", titleBar, "header bar window title menus");
+        loaders.add(() -> {
+            theme.setValue(services.settings().theme);
+            titleBar.setSelected(services.settings().titleBarMenus);
+        });
     }
 
     private void buildKeymap() {
@@ -291,7 +301,9 @@ public final class SettingsWindow {
             commitUrl();
             if (!syncUrl.getStyleClass().contains("invalid")) services.sync().syncNow(true);
         });
-        HBox branchControl = new HBox(6, syncBranch, connect);
+        Button create = new Button(Messages.tr("settings.sync.createGithub"));
+        create.setOnAction(e -> promptCreateOnGitHub());
+        HBox branchControl = new HBox(6, syncBranch, connect, create);
         branchControl.setAlignment(Pos.CENTER_RIGHT);
         row(repo, Page.SYNC, "settings.sync.branch", branchControl, "branch connect");
 
@@ -343,6 +355,24 @@ public final class SettingsWindow {
         }
         syncUrl.getStyleClass().remove("invalid");
         if (!url.equals(services.settings().sync.repoUrl)) services.store().update(s -> s.sync.repoUrl = url);
+    }
+
+    /**
+     * Asks for a repository name (suggesting {@code <app>-sync}), then creates it on GitHub through the
+     * user's gh and connects to it. Not modal-blocking: the answer arrives when the dialog closes.
+     */
+    TextInputDialog promptCreateOnGitHub() {
+        TextInputDialog dialog = new TextInputDialog(SyncController.suggestedRepoName());
+        dialog.setTitle(Messages.tr("settings.sync.createGithub.title"));
+        dialog.setHeaderText(null);
+        dialog.setContentText(Messages.tr("settings.sync.createGithub.prompt"));
+        Dialogs.styled(dialog, stage);
+        dialog.setOnHidden(e -> {
+            String name = dialog.getResult();
+            if (name != null && !name.isBlank()) services.sync().createOnGitHub(name);
+        });
+        dialog.show();
+        return dialog;
     }
 
     private void commitBranch() {
@@ -536,6 +566,10 @@ public final class SettingsWindow {
 
     SettingSwitch updatesSwitch() {
         return updates;
+    }
+
+    SettingSwitch titleBarSwitch() {
+        return titleBar;
     }
 
     SettingSwitch statusBarSwitch() {

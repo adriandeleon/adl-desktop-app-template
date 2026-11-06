@@ -19,6 +19,10 @@ final class Commands {
         r.register("app.quit", window::quit);
 
         r.register("view.messageLog", window::openMessageLog);
+        r.register("view.toggleTitleBarMenus", () -> {
+            services.store().update(s -> s.titleBarMenus = !s.titleBarMenus);
+            services.echo("status.titleBarRestart");
+        });
         r.register("view.toggleStatusBar", () -> {
             services.store().update(s -> s.showStatusBar = !s.showStatusBar);
             services.echo(services.settings().showStatusBar ? "status.statusBarOn" : "status.statusBarOff");
@@ -39,6 +43,7 @@ final class Commands {
                 () -> services.host().openUrl(services.store().dir().toUri().toString()));
 
         r.register("sync.setup", () -> window.openSettings(SettingsWindow.Page.SYNC));
+        r.register("sync.createGitHubRepo", window::createSyncRepo);
         r.register(
                 "sync.now",
                 () -> services.sync().syncNow(true),

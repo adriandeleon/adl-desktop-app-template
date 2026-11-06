@@ -176,6 +176,9 @@ jobs:
       - name: Build, test and package
         shell: bash
         timeout-minutes: 50
+        env:
+          # A release without its AOT cache starts noticeably slower and says nothing: fail instead.
+          EXAMPLEAPP_REQUIRE_AOT: '1'
         run: |
           run=()
           if [ "$RUNNER_OS" = Linux ]; then run=(xvfb-run -a); fi

@@ -6,19 +6,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import javafx.application.ConditionalFeature;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.HeaderBar;
+import javafx.scene.layout.HeaderDragType;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import com.example.app.AppInfo;
 import com.example.app.command.Command;
@@ -40,13 +42,19 @@ public final class MainWindow {
     private final AppServices services;
     private final OverlayHost overlays;
     private final BorderPane layout = new BorderPane();
-    private final MenuBar menuBar = new MenuBar();
+    private final AppMenus menus;
+    private final @Nullable HeaderBar headerBar;
     private final StatusBar statusBar;
     private final MessageLogView messageLog;
     private @Nullable SettingsWindow settings;
     private @Nullable DebugLogWindow debugLog;
 
     public MainWindow(Stage stage, AppServices services, boolean restoreSession) {
+        this(stage, services, restoreSession, Platform.isSupported(ConditionalFeature.EXTENDED_WINDOW));
+    }
+
+    /** With the platform's support for extended windows given, so both title bars are testable. */
+    MainWindow(Stage stage, AppServices services, boolean restoreSession, boolean extendedSupported) {
         this.stage = stage;
         this.services = services;
         this.overlays = new OverlayHost(layout);
@@ -54,15 +62,22 @@ public final class MainWindow {
         this.messageLog = new MessageLogView(services, overlays, statusBar::refreshUnread);
         Commands.register(this, services);
 
-        layout.setTop(menuBar);
+        boolean systemMenu = AppInfo.isMac();
+        this.menus = new AppMenus(services, systemMenu);
+        // The stage style is fixed before the window first shows, so this is decided once per window.
+        this.headerBar = usesHeaderBar(systemMenu, services.settings().titleBarMenus, extendedSupported)
+                ? buildHeaderBar()
+                : null;
+        if (headerBar != null && !stage.isShowing()) stage.initStyle(StageStyle.EXTENDED);
+        layout.setTop(headerBar != null ? headerBar : menus.bar());
+        if (headerBar != null) stage.fullScreenProperty().addListener((o, was, full) -> placeHeaderBar(full));
         layout.setCenter(placeholder());
         layout.setBottom(statusBar);
-        buildMenus();
-        menuBar.setUseSystemMenuBar(AppInfo.isMac());
 
         Scene scene = Themes.style(new Scene(overlays.root()));
         new KeyDispatcher(services, overlays).install(scene);
         stage.setScene(scene);
+        Themes.titleButtons(stage);
         stage.setTitle(AppInfo.NAME);
         for (int size : new int[] {16, 32, 64, 128, 256}) {
             var icon = MainWindow.class.getResource("/com/example/app/icons/app-" + size + ".png");
@@ -119,47 +134,46 @@ public final class MainWindow {
         return box;
     }
 
-    private void buildMenus() {
-        menuBar.getMenus()
-                .setAll(
-                        menu("menu.file", "app.settings", null, "config.export", "config.import", null, "app.quit"),
-                        menu(
-                                "menu.view",
-                                "palette.show",
-                                "view.messageLog",
-                                "view.toggleStatusBar",
-                                null,
-                                "settings.theme",
-                                "settings.keymap",
-                                "settings.language"),
-                        menu(
-                                "menu.help",
-                                "help.debugLog",
-                                "help.reportProblem",
-                                null,
-                                "help.checkForUpdates",
-                                "help.about"));
+    /**
+     * Whether this window draws its own title bar with the menus in it: JavaFX 27's extended stage
+     * style, where the platform keeps its window buttons and a {@link HeaderBar} replaces the title bar.
+     * Never under a screen menu bar (macOS: there are no menus in the window to put there), and only
+     * where the platform supports the style: JavaFX quietly downgrades an unsupported {@code EXTENDED}
+     * to {@code DECORATED}, which would draw the header under a native title bar as a second row.
+     */
+    static boolean usesHeaderBar(boolean systemMenu, boolean setting, boolean extendedSupported) {
+        return !systemMenu && setting && extendedSupported;
     }
 
-    /** A menu of commands; {@code null} is a separator. Unavailable commands are greyed on opening. */
-    private Menu menu(String key, @Nullable String... ids) {
-        Menu menu = new Menu(Messages.tr(key));
-        for (String id : ids) {
-            Command command = id == null ? null : services.commands().get(id);
-            if (command == null) {
-                menu.getItems().add(new SeparatorMenuItem());
-                continue;
-            }
-            MenuItem item = new MenuItem(command.title());
-            item.setId(command.id());
-            item.setOnAction(e -> services.commands().run(command.id()));
-            menu.getItems().add(item);
+    /**
+     * The title bar: the menus on the left, the window title in the middle. The bar's background drags
+     * the window and its controls do not; the title is marked draggable too, since a title bar you
+     * cannot drag by its title is a trap.
+     */
+    HeaderBar buildHeaderBar() {
+        HeaderBar bar = new HeaderBar();
+        bar.getStyleClass().add("header-bar");
+        bar.setLeft(menus.bar());
+        Label title = new Label();
+        title.getStyleClass().add("header-title");
+        title.textProperty().bind(stage.titleProperty());
+        HeaderBar.setDragType(title, HeaderDragType.DRAGGABLE);
+        bar.setCenter(title);
+        return bar;
+    }
+
+    /** Full screen has no title bar: the menus become an ordinary row, and come back on the way out. */
+    void placeHeaderBar(boolean fullScreen) {
+        HeaderBar header = headerBar;
+        if (header == null) return;
+        if (fullScreen) {
+            header.setLeft(null);
+            layout.setTop(menus.bar());
+        } else {
+            layout.setTop(header);
+            header.setLeft(menus.bar());
         }
-        menu.setOnShowing(e -> menu.getItems().forEach(item -> {
-            Command command = item.getId() == null ? null : services.commands().get(item.getId());
-            item.setDisable(command != null && command.unavailableReason() != null);
-        }));
-        return menu;
+        HeaderBar.setSystemButtonHeight(stage, fullScreen ? 0 : HeaderBar.USE_DEFAULT_SIZE);
     }
 
     // ---- what the commands do ----
@@ -232,6 +246,13 @@ public final class MainWindow {
             settings = window;
         }
         window.show(page);
+    }
+
+    /** Settings Sync's "Create on GitHub…", from the palette: the Sync page with the name prompt open. */
+    void createSyncRepo() {
+        openSettings(SettingsWindow.Page.SYNC);
+        SettingsWindow window = settings;
+        if (window != null) window.promptCreateOnGitHub();
     }
 
     void openAbout() {
@@ -322,7 +343,16 @@ public final class MainWindow {
     }
 
     MenuBar menuBar() {
-        return menuBar;
+        return menus.bar();
+    }
+
+    AppMenus menus() {
+        return menus;
+    }
+
+    @Nullable
+    HeaderBar headerBar() {
+        return headerBar;
     }
 
     MessageLogView messageLog() {

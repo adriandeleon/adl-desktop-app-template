@@ -27,13 +27,19 @@ After jpackage builds the app image, the pom runs these scripts, in this order:
 | Script | What it does |
 |---|---|
 | `scripts/add-notices.sh` | Copies `LICENSE` and `NOTICE` into the image's app directory |
+| `scripts/aot-train.sh` | Records the AOT cache into the image (see below) |
 | `scripts/fix-mac-bundle-version.sh` | macOS: writes the real version into `Info.plist` (jpackage refuses a 0.x version there) and re-seals the bundle ad hoc |
 | `scripts/sign-mac-app.sh` | macOS: Developer ID signing with `packaging/macos/ExampleApp.entitlements`. A no-op unless `EXAMPLEAPP_MAC_SIGN_IDENTITY` is set |
 | `scripts/build-installers.sh` | Only with `-Dskip.installers=false`: wraps the finished image into installers |
 
-An AOT cache (JDK 25 Leyden) is a worthwhile addition: a training run of the image between the
-notices and the signing step cuts start-up time. The template leaves it out to stay small; Termina's
-`scripts/aot-train.sh` is a working example.
+**AOT cache (JDK 25).** `scripts/aot-train.sh` runs the finished image once, in a fresh config folder,
+with `-XX:AOTCacheOutput`: the app opens its window, waits 2.5 s (`-Dexampleapp.aotTrain=1`) and exits,
+and the classes it loaded are archived as `exampleapp.aot` in the image's app folder. The launcher
+starts with `-XX:AOTCache=$APPDIR/exampleapp.aot`; measured on Linux, the first window appears in about
+770 ms instead of 1100 ms. The training run needs a display (Linux CI uses `xvfb-run`). Without one,
+or when training fails, the build still succeeds with a warning and the app starts uncached; the release
+sets `EXAMPLEAPP_REQUIRE_AOT=1` so a release cannot ship without its cache. The step runs after the
+notices and before the macOS version fix and signing, so the signature covers the cache.
 
 ## Installers
 
