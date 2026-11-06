@@ -85,9 +85,11 @@ appimage_tool() {
     cache="${XDG_CACHE_HOME:-$HOME/.cache}/exampleapp-build"
     file="$cache/$sum-$name"
     mkdir -p "$cache"
-    if ! echo "$sum  $file" | sha256sum --check --status 2>/dev/null; then
+    # The helper's stdout is its answer (the path), so the check must print nothing there: with a
+    # missing file, `sha256sum --check --status` still writes "FAILED open or read" to stdout.
+    if ! { [ -f "$file" ] && echo "$sum  $file" | sha256sum --check --status >/dev/null 2>&1; }; then
         curl --fail --silent --show-error --location --retry 3 --output "$file.part" "$url"
-        echo "$sum  $file.part" | sha256sum --check --quiet ||
+        echo "$sum  $file.part" | sha256sum --check --quiet >&2 ||
             { echo "::error::[installers] $name from $url does not match its pinned hash" >&2; return 1; }
         mv "$file.part" "$file"
     fi
