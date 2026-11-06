@@ -50,11 +50,20 @@ public final class MainWindow {
     private @Nullable DebugLogWindow debugLog;
 
     public MainWindow(Stage stage, AppServices services, boolean restoreSession) {
-        this(stage, services, restoreSession, Platform.isSupported(ConditionalFeature.EXTENDED_WINDOW));
+        this(
+                stage,
+                services,
+                restoreSession,
+                AppInfo.isMac(),
+                Platform.isSupported(ConditionalFeature.EXTENDED_WINDOW));
     }
 
-    /** With the platform's support for extended windows given, so both title bars are testable. */
-    MainWindow(Stage stage, AppServices services, boolean restoreSession, boolean extendedSupported) {
+    /**
+     * With the platform given (a screen menu bar, support for extended windows), so every combination
+     * is testable on any OS.
+     */
+    MainWindow(
+            Stage stage, AppServices services, boolean restoreSession, boolean systemMenu, boolean extendedSupported) {
         this.stage = stage;
         this.services = services;
         this.overlays = new OverlayHost(layout);
@@ -62,7 +71,6 @@ public final class MainWindow {
         this.messageLog = new MessageLogView(services, overlays, statusBar::refreshUnread);
         Commands.register(this, services);
 
-        boolean systemMenu = AppInfo.isMac();
         this.menus = new AppMenus(services, systemMenu);
         // The stage style is fixed before the window first shows, so this is decided once per window.
         this.headerBar = usesHeaderBar(systemMenu, services.settings().titleBarMenus, extendedSupported)

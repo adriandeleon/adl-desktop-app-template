@@ -67,7 +67,8 @@ class ShellFeaturesFxTest {
 
     @Test
     void menusShowEachCommandsBindingAndFollowTheKeymap() throws Exception {
-        AppMenus menus = app.window().menus();
+        // The in-window rendering, on every OS (macOS's own window uses the screen menu bar).
+        AppMenus menus = call(() -> new AppMenus(services, false));
         AppMenus.Row palette = menus.groups().get(1).getFirst();
         assertInstanceOf(CustomMenuItem.class, palette.item());
         String cua = call(() -> AppMenus.displayText(palette));
@@ -122,7 +123,7 @@ class ShellFeaturesFxTest {
         assertFalse(MainWindow.usesHeaderBar(false, true, false));
 
         AppServices second = new AppServices(ConfigStore.open(other), host);
-        MainWindow window = call(() -> new MainWindow(new Stage(), second, false, true));
+        MainWindow window = call(() -> new MainWindow(new Stage(), second, false, false, true));
         assertNotNull(window.headerBar());
         assertEquals(StageStyle.EXTENDED, window.stage().getStyle());
         assertSame(window.menuBar(), window.headerBar().getLeft());
@@ -132,8 +133,8 @@ class ShellFeaturesFxTest {
         assertSame(window.menuBar(), window.headerBar().getLeft());
         run(() -> Themes.titleButtons(window.stage()));
         // Without a header bar there is nothing to place.
-        MainWindow plain = call(() ->
-                new MainWindow(new Stage(), new AppServices(ConfigStore.open(other.resolve("p")), host), false, false));
+        MainWindow plain = call(() -> new MainWindow(
+                new Stage(), new AppServices(ConfigStore.open(other.resolve("p")), host), false, false, false));
         assertTrue(plain.headerBar() == null);
         run(() -> plain.placeHeaderBar(true));
     }
