@@ -97,8 +97,9 @@ public final class SingleInstance implements AutoCloseable {
                 int length = ByteBuffer.wrap(in.readNBytes(4)).getInt();
                 if (length < 0 || length > 1 << 20) continue;
                 String text = new String(in.readNBytes(length), StandardCharsets.UTF_8);
-                client.write(ByteBuffer.wrap(new byte[] {1}));
+                // Delivered before the acknowledgement: once handOff returns, the running app has them.
                 onArgs.accept(text.isEmpty() ? List.of() : List.of(text.split("\0", -1)));
+                client.write(ByteBuffer.wrap(new byte[] {1}));
             } catch (IOException | RuntimeException e) {
                 if (listening.isOpen()) LOG.log(Level.FINE, "Hand-off failed", e);
             }
