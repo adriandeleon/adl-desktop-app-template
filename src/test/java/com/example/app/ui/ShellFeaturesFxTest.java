@@ -157,6 +157,7 @@ class ShellFeaturesFxTest {
         assertFalse(call(() -> settings.titleBarSwitch().isSelected()));
         run(() -> settings.titleBarSwitch().fire());
         assertTrue(services.settings().titleBarMenus);
+        services.store().flush(); // saves are written off the FX thread
         assertTrue(ConfigStore.open(dir).settings().titleBarMenus);
     }
 
