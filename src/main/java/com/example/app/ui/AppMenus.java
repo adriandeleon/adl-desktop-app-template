@@ -5,6 +5,7 @@ import java.util.List;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -116,19 +117,34 @@ final class AppMenus {
 
     private Row row(String id) {
         if (systemMenu) return new Row(new MenuItem(), id, null, null);
+        return inWindowRow(id);
+    }
+
+    /**
+     * An in-window row (MENU-02): the command's glyph (or an empty slot, so titles line up), the title, a
+     * spacer and the chord. The right-click menus ({@link CommandMenu}) draw their rows the same way.
+     */
+    static Row inWindowRow(String id) {
+        Node glyph = Icons.commandGlyph(id);
+        Region slot = new Region();
+        slot.setMinSize(ICON_SLOT, ICON_SLOT);
+        slot.setPrefSize(ICON_SLOT, ICON_SLOT);
         Label title = new Label();
         title.getStyleClass().add("menu-item-title");
         Label chord = new Label();
         chord.getStyleClass().add("menu-item-chord");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox box = new HBox(title, spacer, chord);
-        HBox.setMargin(chord, new Insets(0, 0, 0, 24));
+        HBox box = new HBox(8, glyph != null ? glyph : slot, title, spacer, chord);
+        HBox.setMargin(chord, new Insets(0, 0, 0, 16));
         box.setAlignment(Pos.CENTER_LEFT);
         CustomMenuItem item = new CustomMenuItem(box);
         item.setHideOnClick(true);
         return new Row(item, id, title, chord);
     }
+
+    /** The width of the glyph column, so a row without a glyph keeps its title in line. */
+    static final double ICON_SLOT = 18;
 
     /** Re-labels every row with its title and current binding: after a keymap switch or a rebinding. */
     void refresh() {

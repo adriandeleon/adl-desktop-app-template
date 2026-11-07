@@ -43,7 +43,10 @@ Run Maven from the repository root, **on JDK 25** (Palantir Java Format breaks o
 - [ ] Anything that removes or overwrites what the user made asks first through the one confirm helper:
       `services.host().confirm(owner, Confirmations.<question>(…))`, its words in `Confirmations`, the
       button the action's own verb (never OK or Yes). Tests answer it with `FakeHost.confirmAnswer`.
-- [ ] CSS colours are AtlantaFX `-color-*` tokens, never hex literals.
+- [ ] CSS colors: a state (error, warning, verified, accent) is a `-state-*` token from the `.root` block
+      at the top of `app.css`, everything else a `-color-*` role; never a hex outside `.root`
+      (`StyleContrastTest` checks, contrast included). A glyph is `Icons.line` or `Icons.of`, never both,
+      and a command's glyph comes from `Icons.forCommand`.
 - [ ] Failures reach the status bar (`services.echo`, key ending in `Failed`/`Error`) or the Debug Log
       (`java.util.logging`). Never a stack-trace dialog, never silence.
 - [ ] Tests: a pure helper plus a unit test first; an FX test (`@Tag("fx")`) when toolkit behaviour is

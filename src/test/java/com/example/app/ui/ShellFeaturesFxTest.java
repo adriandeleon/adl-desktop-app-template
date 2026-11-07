@@ -91,6 +91,14 @@ class ShellFeaturesFxTest {
         assertTrue(menus.groups().get(2).stream().allMatch(r -> r.title().getMinWidth() == width));
         run(() -> palette.item().fire());
         assertTrue(call(() -> app.window().overlays().isShowing()));
+
+        // MENU-02 / ICON-20: an in-window row leads with its command's glyph, the same one Settings draws.
+        javafx.scene.layout.HBox box = (javafx.scene.layout.HBox) ((CustomMenuItem) about.item()).getContent();
+        javafx.scene.shape.SVGPath glyph =
+                (javafx.scene.shape.SVGPath) box.getChildren().getFirst().lookup("SVGPath");
+        assertEquals(Icons.forCommand("help.about"), glyph.getContent());
+        assertTrue(glyph.getStyleClass().contains(Icons.LINE));
+        assertEquals(null, box.getChildren().getFirst().lookup(".toolbar-icon"));
     }
 
     private static AppMenus.Row row(AppMenus menus, String id) {

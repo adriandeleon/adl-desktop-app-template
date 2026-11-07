@@ -4,11 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -16,16 +13,13 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.ContextMenuEvent;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 
 import com.example.app.command.Command;
 import org.jspecify.annotations.Nullable;
 
 /**
  * A right-click menu of commands (MENU-05): each row is a registered command, laid out like the menu
- * bar's rows (title, spacer, chord), so whatever a right-click reaches the palette and a key reach too.
+ * bar's rows (glyph, title, spacer, chord), so whatever a right-click reaches the palette and a key reach too.
  * The menu is built on its first request and set up for each showing: titles, chords and enablement are
  * re-read then (MENU-11). Dismissal is {@link ContextMenuDismissal}'s; the keyboard request is
  * {@link RowContextMenu}'s; Escape closes it and focus goes back (the stock {@code ContextMenu}).
@@ -55,20 +49,11 @@ final class CommandMenu {
                 built.getItems().add(new SeparatorMenuItem());
                 continue;
             }
-            Label title = new Label();
-            title.getStyleClass().add("menu-item-title");
-            Label chord = new Label();
-            chord.getStyleClass().add("menu-item-chord");
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            HBox box = new HBox(title, spacer, chord);
-            HBox.setMargin(chord, new Insets(0, 0, 0, 24));
-            box.setAlignment(Pos.CENTER_LEFT);
-            CustomMenuItem item = new CustomMenuItem(box);
-            item.setId(command.id());
-            item.setOnAction(e -> services.commands().run(command.id()));
-            built.getItems().add(item);
-            rows.add(new AppMenus.Row(item, command.id(), title, chord));
+            AppMenus.Row row = AppMenus.inWindowRow(command.id());
+            row.item().setId(command.id());
+            row.item().setOnAction(e -> services.commands().run(command.id()));
+            built.getItems().add(row.item());
+            rows.add(row);
         }
         built.setOnShowing(e -> refresh());
         built.setOnShown(e -> AppMenus.alignChords(rows));
