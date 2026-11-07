@@ -42,6 +42,7 @@ one-line summary written for users.
   too large or from a newer version is refused before anything changes.
 - **A palette command for every setting.** Change Key Binding…, and Settings Sync: Set Repository…, Set
   Branch… and Set Interval… prompt for the value and refuse an invalid one.
+- **A macOS CUA keymap.** On a Mac the CUA keymap is `cua.mac.json`, with Cmd in place of Ctrl.
 - **Faster start-up from an AOT cache.** Installed builds carry a JDK 25 ahead-of-time cache; the first
   window appears about a third sooner.
 - **Settings Sync can create its repository.** Settings → Sync → Create on GitHub… makes a private

@@ -7,11 +7,29 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KeybindingsTest {
+
+    @Test
+    void cuaHasAMacVariantWhereCmdReplacesCtrl() {
+        Keymap mac = Keymap.load("cua", true);
+        Keymap other = Keymap.load("cua", false);
+        assertEquals(other.bindings().keySet(), mac.bindings().keySet(), "the same commands in both");
+        assertEquals("Cmd+Shift+P", mac.bindings().get("palette.show"));
+        assertEquals("Shortcut+Shift+P", other.bindings().get("palette.show"));
+        mac.bindings().values().forEach(chord -> {
+            assertNotNull(KeyStroke.parseSequence(chord), chord);
+            org.junit.jupiter.api.Assertions.assertFalse(chord.contains("Ctrl"), chord);
+        });
+        // Emacs has no macOS variant: the plain file serves both.
+        assertEquals(
+                Keymap.load("emacs", false).bindings(),
+                Keymap.load("emacs", true).bindings());
+    }
 
     @Test
     void bundledPresetsLoad() {

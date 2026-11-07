@@ -147,15 +147,9 @@ public final class MainWindow {
         return box;
     }
 
-    /**
-     * Whether this window draws its own title bar with the menus in it: JavaFX 27's extended stage
-     * style, where the platform keeps its window buttons and a {@link HeaderBar} replaces the title bar.
-     * Never under a screen menu bar (macOS: there are no menus in the window to put there), and only
-     * where the platform supports the style: JavaFX quietly downgrades an unsupported {@code EXTENDED}
-     * to {@code DECORATED}, which would draw the header under a native title bar as a second row.
-     */
+    /** Whether this window draws its own title bar: the pure rule in {@link Chrome#usesHeaderBar}. */
     static boolean usesHeaderBar(boolean systemMenu, boolean setting, boolean extendedSupported) {
-        return !systemMenu && setting && extendedSupported;
+        return Chrome.usesHeaderBar(systemMenu, setting, extendedSupported);
     }
 
     /**

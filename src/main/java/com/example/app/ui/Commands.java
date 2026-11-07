@@ -2,7 +2,6 @@ package com.example.app.ui;
 
 import com.example.app.AppInfo;
 import com.example.app.command.CommandRegistry;
-import com.example.app.i18n.Messages;
 
 /**
  * Every command the starter registers, in one place. Each needs {@code command.<id>} and
@@ -58,7 +57,7 @@ final class Commands {
         r.register(
                 "sync.now",
                 () -> services.sync().syncNow(true),
-                () -> services.sync().isConfigured() ? null : Messages.tr("palette.disabled.syncNotSetUp"));
+                () -> Chrome.syncNowUnavailable(services.sync().isConfigured()));
         r.register("sync.toggleAuto", () -> {
             services.store().update(s -> s.sync.auto = !s.sync.auto);
             services.echo(services.settings().sync.auto ? "status.syncAutoOn" : "status.syncAutoOff");
@@ -71,14 +70,13 @@ final class Commands {
         r.register(
                 "help.checkForUpdates",
                 () -> services.updates().checkNow(true),
-                () -> services.updates().state() == UpdateCoordinator.State.CHECKING
-                        ? Messages.tr("palette.disabled.checking")
-                        : null);
+                () -> Chrome.checkForUpdatesUnavailable(
+                        services.updates().state() == UpdateCoordinator.State.CHECKING));
         r.register("help.debugLog", window::openDebugLog);
         r.register(
                 "debugLog.refresh",
                 window::refreshDebugLog,
-                () -> window.isDebugLogOpen() ? null : Messages.tr("palette.disabled.debugLogClosed"));
+                () -> Chrome.debugLogRefreshUnavailable(window.isDebugLogOpen()));
         r.register("debugLog.copy", () -> Clipboards.copy(DebugLog.text()));
         r.register("debugLog.clear", window::clearDebugLog);
         r.register("debugLog.export", window::exportDebugLog);
