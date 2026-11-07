@@ -21,7 +21,7 @@ class with a unit test; the toolkit code around it stays thin.**
 1. `Main.main`: `java.awt.headless=true` first, then `DebugLog.install()` (logging + the uncaught
    exception handler), then `Main.run`: `--help`, `--version` and `--report` answer and exit; a second
    launch hands its arguments to the running app (`SingleInstance.handOff`) and exits.
-2. `App.start` calls `Startup.start`: fonts, config folder, session log file, settings (migrated),
+2. `App.start` calls `Startup.start`: fonts (and the UI-font listener on every window), config folder, session log file, settings (migrated),
    language, theme, `AppServices`, `MainWindow`, the single-instance listener, the update check
    (once per session, at most daily, 5 s after the first frame) and Settings Sync.
 

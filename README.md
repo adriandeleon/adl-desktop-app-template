@@ -53,7 +53,8 @@ Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), 
   runs every command. CUA and Emacs keymaps, with your own bindings on top.
 - **Settings that apply as you change them.** A searchable Settings window, a palette command for
   every setting, and a versioned config folder that older versions never overwrite.
-- **Light and dark**, following your system, with the Inter typeface on every OS.
+- **Light and dark**, following your system: Caret & Ink, the Pauta family palette, with the Inter
+  typeface on every OS.
 - **Settings Sync** through a private Git repository you own.
 - **Nothing fails silently.** A Message Log of every status message, a Debug Log of everything
   logged, and Help → Report a Problem to open a redacted, prefilled GitHub issue.

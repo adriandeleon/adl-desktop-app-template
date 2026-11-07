@@ -45,3 +45,13 @@ one-line summary written for users.
 ### Changed
 
 - **Links to Pauta point to its new home, [pauta-project.dev](https://pauta-project.dev/).**
+- **New default themes: Caret & Ink, the Pauta family palette, in light and dark.** They replace
+  AtlantaFX Primer; System still follows your OS. Colored text and badges read at WCAG AA in both,
+  and the keyboard focus ring at 3:1 on every surface.
+- **Tooltips, menus and popups use Inter too,** not only windows and dialogs.
+- **The Settings sidebar has line icons,** the same glyph each command will wear everywhere.
+
+### Fixed
+
+- **A theme name this version does not know no longer resets all your settings.** The theme falls
+  back to System and every other setting is kept.

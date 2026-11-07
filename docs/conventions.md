@@ -41,10 +41,18 @@ Do not suppress a report.
 ## UI
 
 - Every scene and dialog goes through `Themes.style(scene)` / `Dialogs.styled(dialog, owner)`: a
-  dialog is its own scene and inherits neither the stylesheet nor the Inter font.
+  dialog is its own scene and does not inherit the stylesheet. The Inter font needs nothing:
+  `Themes.installUiFont` attaches `ui-font.css` to every window's scene, popups and tooltips included.
 - Overlays go in the window's `OverlayHost`, never a `javafx.stage.Popup`.
-- CSS uses AtlantaFX tokens (`-color-fg-muted`, `-color-danger-fg`…), never hex. Readable text uses
-  `-color-fg-muted` or stronger.
+- The themes are Caret & Ink, `styles/editora-light.css` and `editora-dark.css`, copied unchanged from
+  Editora: update them only by copying Editora's again.
+- CSS uses the theme's `-color-*` roles, never hex. A state (amber not durable yet, red broken, green
+  verified, accent an offer) is a `-state-*` token from the `.root` block at the top of `app.css`,
+  never a role directly. Readable text uses `-color-fg-muted` or stronger; ink on an `-emphasis` fill
+  is `-color-fg-emphasis`, never white. `StyleContrastTest` holds all of this in both themes.
+- Glyphs come in two families (`Icons`): `Icons.line` (stroked, `icon-line`) and `Icons.of` (filled,
+  `toolbar-icon`), one class per node. A command's glyph comes from `Icons.forCommand(id)` /
+  `Icons.commandGlyph(id)`, so one action wears one glyph everywhere.
 - On/off rows use `SettingSwitch` (keyboard-operable), not a bare `ToggleSwitch`.
 - Platform differences live behind one check (`AppInfo.isMac()`, `Host`), never scattered.
 

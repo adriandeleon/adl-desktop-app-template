@@ -1,4 +1,7 @@
-/* The bundled UI font, attached to every scene and dialog (Themes.style). */
+/* The UI font: Inter, on every platform. Attached as a scene stylesheet to every window's scene, dialogs,
+   popups, context menus and tooltips included (Themes.installUiFont), not set in app.css: each of those
+   lives in a scene of its own, and a scene sheet is re-applied cleanly when the theme switches.
+   Fonts.load registers Inter before any stylesheet is read. */
 .root {
     -fx-font-family: "Inter";
 }

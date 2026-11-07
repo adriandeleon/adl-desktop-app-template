@@ -58,6 +58,7 @@ public final class Startup {
     public static Running start(Stage stage, CommandLine cli, Host host) {
         // Before any stylesheet: CSS naming a font that is not registered yet falls back silently.
         Fonts.load();
+        Themes.installUiFont();
         Path dir = ConfigDir.resolve(cli.configDir(), cli.dev());
         DebugLog.attachFile(dir);
         ConfigStore store = ConfigStore.open(dir);

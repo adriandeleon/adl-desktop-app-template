@@ -48,16 +48,17 @@ public final class SettingsWindow {
 
     /** The pages, in sidebar order. */
     public enum Page {
-        GENERAL(Icons.SLIDERS),
-        APPEARANCE(Icons.CONTRAST),
-        KEYMAP(Icons.KEYBOARD),
-        SYNC(Icons.SYNC),
-        ADVANCED(Icons.FOLDER);
+        GENERAL("app.settings"),
+        APPEARANCE("settings.theme"),
+        KEYMAP("settings.keymap"),
+        SYNC("sync.setup"),
+        ADVANCED("config.openFolder");
 
-        final String icon;
+        /** The command whose glyph the page wears in the sidebar ({@link Icons#forCommand}). */
+        final String command;
 
-        Page(String icon) {
-            this.icon = icon;
+        Page(String command) {
+            this.command = command;
         }
 
         String title() {
@@ -616,7 +617,7 @@ public final class SettingsWindow {
                 return;
             }
             setText(page.title());
-            setGraphic(Icons.of(page.icon));
+            setGraphic(Icons.commandGlyph(page.command));
             if (!search.getText().isBlank() && !pageHits.getOrDefault(page, true))
                 getStyleClass().add("no-match");
         }

@@ -1,7 +1,31 @@
 /*
- * App styles. Colours are AtlantaFX -color-* tokens only, never hex literals, so light and dark both
- * follow. Semantic colours: amber = not durable yet, red = broken, green = verified.
+ * App styles, layered on the Caret & Ink control theme (editora-light.css / editora-dark.css). Colors
+ * are the theme's -color-* roles, never hex literals, so light and dark both follow. The UI font is not
+ * set here: ui-font.css is attached to every window's scene (Themes.installUiFont).
  */
+
+/* ---- tokens ----
+   State colors, each meaning named once and chained to one of the theme's roles; component rules use
+   these, never a role directly, for a state:
+     amber   not durable yet: warnings, not connected
+     red     broken: errors, a failed check, an invalid value
+     green   verified: connected, up to date
+     accent  the app is offering something: an update
+   -<state>-bg is the state's tinted fill; -<state>-emphasis its solid fill, drawn on with
+   -color-fg-emphasis (never white). -focus-ring is the one keyboard focus color (the block at the end).
+   StyleContrastTest holds the contrast of every pair in both flagship themes. */
+.root {
+    -state-amber: -color-warning-fg;
+    -state-amber-bg: -color-warning-subtle;
+    -state-red: -color-danger-fg;
+    -state-red-bg: -color-danger-subtle;
+    -state-red-emphasis: -color-danger-emphasis;
+    -state-green: -color-success-fg;
+    -state-green-bg: -color-success-subtle;
+    -state-accent: -color-accent-fg;
+    -state-accent-bg: -color-accent-subtle;
+    -focus-ring: -color-accent-emphasis;
+}
 
 /* ---- window ---- */
 .welcome {
@@ -32,13 +56,13 @@
     -fx-text-fill: -color-fg-default;
 }
 .status-bar .echo.error {
-    -fx-text-fill: -color-danger-fg;
+    -fx-text-fill: -state-red;
 }
 .status-bar .echo.warning {
-    -fx-text-fill: -color-warning-fg;
+    -fx-text-fill: -state-amber;
 }
 .status-bar .unread-errors {
-    -fx-background-color: -color-danger-emphasis;
+    -fx-background-color: -state-red-emphasis;
     -fx-text-fill: -color-fg-emphasis;
     -fx-background-radius: 8;
     -fx-padding: 0 6 0 6;
@@ -49,6 +73,7 @@
     -fx-text-fill: -color-fg-muted;
 }
 .status-bar .update-notice {
+    -fx-text-fill: -state-accent;
     -fx-padding: 0;
     -fx-font-weight: bold;
 }
@@ -124,10 +149,10 @@
     -fx-text-fill: -color-fg-muted;
 }
 .message-log-list .error {
-    -fx-text-fill: -color-danger-fg;
+    -fx-text-fill: -state-red;
 }
 .message-log-list .warning {
-    -fx-text-fill: -color-warning-fg;
+    -fx-text-fill: -state-amber;
 }
 
 /* ---- settings ---- */
@@ -139,8 +164,20 @@
     -fx-text-fill: -color-fg-subtle;
     -fx-opacity: 0.6;
 }
-.icon {
+/* Glyphs, two families (Icons): a node carries one class, never both. A line glyph is stroked and
+   filled with nothing; a filled glyph is filled. Moving a glyph between families moves its CSS too. */
+.icon-line {
+    -fx-fill: transparent;
+    -fx-stroke: -color-fg-muted;
+    -fx-stroke-width: 1.3;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+.toolbar-icon {
     -fx-fill: -color-fg-muted;
+}
+.settings-sidebar .list-cell:selected .icon-line {
+    -fx-stroke: -color-fg-default;
 }
 .settings-page-title {
     -fx-font-size: 18px;
@@ -170,7 +207,7 @@
     -fx-font-size: 12px;
 }
 .text-field.invalid {
-    -fx-border-color: -color-danger-emphasis;
+    -fx-border-color: -state-red-emphasis;
 }
 .pill {
     -fx-background-radius: 10;
@@ -178,16 +215,16 @@
     -fx-font-size: 11.5px;
 }
 .pill.green {
-    -fx-background-color: -color-success-muted;
-    -fx-text-fill: -color-success-fg;
+    -fx-background-color: -state-green-bg;
+    -fx-text-fill: -state-green;
 }
 .pill.amber {
-    -fx-background-color: -color-warning-muted;
-    -fx-text-fill: -color-warning-fg;
+    -fx-background-color: -state-amber-bg;
+    -fx-text-fill: -state-amber;
 }
 .pill.red {
-    -fx-background-color: -color-danger-muted;
-    -fx-text-fill: -color-danger-fg;
+    -fx-background-color: -state-red-bg;
+    -fx-text-fill: -state-red;
 }
 .setting-switch {
     -fx-min-width: 56px;
@@ -211,14 +248,15 @@
     -fx-text-fill: -color-fg-muted;
 }
 .about-update-available {
+    -fx-text-fill: -state-accent;
     -fx-font-weight: bold;
     -fx-padding: 0;
 }
 .about-update-current {
-    -fx-text-fill: -color-success-fg;
+    -fx-text-fill: -state-green;
 }
 .about-update-failed {
-    -fx-text-fill: -color-danger-fg;
+    -fx-text-fill: -state-red;
 }
 .about-env {
     -fx-font-family: "JetBrains Mono";
@@ -251,7 +289,10 @@
     -fx-font-size: 11px;
 }
 
-/* Keyboard focus, drawn once, last. */
+/* ---- Keyboard focus ----
+   One layer for every control, drawn once in the -focus-ring color (on .root above): 3:1 or better on
+   every surface in both flagship themes (StyleContrastTest). Keep this block LAST: equal-specificity
+   author rules are decided by order. */
 *:focus-visible {
-    -fx-border-color: -color-accent-emphasis;
+    -fx-border-color: -focus-ring;
 }

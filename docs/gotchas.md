@@ -14,7 +14,8 @@ Each of these cost one of the family's apps real time.
   OS keyboard focus and the whole app can stop receiving keystrokes. Use `OverlayHost`.
 - **Fonts before stylesheets.** CSS that names a font not yet registered silently falls back to the
   system face; `Startup` loads fonts first.
-- **Every dialog is a new scene.** Without `Dialogs.styled` it has neither the app CSS nor Inter.
+- **Every dialog is a new scene.** Without `Dialogs.styled` it has no app CSS. Inter reaches every
+  window, popups and tooltips included, through the window-list listener (`Themes.installUiFont`).
 - **Unix-domain socket paths are short** (about 104 bytes on macOS). A deep config folder gets its
   socket in the temp folder (`SingleInstance.socketPath`).
 - **A `.app` launched from Finder has a stripped `PATH`.** Anything that runs an external tool (git

@@ -26,6 +26,12 @@ Contents/runtime/Contents/Home/legal on macOS, runtime\legal on Windows).
 AtlantaFX — https://github.com/mkpaz/atlantafx
 Copyright (c) 2022 mkpaz. Licensed under the MIT License.
 
+Caret & Ink themes — https://github.com/adriandeleon/Editora
+The control themes com/example/app/styles/editora-light.css and editora-dark.css
+are copied unchanged from Editora, whose stylesheets follow the structure of the
+AtlantaFX community themes. Copyright (c) 2026 Adrián Arturo De León Saldivar.
+Licensed under the MIT License.
+
 Jackson (jackson-core, jackson-databind, jackson-annotations)
 https://github.com/FasterXML/jackson
 Copyright FasterXML, LLC. Licensed under the Apache License, Version 2.0.
