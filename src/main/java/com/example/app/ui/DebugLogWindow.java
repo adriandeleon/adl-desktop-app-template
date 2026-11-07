@@ -34,6 +34,7 @@ public final class DebugLogWindow {
     public DebugLogWindow(AppServices services, @Nullable Window owner) {
         this.services = services;
         text.setEditable(false);
+        findBar.runCommandsThrough(id -> services.commands().run(id));
         text.getStyleClass().add("debug-log-text");
         // A read-only console: its right-click menu is the Debug Log's commands.
         CommandMenu.onConsole(

@@ -40,6 +40,13 @@ final class DebugLogFindBar extends HBox {
     private final Label count = new Label();
     private final Debounce searching = new Debounce(this::refine);
 
+    /** The step commands' runner: the buttons and Enter run {@code debugLog.findNext}/{@code findPrevious}. */
+    private java.util.function.Consumer<String> run = id -> step(id.equals("debugLog.findNext"));
+
+    void runCommandsThrough(java.util.function.Consumer<String> runner) {
+        this.run = runner;
+    }
+
     DebugLogFindBar(TextArea target) {
         super(6);
         this.target = target;
@@ -56,15 +63,15 @@ final class DebugLogFindBar extends HBox {
             button.getStyleClass().add("flat");
             button.setFocusTraversable(false);
         }
-        previous.setOnAction(e -> step(false));
-        next.setOnAction(e -> step(true));
+        previous.setOnAction(e -> run.accept("debugLog.findPrevious"));
+        next.setOnAction(e -> run.accept("debugLog.findNext"));
         close.setOnAction(e -> close());
         query.textProperty().addListener((o, was, now) -> searching.request());
         matchCase.selectedProperty().addListener((o, was, now) -> searching.request());
         query.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 searching.flush();
-                step(!e.isShiftDown());
+                run.accept(e.isShiftDown() ? "debugLog.findPrevious" : "debugLog.findNext");
                 e.consume();
             } else if (e.getCode() == KeyCode.ESCAPE) {
                 close();

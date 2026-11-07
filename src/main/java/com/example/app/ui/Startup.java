@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 
 import com.example.app.AppInfo;
 import com.example.app.cli.CommandLine;
+import com.example.app.command.Keymap;
 import com.example.app.config.ConfigDir;
 import com.example.app.config.ConfigStore;
 import com.example.app.i18n.Messages;
@@ -93,6 +94,8 @@ public final class Startup {
         FirstPaint.then(stage.getScene(), () -> {
             afterFirstPaint.set(true);
             Fonts.loadDeferred();
+            // Every keymap parsed now, off the FX thread, so picking one later parses nothing (PERF-01).
+            Background.run(() -> Keymap.PRESETS.forEach(Keymap::load));
             services.updates().scheduleStartupCheck();
         });
         services.sync().startAutomatic();

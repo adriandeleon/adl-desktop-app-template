@@ -358,6 +358,16 @@ public final class MainWindow {
         if (window != null) window.find();
     }
 
+    boolean isDebugLogFindOpen() {
+        DebugLogWindow window = debugLog;
+        return window != null && window.stage().isShowing() && window.findBar().isOpen();
+    }
+
+    void stepDebugLogFind(boolean forward) {
+        DebugLogWindow window = debugLog;
+        if (window != null) window.findBar().step(forward);
+    }
+
     /** The command whose key-binding row is selected in an open Settings → Keymap, or null. */
     @Nullable
     Command selectedBinding() {

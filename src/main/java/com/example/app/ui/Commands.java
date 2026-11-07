@@ -106,6 +106,14 @@ final class Commands {
                 window::refreshDebugLog,
                 () -> Chrome.debugLogRefreshUnavailable(window.isDebugLogOpen()));
         r.register("debugLog.find", window::findInDebugLog);
+        r.register(
+                "debugLog.findNext",
+                () -> window.stepDebugLogFind(true),
+                () -> Chrome.findBarUnavailable(window.isDebugLogFindOpen()));
+        r.register(
+                "debugLog.findPrevious",
+                () -> window.stepDebugLogFind(false),
+                () -> Chrome.findBarUnavailable(window.isDebugLogFindOpen()));
         r.register("debugLog.copy", () -> Clipboards.copy(DebugLog.text()));
         r.register("debugLog.clear", window::clearDebugLog);
         r.register("debugLog.export", window::exportDebugLog);

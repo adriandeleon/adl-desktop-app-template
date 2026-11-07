@@ -78,6 +78,13 @@ class DebugLogFindBarFxTest {
         int back = call(() -> window.text().getSelection().getStart());
         assertTrue(back < first || back >= second, "Shift+Enter went back, wrapping: " + back);
 
+        // The steps are commands too (KBD-01): the palette reaches them while the bar is open.
+        run(() -> window.text().selectRange(first, first + 5));
+        run(() -> app.services().commands().run("debugLog.findNext"));
+        assertTrue(call(() -> window.text().getSelection().getStart()) > first);
+        assertEquals(
+                null, app.services().commands().get("debugLog.findPrevious").unavailableReason());
+
         run(() -> bar.matchCase().setSelected(true));
         run(() -> bar.field().setText("zzz-not-there"));
         assertEquals("No matches", call(bar::countText));
@@ -91,5 +98,6 @@ class DebugLogFindBarFxTest {
         Thread.sleep(250); // past the typing pause: a cancelled search must not run
         assertEquals("No matches", call(bar::countText), "a pending search ran after the bar closed");
         assertTrue(call(() -> window.stage().getScene().getFocusOwner() == window.text()));
+        assertNotNull(app.services().commands().get("debugLog.findNext").unavailableReason(), "closed bar");
     }
 }

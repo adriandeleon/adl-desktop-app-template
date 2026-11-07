@@ -41,6 +41,11 @@ final class Chrome {
         return found ? null : Messages.tr("palette.disabled.noNewRelease");
     }
 
+    /** Why Find Next or Previous cannot run: the Debug Log's find bar is not open. */
+    static @Nullable String findBarUnavailable(boolean open) {
+        return open ? null : Messages.tr("palette.disabled.findClosed");
+    }
+
     /** Why Debug Log: Refresh cannot run, or null when it can. */
     static @Nullable String debugLogRefreshUnavailable(boolean open) {
         return open ? null : Messages.tr("palette.disabled.debugLogClosed");
