@@ -69,7 +69,7 @@ class ShellFeaturesFxTest {
     void menusShowEachCommandsBindingAndFollowTheKeymap() throws Exception {
         // The in-window rendering, on every OS (macOS's own window uses the screen menu bar).
         AppMenus menus = call(() -> new AppMenus(services, false));
-        AppMenus.Row palette = menus.groups().get(1).getFirst();
+        AppMenus.Row palette = menus.groups().get(2).getFirst(); // Help opens with the palette (DOCS-07)
         assertInstanceOf(CustomMenuItem.class, palette.item());
         String cua = call(() -> AppMenus.displayText(palette));
         assertTrue(cua.startsWith("Command Palette   ") && cua.endsWith("P"), cua);
@@ -88,9 +88,17 @@ class ShellFeaturesFxTest {
             m.getOnShown().handle(null);
         }));
         double width = call(() -> palette.title().getMinWidth());
-        assertTrue(menus.groups().get(1).stream().allMatch(r -> r.title().getMinWidth() == width));
+        assertTrue(menus.groups().get(2).stream().allMatch(r -> r.title().getMinWidth() == width));
         run(() -> palette.item().fire());
         assertTrue(call(() -> app.window().overlays().isShowing()));
+
+        // MENU-02 / ICON-20: an in-window row leads with its command's glyph, the same one Settings draws.
+        javafx.scene.layout.HBox box = (javafx.scene.layout.HBox) ((CustomMenuItem) about.item()).getContent();
+        javafx.scene.shape.SVGPath glyph =
+                (javafx.scene.shape.SVGPath) box.getChildren().getFirst().lookup("SVGPath");
+        assertEquals(Icons.forCommand("help.about"), glyph.getContent());
+        assertTrue(glyph.getStyleClass().contains(Icons.LINE));
+        assertEquals(null, box.getChildren().getFirst().lookup(".toolbar-icon"));
     }
 
     private static AppMenus.Row row(AppMenus menus, String id) {
@@ -149,6 +157,7 @@ class ShellFeaturesFxTest {
         assertFalse(call(() -> settings.titleBarSwitch().isSelected()));
         run(() -> settings.titleBarSwitch().fire());
         assertTrue(services.settings().titleBarMenus);
+        services.store().flush(); // saves are written off the FX thread
         assertTrue(ConfigStore.open(dir).settings().titleBarMenus);
     }
 

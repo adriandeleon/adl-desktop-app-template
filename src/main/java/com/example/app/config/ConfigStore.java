@@ -8,6 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +34,12 @@ public final class ConfigStore {
 
     public static final String FILE = "settings.json";
 
+    /**
+     * A settings file larger than this is not read (PERF-12): it was not written by this app, and is kept
+     * aside as broken like any unreadable one.
+     */
+    public static final long MAX_FILE_BYTES = 1024 * 1024;
+
     private static final Logger LOG = Logger.getLogger(ConfigStore.class.getName());
 
     static final ObjectMapper JSON = new ObjectMapper()
@@ -51,6 +60,14 @@ public final class ConfigStore {
     private Settings settings = new Settings();
     private LoadResult loadResult = LoadResult.DEFAULTS;
     private @Nullable Path backup;
+    /**
+     * Saves run here, off the caller's thread (PERF-01): one at a time, in order, and a burst of changes
+     * writes only the newest text.
+     */
+    private final ExecutorService writer = Executors.newSingleThreadExecutor(
+            Thread.ofPlatform().daemon().name("settings-writer").factory());
+
+    private final AtomicReference<@Nullable Settings> pendingWrite = new AtomicReference<>();
 
     public ConfigStore(Path dir) {
         this.dir = dir;
@@ -92,6 +109,11 @@ public final class ConfigStore {
         fire();
     }
 
+    /** How many listeners are registered: a closed window must leave none of its own behind (PERF-13). */
+    public int listenerCount() {
+        return listeners.size();
+    }
+
     public void addListener(Consumer<Settings> listener) {
         listeners.add(listener);
     }
@@ -104,35 +126,47 @@ public final class ConfigStore {
         for (Consumer<Settings> listener : listeners) listener.accept(settings);
     }
 
+    /** What a read of the file found: the settings, how they loaded, and the backup it made. */
+    public record Loaded(
+            Settings settings, LoadResult result, @Nullable Path backup) {}
+
     /** Re-reads the file (after an import or a sync) and notifies the listeners. */
     public void reload() {
-        backup = null;
+        install(read());
+    }
+
+    /**
+     * Reads the file without touching the live settings: file work that may run off the FX thread
+     * (PERF-01), then {@link #install} on it. Waits for pending saves first.
+     */
+    public Loaded read() {
+        flush();
         Path file = file();
-        if (!Files.isRegularFile(file)) {
-            settings = new Settings();
-            loadResult = LoadResult.DEFAULTS;
-            fire();
-            return;
-        }
+        if (!Files.isRegularFile(file)) return new Loaded(new Settings(), LoadResult.DEFAULTS, null);
         try {
+            if (Files.size(file) > MAX_FILE_BYTES) throw new IOException("larger than " + MAX_FILE_BYTES + " bytes");
             JsonNode tree = JSON.readTree(Files.readString(file, StandardCharsets.UTF_8));
             if (!(tree instanceof ObjectNode object)) throw new IOException("not a JSON object");
             int version = Migrations.versionOf(object);
             if (version > Settings.SCHEMA_VERSION) {
-                backup = copyAside(file, FILE + ".v" + version + ".bak");
-                settings = new Settings();
-                loadResult = LoadResult.NEWER_BACKED_UP;
-            } else {
-                settings = JSON.treeToValue(Migrations.migrate(object), Settings.class);
-                loadResult = version < Settings.SCHEMA_VERSION ? LoadResult.MIGRATED : LoadResult.LOADED;
-                if (loadResult == LoadResult.MIGRATED) save();
+                return new Loaded(
+                        new Settings(), LoadResult.NEWER_BACKED_UP, copyAside(file, FILE + ".v" + version + ".bak"));
             }
+            Settings loaded = JSON.treeToValue(Migrations.migrate(object), Settings.class);
+            return new Loaded(
+                    loaded, version < Settings.SCHEMA_VERSION ? LoadResult.MIGRATED : LoadResult.LOADED, null);
         } catch (IOException | RuntimeException e) {
             LOG.log(Level.WARNING, "Could not read " + file + "; using defaults", e);
-            backup = copyAside(file, FILE + ".broken.bak");
-            settings = new Settings();
-            loadResult = LoadResult.BROKEN_BACKED_UP;
+            return new Loaded(new Settings(), LoadResult.BROKEN_BACKED_UP, copyAside(file, FILE + ".broken.bak"));
         }
+    }
+
+    /** Makes a read the live settings and notifies the listeners; a migrated file is saved forward. */
+    public void install(Loaded loaded) {
+        settings = loaded.settings();
+        loadResult = loaded.result();
+        backup = loaded.backup();
+        if (loadResult == LoadResult.MIGRATED) save();
         fire();
     }
 
@@ -145,12 +179,31 @@ public final class ConfigStore {
         }
     }
 
-    /** Writes the file atomically: a crash mid-write leaves the old file, never half a new one. */
+    /**
+     * Saves the settings: a snapshot is taken now, on the caller's thread, and serialized and written
+     * off it (PERF-01). The write is atomic: a crash mid-write leaves the old file, never half a new one.
+     */
     public void save() {
+        if (pendingWrite.getAndSet(settings.copy()) == null) writer.execute(this::writePending);
+    }
+
+    /** Waits until every save so far is on disk: before a reload, at exit, and in tests. */
+    public void flush() {
         try {
+            writer.submit(() -> {}).get();
+        } catch (InterruptedException | java.util.concurrent.ExecutionException e) {
+            Thread.currentThread().interrupt(); // the no-op task cannot fail: only an interrupt gets here
+        }
+    }
+
+    private void writePending() {
+        Settings snapshot = pendingWrite.getAndSet(null);
+        if (snapshot == null) return;
+        try {
+            String text = JSON.writeValueAsString(snapshot);
             Files.createDirectories(dir);
             Path temp = Files.createTempFile(dir, FILE, ".tmp");
-            Files.writeString(temp, JSON.writeValueAsString(settings), StandardCharsets.UTF_8);
+            Files.writeString(temp, text, StandardCharsets.UTF_8);
             try {
                 Files.move(temp, file(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             } catch (AtomicMoveNotSupportedException e) {

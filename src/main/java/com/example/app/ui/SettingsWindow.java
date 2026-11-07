@@ -48,21 +48,45 @@ public final class SettingsWindow {
 
     /** The pages, in sidebar order. */
     public enum Page {
-        GENERAL(Icons.SLIDERS),
-        APPEARANCE(Icons.CONTRAST),
-        KEYMAP(Icons.KEYBOARD),
-        SYNC(Icons.SYNC),
-        ADVANCED(Icons.FOLDER);
+        GENERAL("app.settings"),
+        APPEARANCE("settings.theme"),
+        KEYMAP("settings.keymap"),
+        SYNC("sync.setup"),
+        ADVANCED("config.openFolder");
 
-        final String icon;
+        /** The command whose glyph the page wears in the sidebar ({@link Icons#forCommand}). */
+        final String command;
 
-        Page(String icon) {
-            this.icon = icon;
+        Page(String command) {
+            this.command = command;
         }
 
         String title() {
             return Messages.tr("settings.page." + name().toLowerCase(java.util.Locale.ROOT));
         }
+    }
+
+    /** Each page's commands, for its sidebar row's right-click menu; {@code null} is a separator. */
+    static final Map<Page, List<@Nullable String>> PAGE_COMMANDS = Map.of(
+            Page.GENERAL,
+                    java.util.Arrays.asList("settings.language", "settings.toggleUpdateCheck", "view.toggleStatusBar"),
+            Page.APPEARANCE, java.util.Arrays.asList("settings.theme", "view.toggleTitleBarMenus"),
+            Page.KEYMAP, java.util.Arrays.asList("settings.keymap", "settings.bindKey"),
+            Page.SYNC,
+                    java.util.Arrays.asList(
+                            "sync.now",
+                            "sync.toggleAuto",
+                            null,
+                            "sync.setRepository",
+                            "sync.setBranch",
+                            "sync.setInterval"),
+            Page.ADVANCED, java.util.Arrays.asList("config.export", "config.import", null, "config.openFolder"));
+
+    private final Map<Page, CommandMenu> pageMenus = new EnumMap<>(Page.class);
+
+    private CommandMenu pageMenu(Page page) {
+        return pageMenus.computeIfAbsent(
+                page, p -> new CommandMenu(services, PAGE_COMMANDS.getOrDefault(p, List.of())));
     }
 
     /** A searchable row and the card it sits in. */
@@ -77,6 +101,12 @@ public final class SettingsWindow {
     private final List<Row> rows = new ArrayList<>();
     private final List<Runnable> loaders = new ArrayList<>();
     private final Map<Page, Boolean> pageHits = new EnumMap<>(Page.class);
+    private final ListView<Command> bindingList = new ListView<>();
+    private final javafx.collections.ObservableList<Command> bindingSource =
+            javafx.collections.FXCollections.observableArrayList();
+    private final javafx.collections.transformation.FilteredList<Command> bindingFilter =
+            new javafx.collections.transformation.FilteredList<>(bindingSource);
+    private final Map<Command, SettingsSearch.Entry> bindingEntries = new java.util.LinkedHashMap<>();
 
     private final ComboBox<String> language = new ComboBox<>();
     private final SettingSwitch updates = new SettingSwitch(Messages.tr("settings.updates.title"));
@@ -111,9 +141,15 @@ public final class SettingsWindow {
 
         search.setPromptText(Messages.tr("settings.search"));
         search.getStyleClass().add("settings-search");
-        search.textProperty().addListener((obs, old, text) -> applySearch(text));
+        Debounce searching = new Debounce(() -> applySearch(search.getText()));
+        search.textProperty().addListener((obs, old, text) -> searching.request());
         sidebar.getItems().setAll(Page.values());
-        sidebar.setCellFactory(v -> new PageCell());
+        // A page row's right-click menu holds that page's commands (MENU-05).
+        sidebar.setCellFactory(v -> {
+            PageCell cell = new PageCell();
+            return CommandMenu.onRow(cell, () -> pageMenu(java.util.Objects.requireNonNull(cell.getItem())));
+        });
+        RowContextMenu.install(sidebar);
         sidebar.getStyleClass().add("settings-sidebar");
         sidebar.getSelectionModel().selectedItemProperty().addListener((obs, old, page) -> {
             if (page != null) scroll.setContent(pages.get(page));
@@ -220,43 +256,111 @@ public final class SettingsWindow {
         row(presets, Page.KEYMAP, "settings.keymap", keymap, "emacs cua shortcuts keys");
         loaders.add(() -> keymap.setValue(services.settings().keymap));
 
+        // One row per registered command: a list that grows with the registry, so a virtualized
+        // ListView with a fixed cell size, filtered by the search (PERF-08).
         VBox bindings = card(Page.KEYMAP, Messages.tr("settings.bindings.heading"));
+        bindingList.getStyleClass().add("binding-list");
+        bindingList.setFixedCellSize(BINDING_ROW_HEIGHT);
+        CommandMenu rowMenu =
+                new CommandMenu(services, java.util.Arrays.asList("keymap.changeBinding", null, "keymap.resetBinding"));
+        bindingList.setCellFactory(v -> CommandMenu.onRow(new BindingCell(), () -> rowMenu));
+        RowContextMenu.install(bindingList);
         for (Command command : services.commands().all()) {
-            TextField field = new TextField();
+            bindingEntries.put(
+                    command,
+                    new SettingsSearch.Entry(
+                            command.title(),
+                            command.description(),
+                            Messages.tr("settings.bindings.reset"),
+                            Page.KEYMAP.title() + " " + Messages.tr("settings.bindings.heading"),
+                            command.id()));
+        }
+        bindingSource.setAll(bindingEntries.keySet());
+        bindingFilter.setPredicate(c -> true);
+        bindingList.setItems(bindingFilter);
+        bindingList
+                .prefHeightProperty()
+                .bind(javafx.beans.binding.Bindings.min(
+                                javafx.beans.binding.Bindings.size(bindingFilter), BINDING_ROWS_SHOWN)
+                        .multiply(BINDING_ROW_HEIGHT)
+                        .add(2));
+        bindings.getChildren().add(bindingList);
+        loaders.add(bindingList::refresh);
+    }
+
+    static final double BINDING_ROW_HEIGHT = 58;
+    static final int BINDING_ROWS_SHOWN = 8;
+
+    /** A key-binding row: the command's title and description, its keys, and Reset. */
+    private final class BindingCell extends ListCell<Command> {
+        private final Label title = new Label();
+        private final Label description = new Label();
+        private final TextField field = new TextField();
+        private final Button reset = new Button(Messages.tr("settings.bindings.reset"));
+        private final HBox row;
+
+        BindingCell() {
+            title.getStyleClass().add("setting-title");
+            description.getStyleClass().add("setting-desc");
             field.setPrefColumnCount(14);
-            field.setAccessibleText(command.title());
-            Button reset = new Button(Messages.tr("settings.bindings.reset"));
             reset.getStyleClass().add("flat");
-            reset.setOnAction(e -> services.store().update(s -> s.keybindings.remove(command.id())));
-            field.setOnAction(e -> commitBinding(command.id(), field));
-            field.focusedProperty().addListener((obs, was, focused) -> {
-                if (!focused) commitBinding(command.id(), field);
+            reset.setOnAction(e -> {
+                Command command = getItem();
+                if (command != null) resetBinding(command);
             });
+            field.setOnAction(e -> commit());
+            field.focusedProperty().addListener((obs, was, focused) -> {
+                if (!focused) commit();
+            });
+            VBox text = new VBox(2, title, description);
+            HBox.setHgrow(text, Priority.ALWAYS);
             HBox control = new HBox(6, field, reset);
             control.setAlignment(Pos.CENTER_RIGHT);
-            addRow(
-                    bindings,
-                    Page.KEYMAP,
-                    command.title(),
-                    command.description(),
-                    control,
-                    command.id() + " " + Messages.tr("settings.bindings.heading"));
-            loaders.add(() -> {
-                String user = services.settings().keybindings.get(command.id());
-                field.setText(
-                        user != null
-                                ? user
-                                : services.keybindings().keymap().bindings().getOrDefault(command.id(), ""));
-                field.getStyleClass().remove("invalid");
-                String other = services.keybindings().conflicts().get(command.id());
-                field.setTooltip(
-                        other == null
-                                ? null
-                                : new javafx.scene.control.Tooltip(
-                                        Messages.tr("settings.bindings.conflict", Messages.tr("command." + other))));
-                if (other != null) field.getStyleClass().add("invalid");
-            });
+            row = new HBox(16, text, control);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.getStyleClass().add("setting-row");
         }
+
+        private void commit() {
+            Command command = getItem();
+            if (command != null && !isEmpty()) commitBinding(command.id(), field);
+        }
+
+        @Override
+        protected void updateItem(@Nullable Command command, boolean empty) {
+            super.updateItem(command, empty);
+            setText(null);
+            if (empty || command == null) {
+                setGraphic(null);
+                return;
+            }
+            title.setText(command.title());
+            description.setText(command.description());
+            field.setAccessibleText(command.title());
+            String user = services.settings().keybindings.get(command.id());
+            field.setText(
+                    user != null
+                            ? user
+                            : services.keybindings().keymap().bindings().getOrDefault(command.id(), ""));
+            field.getStyleClass().remove("invalid");
+            String other = services.keybindings().conflicts().get(command.id());
+            field.setTooltip(
+                    other == null
+                            ? null
+                            : new javafx.scene.control.Tooltip(
+                                    Messages.tr("settings.bindings.conflict", Messages.tr("command." + other))));
+            if (other != null) field.getStyleClass().add("invalid");
+            setGraphic(row);
+        }
+    }
+
+    /** Removes the user's own binding for a command, after asking: it is something the user made. */
+    void resetBinding(Command command) {
+        String user = services.settings().keybindings.get(command.id());
+        if (user == null) return;
+        String keymapChord = services.keybindings().keymap().bindings().getOrDefault(command.id(), "");
+        if (!services.host().confirm(stage, Confirmations.resetBinding(command.title(), user, keymapChord))) return;
+        services.store().update(s -> s.keybindings.remove(command.id()));
     }
 
     /** Commits a binding: blank unbinds, an unparsable chord is marked and not saved. */
@@ -302,16 +406,15 @@ public final class SettingsWindow {
             if (!syncUrl.getStyleClass().contains("invalid")) services.sync().syncNow(true);
         });
         Button create = new Button(Messages.tr("settings.sync.createGithub"));
-        create.setOnAction(e -> promptCreateOnGitHub());
+        create.setOnAction(e -> services.commands().run("sync.createGitHubRepo"));
         HBox branchControl = new HBox(6, syncBranch, connect, create);
         branchControl.setAlignment(Pos.CENTER_RIGHT);
         row(repo, Page.SYNC, "settings.sync.branch", branchControl, "branch connect");
 
         Button now = new Button(Messages.tr("settings.sync.now"));
-        now.setOnAction(e -> services.sync().syncNow(true));
+        now.setOnAction(e -> services.commands().run("sync.now"));
         Button folder = new Button(Messages.tr("settings.sync.openFolder"));
-        folder.setOnAction(e -> services.host()
-                .openUrl(services.store().dir().resolve("sync").toUri().toString()));
+        folder.setOnAction(e -> services.commands().run("sync.openFolder"));
         syncPill.getStyleClass().add("pill");
         HBox status = new HBox(8, syncPill, now, folder);
         status.setAlignment(Pos.CENTER_RIGHT);
@@ -337,6 +440,7 @@ public final class SettingsWindow {
             syncUrl.setText(s.repoUrl);
             syncUrl.getStyleClass().remove("invalid");
             syncBranch.setText(s.branch);
+            syncBranch.getStyleClass().remove("invalid");
             syncAuto.setSelected(s.auto);
             syncInterval.setText(String.valueOf(s.intervalMinutes));
             syncInterval.getStyleClass().remove("invalid");
@@ -375,24 +479,30 @@ public final class SettingsWindow {
         return dialog;
     }
 
-    private void commitBranch() {
+    /** Commits the branch: a blank or invalid name is marked, said why, and never committed (SET-04). */
+    void commitBranch() {
         String branch = syncBranch.getText().trim();
-        if (!branch.isEmpty() && !branch.equals(services.settings().sync.branch)) {
-            services.store().update(s -> s.sync.branch = branch);
+        String refused = SyncEngine.checkBranch(branch);
+        if (refused != null) {
+            if (!syncBranch.getStyleClass().contains("invalid"))
+                syncBranch.getStyleClass().add("invalid");
+            services.echo("status.sync.invalidBranch", Messages.tr("settings.sync.branch." + refused));
+            return;
         }
+        syncBranch.getStyleClass().remove("invalid");
+        if (!branch.equals(services.settings().sync.branch)) services.store().update(s -> s.sync.branch = branch);
     }
 
-    private void commitInterval() {
-        try {
-            int minutes = Integer.parseInt(syncInterval.getText().trim());
-            if (minutes < 1) throw new NumberFormatException();
-            syncInterval.getStyleClass().remove("invalid");
-            if (minutes != services.settings().sync.intervalMinutes) {
-                services.store().update(s -> s.sync.intervalMinutes = minutes);
-            }
-        } catch (NumberFormatException e) {
+    void commitInterval() {
+        Integer minutes = Settings.Sync.parseInterval(syncInterval.getText());
+        if (minutes == null) {
             if (!syncInterval.getStyleClass().contains("invalid"))
                 syncInterval.getStyleClass().add("invalid");
+            return;
+        }
+        syncInterval.getStyleClass().remove("invalid");
+        if (minutes != services.settings().sync.intervalMinutes) {
+            services.store().update(s -> s.sync.intervalMinutes = minutes);
         }
     }
 
@@ -403,8 +513,9 @@ public final class SettingsWindow {
         syncPill.getStyleClass()
                 .add(
                         switch (services.sync().pill()) {
-                            case CONNECTED, SYNCING -> "green";
-                            case NOT_CONNECTED -> "amber";
+                            // Green only once a sync is verified; one in flight is not durable yet (ICON-18).
+                            case CONNECTED -> "green";
+                            case SYNCING, NOT_CONNECTED -> "amber";
                             case FAILING -> "red";
                         });
     }
@@ -472,7 +583,29 @@ public final class SettingsWindow {
             HBox.setHgrow(control, Priority.ALWAYS);
         }
         card.getChildren().add(row);
-        rows.add(new Row(page, row, card, new SettingsSearch.Entry(title, description, page.title(), keywords)));
+        String heading = card.getChildren().isEmpty()
+                        || !(card.getChildren().getFirst() instanceof Label first)
+                        || !first.getStyleClass().contains("settings-card-heading")
+                ? ""
+                : first.getText();
+        rows.add(new Row(
+                page,
+                row,
+                card,
+                new SettingsSearch.Entry(
+                        title, description, visibleText(control), page.title() + " " + heading, keywords)));
+    }
+
+    /** The text a row's controls show (button and label text), so a search finds a row by it. */
+    static String visibleText(Node control) {
+        StringBuilder text = new StringBuilder();
+        if (control instanceof javafx.scene.control.Labeled labeled && labeled.getText() != null) {
+            text.append(labeled.getText()).append(' ');
+        }
+        if (control instanceof javafx.scene.Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) text.append(visibleText(child));
+        }
+        return text.toString();
     }
 
     /** Filters every page by {@code query} and opens the page with the best match. */
@@ -491,11 +624,26 @@ public final class SettingsWindow {
                 best = row.page();
             }
         }
+        // The key bindings are a filtered list rather than rows: the search narrows the list.
+        java.util.Set<Command> matched = new java.util.HashSet<>();
+        for (Map.Entry<Command, SettingsSearch.Entry> binding : bindingEntries.entrySet()) {
+            int score = SettingsSearch.score(query, binding.getValue());
+            if (score > 0) {
+                matched.add(binding.getKey());
+                pageHits.put(Page.KEYMAP, true);
+            }
+            if (score > bestScore) {
+                bestScore = score;
+                best = Page.KEYMAP;
+            }
+        }
+        bindingFilter.setPredicate(matched::contains);
         for (VBox page : pages.values()) {
             for (Node child : page.getChildren()) {
                 if (child instanceof VBox card && card.getStyleClass().contains("settings-card")) {
                     boolean any = card.getChildren().stream()
-                            .anyMatch(n -> n.getStyleClass().contains("setting-row") && n.isVisible());
+                            .anyMatch(n -> (n.getStyleClass().contains("setting-row") && n.isVisible())
+                                    || (n == bindingList && !bindingFilter.isEmpty()));
                     card.setVisible(any);
                     card.setManaged(any);
                 }
@@ -542,6 +690,10 @@ public final class SettingsWindow {
 
     ListView<Page> sidebar() {
         return sidebar;
+    }
+
+    ListView<Command> bindingList() {
+        return bindingList;
     }
 
     List<Row> rows() {
@@ -608,7 +760,7 @@ public final class SettingsWindow {
                 return;
             }
             setText(page.title());
-            setGraphic(Icons.of(page.icon));
+            setGraphic(Icons.commandGlyph(page.command));
             if (!search.getText().isBlank() && !pageHits.getOrDefault(page, true))
                 getStyleClass().add("no-match");
         }

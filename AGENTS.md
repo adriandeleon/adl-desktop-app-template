@@ -1,13 +1,16 @@
 # ExampleApp: rules for coding agents
 
 ExampleApp is a JavaFX desktop app: JDK 25+, JavaFX 27+, Maven, one JPMS module (`com.example.app`).
-It follows [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [1.1.0](https://github.com/adriandeleon/adl-desktop-apps-guidelines/blob/v1.1.0/CHANGELOG.md).
-The edition is named in this line, the README's Pauta badge and its "Built to" line (and in the template
-box until `rename.sh` removes it). Moving to a newer edition means reading that edition's CHANGELOG for new
+It follows [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [2.0.0](https://pauta-project.dev/2.0.0/).
+The edition's one source is `pauta.version` in `pom.xml`; About, `--version` and the environment block read
+it through `AppInfo`, and this line, the README's Pauta badge and its "Built to" line (and the template box
+until `rename.sh` removes it) name the same number (`EditionTest` checks). Moving to a newer edition means reading that edition's CHANGELOG for new
 or stronger MUSTs, meeting them, then changing every place together.
 To check the app against its edition, run the `pauta-audit` skill ([`.claude/skills/pauta-audit/`](.claude/skills/pauta-audit/SKILL.md)):
 it writes `docs/pauta-audit.md`, one row per rule with evidence, failed MUSTs first. `/pauta-audit KBD` audits one prefix.
 This file is operational rules, not a changelog: how the app is built lives in [`docs/`](docs/README.md).
+When documentation and code disagree, **the code wins**, and the documentation is fixed in the same change.
+User-facing feature documentation goes to the separate website repository (`exampleapp-website`), never here.
 
 ## Essential commands
 
@@ -26,8 +29,9 @@ Run Maven from the repository root, **on JDK 25** (Palantir Java Format breaks o
 
 - **One task, one branch, one worktree.** `git worktree add ../exampleapp-<topic> -b <type>/<topic>`;
   never switch branches under another session's feet, never stash someone else's work.
-- **A whole feature is one pull request**, with its tests, its strings in every catalog, its docs and
-  its CHANGELOG entry.
+- **A whole feature is one pull request**, with its tests and its strings in every catalog. **Docs
+  change in the same PR** (`docs/conventions.md#docs-in-the-same-pr`): `CHANGELOG.md`, `TODO.md`, the
+  guides in `docs/` it touches and the website's user docs, never as a follow-up.
 - **Before you push:** `./mvnw spotless:apply` and `./mvnw verify` pass locally.
 - Conventional commit subjects: `feat(ui): …`, `fix(sync): …`, `docs: …`, `test: …`, `chore: …`.
 
@@ -41,7 +45,13 @@ Run Maven from the repository root, **on JDK 25** (Palantir Java Format breaks o
 - [ ] A new package has a `package-info.java` with `@NullMarked`. Fix NullAway reports; never suppress.
 - [ ] A new dialog or window goes through `Dialogs.styled` / `Themes.style`. Overlays use
       `OverlayHost`, never `javafx.stage.Popup`.
-- [ ] CSS colours are AtlantaFX `-color-*` tokens, never hex literals.
+- [ ] Anything that removes or overwrites what the user made asks first through the one confirm helper:
+      `services.host().confirm(owner, Confirmations.<question>(…))`, its words in `Confirmations`, the
+      button the action's own verb (never OK or Yes). Tests answer it with `FakeHost.confirmAnswer`.
+- [ ] CSS colors: a state (error, warning, verified, accent) is a `-state-*` token from the `.root` block
+      at the top of `app.css`, everything else a `-color-*` role; never a hex outside `.root`
+      (`StyleContrastTest` checks, contrast included). A glyph is `Icons.line` or `Icons.of`, never both,
+      and a command's glyph comes from `Icons.forCommand`.
 - [ ] Failures reach the status bar (`services.echo`, key ending in `Failed`/`Error`) or the Debug Log
       (`java.util.logging`). Never a stack-trace dialog, never silence.
 - [ ] Tests: a pure helper plus a unit test first; an FX test (`@Tag("fx")`) when toolkit behaviour is

@@ -48,7 +48,7 @@ public final class Main {
             return 0;
         }
         if (cli.version()) {
-            out.println(AppInfo.NAME + " " + AppInfo.VERSION + " (commit " + AppInfo.COMMIT + ")");
+            out.println(AppInfo.versionText());
             return 0;
         }
         Path dir = ConfigDir.resolve(cli.configDir(), cli.dev());

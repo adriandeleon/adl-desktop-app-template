@@ -58,6 +58,7 @@ class ConfigStoreTest {
         });
         assertEquals(1, heard.size());
         store.removeListener(listener);
+        store.flush(); // saves are written off the caller's thread
 
         ConfigStore again = ConfigStore.open(dir);
         assertEquals(ConfigStore.LoadResult.LOADED, again.loadResult());
@@ -88,6 +89,7 @@ class ConfigStoreTest {
         ConfigStore store = ConfigStore.open(dir);
         assertEquals(ConfigStore.LoadResult.MIGRATED, store.loadResult());
         assertEquals(ThemeChoice.DARK, store.settings().theme);
+        store.flush();
         assertTrue(Files.readString(store.file()).contains("\"schemaVersion\" : " + Settings.SCHEMA_VERSION));
     }
 
@@ -120,5 +122,75 @@ class ConfigStoreTest {
         ConfigStore store = new ConfigStore(file.resolve("sub"));
         store.save(); // the parent is a file: cannot create the folder
         assertFalse(Files.exists(file.resolve("sub")));
+    }
+
+    @Test
+    void anOversizedFileIsSetAsideUnread() throws Exception {
+        java.nio.file.Files.writeString(
+                dir.resolve(ConfigStore.FILE), "{\"pad\":\"" + "x".repeat((int) ConfigStore.MAX_FILE_BYTES) + "\"}");
+        ConfigStore store = ConfigStore.open(dir);
+        assertEquals(ConfigStore.LoadResult.BROKEN_BACKED_UP, store.loadResult());
+    }
+
+    @Test
+    void aBurstOfChangesIsWrittenOffTheCallersThreadAndEndsWithTheNewest() throws Exception {
+        ConfigStore store = ConfigStore.open(dir);
+        for (int i = 1; i <= 50; i++) {
+            int minutes = i;
+            store.update(s -> s.sync.intervalMinutes = minutes);
+        }
+        store.flush();
+        assertEquals(50, ConfigStore.open(dir).settings().sync.intervalMinutes);
+    }
+
+    @Test
+    void aFileThatIsNotAnObjectOrAFolderThatCannotBeWrittenIsSurvived() throws Exception {
+        java.nio.file.Files.writeString(dir.resolve(ConfigStore.FILE), "[1, 2]");
+        assertEquals(
+                ConfigStore.LoadResult.BROKEN_BACKED_UP, ConfigStore.open(dir).loadResult());
+
+        Path notAFolder = java.nio.file.Files.writeString(dir.resolve("plain-file"), "x");
+        ConfigStore store = new ConfigStore(notAFolder);
+        store.update(s -> s.keymap = "emacs"); // the write fails off the caller's thread and is logged
+        store.flush();
+        assertEquals("emacs", store.settings().keymap);
+
+        Thread.currentThread().interrupt();
+        store.flush();
+        org.junit.jupiter.api.Assertions.assertTrue(Thread.interrupted(), "flush keeps the interrupt");
+    }
+
+    @Test
+    void anIntervalIsAWholeNumberOfMinutesFromOne() {
+        assertEquals(5, Settings.Sync.parseInterval(" 5 "));
+        org.junit.jupiter.api.Assertions.assertNull(Settings.Sync.parseInterval("0"));
+        org.junit.jupiter.api.Assertions.assertNull(Settings.Sync.parseInterval("soon"));
+    }
+
+    @Test
+    void aCopyHoldsEveryFieldSoTheWriterSavesWhatWasSet() throws Exception {
+        Settings s = new Settings();
+        s.theme = ThemeChoice.DARK;
+        s.language = "de";
+        s.keymap = "emacs";
+        s.keybindings.put("app.quit", "C-q");
+        s.checkForUpdates = false;
+        s.lastUpdateCheck = 42;
+        s.showStatusBar = false;
+        s.titleBarMenus = false;
+        s.window.x = 1.0;
+        s.window.y = 2.0;
+        s.window.width = 3;
+        s.window.height = 4;
+        s.window.maximized = true;
+        s.sync.repoUrl = "r";
+        s.sync.branch = "b";
+        s.sync.auto = false;
+        s.sync.intervalMinutes = 9;
+        s.sync.lastSync = 7;
+        Settings copy = s.copy();
+        assertEquals(ConfigStore.JSON.writeValueAsString(s), ConfigStore.JSON.writeValueAsString(copy));
+        copy.keybindings.put("help.about", "F1");
+        assertFalse(s.keybindings.containsKey("help.about"), "a deep copy");
     }
 }

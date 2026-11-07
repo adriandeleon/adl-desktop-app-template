@@ -13,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -24,11 +25,15 @@ import javafx.stage.StageStyle;
 
 import com.example.app.AppInfo;
 import com.example.app.command.Command;
+import com.example.app.command.KeyStroke;
 import com.example.app.command.Keymap;
 import com.example.app.config.ConfigExporter;
+import com.example.app.config.ConfigImport;
+import com.example.app.config.ConfigStore;
 import com.example.app.config.Settings;
 import com.example.app.config.ThemeChoice;
 import com.example.app.i18n.Messages;
+import com.example.app.sync.SyncEngine;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -45,7 +50,9 @@ public final class MainWindow {
     private final AppMenus menus;
     private final @Nullable HeaderBar headerBar;
     private final StatusBar statusBar;
-    private final MessageLogView messageLog;
+    /** Built on first open, not before the first frame (PERF-14). */
+    private @Nullable MessageLogView messageLog;
+
     private @Nullable SettingsWindow settings;
     private @Nullable DebugLogWindow debugLog;
 
@@ -67,8 +74,7 @@ public final class MainWindow {
         this.stage = stage;
         this.services = services;
         this.overlays = new OverlayHost(layout);
-        this.statusBar = new StatusBar(services, this::openMessageLog);
-        this.messageLog = new MessageLogView(services, overlays, statusBar::refreshUnread);
+        this.statusBar = new StatusBar(services);
         Commands.register(this, services);
 
         this.menus = new AppMenus(services, systemMenu);
@@ -101,7 +107,11 @@ public final class MainWindow {
             }
             stage.setMaximized(window.maximized);
         }
-        stage.setOnCloseRequest(e -> saveWindowState());
+        // The window's close button is a Quit like any other: one path (TRAY-04).
+        stage.setOnCloseRequest(e -> {
+            e.consume();
+            quit();
+        });
 
         services.store().addListener(this::apply);
         services.onKeybindingsChanged(() -> layout.setCenter(placeholder()));
@@ -129,7 +139,7 @@ public final class MainWindow {
         Label hint = new Label(Messages.tr("welcome.hint", chord.isEmpty() ? "—" : chord));
         HBox actions = new HBox(8);
         actions.setAlignment(Pos.CENTER);
-        for (String id : List.of("palette.show", "app.settings", "help.about")) {
+        for (String id : List.of("palette.show", "app.settings", "help.documentation", "help.whatsNew")) {
             Command command = services.commands().get(id);
             if (command == null) continue;
             Button button = new Button(command.title());
@@ -142,15 +152,9 @@ public final class MainWindow {
         return box;
     }
 
-    /**
-     * Whether this window draws its own title bar with the menus in it: JavaFX 27's extended stage
-     * style, where the platform keeps its window buttons and a {@link HeaderBar} replaces the title bar.
-     * Never under a screen menu bar (macOS: there are no menus in the window to put there), and only
-     * where the platform supports the style: JavaFX quietly downgrades an unsupported {@code EXTENDED}
-     * to {@code DECORATED}, which would draw the header under a native title bar as a second row.
-     */
+    /** Whether this window draws its own title bar: the pure rule in {@link Chrome#usesHeaderBar}. */
     static boolean usesHeaderBar(boolean systemMenu, boolean setting, boolean extendedSupported) {
-        return !systemMenu && setting && extendedSupported;
+        return Chrome.usesHeaderBar(systemMenu, setting, extendedSupported);
     }
 
     /**
@@ -187,8 +191,8 @@ public final class MainWindow {
     // ---- what the commands do ----
 
     void openPalette() {
+        // Every registered command (PAL-02): one that cannot run now stays listed, grayed with the reason.
         List<Picker.Item<String>> items = services.commands().all().stream()
-                .filter(c -> !c.id().equals("palette.show"))
                 .sorted(java.util.Comparator.comparing(Command::title))
                 .map(c -> new Picker.Item<>(
                         c.id(),
@@ -243,8 +247,161 @@ public final class MainWindow {
                 .show();
     }
 
+    // ---- a palette command per setting that a picker or a toggle does not cover (SET-06) ----
+
+    TextInputDialog promptSyncRepository() {
+        return Prompts.text(
+                stage,
+                Messages.tr("command.sync.setRepository"),
+                Messages.tr("settings.sync.repo.title"),
+                services.settings().sync.repoUrl,
+                url -> url.isEmpty() ? null : reason(SyncEngine.checkUrl(url), "settings.sync.url."),
+                url -> services.store().update(s -> s.sync.repoUrl = url));
+    }
+
+    TextInputDialog promptSyncBranch() {
+        return Prompts.text(
+                stage,
+                Messages.tr("command.sync.setBranch"),
+                Messages.tr("settings.sync.branch.title"),
+                services.settings().sync.branch,
+                branch -> reason(SyncEngine.checkBranch(branch), "settings.sync.branch."),
+                branch -> services.store().update(s -> s.sync.branch = branch));
+    }
+
+    TextInputDialog promptSyncInterval() {
+        return Prompts.text(
+                stage,
+                Messages.tr("command.sync.setInterval"),
+                Messages.tr("settings.sync.interval.prompt"),
+                String.valueOf(services.settings().sync.intervalMinutes),
+                text -> Settings.Sync.parseInterval(text) == null
+                        ? Messages.tr("settings.sync.interval.invalid")
+                        : null,
+                text -> {
+                    Integer minutes = Settings.Sync.parseInterval(text);
+                    if (minutes != null) services.store().update(s -> s.sync.intervalMinutes = minutes);
+                });
+    }
+
+    private static @Nullable String reason(@Nullable String suffix, String prefix) {
+        return suffix == null ? null : Messages.tr(prefix + suffix);
+    }
+
+    /** Settings → Keymap from the palette: pick a command, then type its keys (blank unbinds). */
+    void chooseBinding() {
+        List<Picker.Item<Command>> items = services.commands().all().stream()
+                .sorted(java.util.Comparator.comparing(Command::title))
+                .map(c -> new Picker.Item<>(
+                        c, c.title(), c.description(), services.keybindings().label(c.id()), null))
+                .toList();
+        new Picker<>(overlays, Messages.tr("picker.bindKey"), "", items, this::promptBinding).show();
+    }
+
+    TextInputDialog promptBinding(Command command) {
+        String base = services.keybindings().keymap().bindings().getOrDefault(command.id(), "");
+        String current = services.settings().keybindings.getOrDefault(command.id(), base);
+        return Prompts.text(
+                stage,
+                Messages.tr("command.settings.bindKey"),
+                command.title(),
+                current,
+                text -> text.isEmpty() || KeyStroke.parseSequence(text) != null
+                        ? null
+                        : Messages.tr("settings.bindings.invalid"),
+                text -> services.store().update(s -> {
+                    if (text.equals(base)) s.keybindings.remove(command.id());
+                    else s.keybindings.put(command.id(), text);
+                }));
+    }
+
     void openMessageLog() {
-        messageLog.show();
+        messageLog().show();
+    }
+
+    /** Copies what the Message Log lists: the filtered entries while it is open, else every entry. */
+    void copyMessageLog() {
+        MessageLogView view = messageLog;
+        Clipboards.copy(MessageLogView.asText(
+                view != null ? view.listed() : services.messages().entries()));
+        services.echo("status.messageLogCopied");
+    }
+
+    /** Empties the Message Log and its unread count. */
+    void clearMessageLog() {
+        services.messages().clear();
+        MessageLogView view = messageLog;
+        if (view != null) view.refresh();
+        statusBar.refreshUnread();
+    }
+
+    /** About's Copy details: the environment block, for a bug report. */
+    void copyDetails() {
+        Clipboards.copy(AppInfo.environment(services.store().dir()));
+        services.echo("status.detailsCopied");
+    }
+
+    boolean isDebugLogOpen() {
+        DebugLogWindow window = debugLog;
+        return window != null && window.stage().isShowing();
+    }
+
+    void refreshDebugLog() {
+        DebugLogWindow window = debugLog;
+        if (window != null) window.refresh();
+    }
+
+    /** Debug Log: Find: opens the Debug Log and its find bar. */
+    void findInDebugLog() {
+        openDebugLog();
+        DebugLogWindow window = debugLog;
+        if (window != null) window.find();
+    }
+
+    boolean isDebugLogFindOpen() {
+        DebugLogWindow window = debugLog;
+        return window != null && window.stage().isShowing() && window.findBar().isOpen();
+    }
+
+    void stepDebugLogFind(boolean forward) {
+        DebugLogWindow window = debugLog;
+        if (window != null) window.findBar().step(forward);
+    }
+
+    /** The command whose key-binding row is selected in an open Settings → Keymap, or null. */
+    @Nullable
+    Command selectedBinding() {
+        SettingsWindow window = settings;
+        if (window == null || !window.stage().isShowing()) return null;
+        return window.bindingList().getSelectionModel().getSelectedItem();
+    }
+
+    void resetSelectedBinding() {
+        SettingsWindow window = settings;
+        Command selected = selectedBinding();
+        if (window != null && selected != null) window.resetBinding(selected);
+    }
+
+    void clearDebugLog() {
+        DebugLog.clear();
+        refreshDebugLog();
+    }
+
+    /** Saves the Debug Log as a text file the user chooses; the write runs off the FX thread. */
+    void exportDebugLog() {
+        DebugLogWindow window = debugLog;
+        Stage owner = window != null && window.stage().isShowing() ? window.stage() : stage;
+        Path target = services.host().chooseSaveFile(owner, Messages.tr("debuglog.export"), AppInfo.ID + "-debug.log");
+        if (target == null) return;
+        String text = DebugLog.text();
+        Background.run(() -> {
+            try {
+                java.nio.file.Files.writeString(target, text, java.nio.charset.StandardCharsets.UTF_8);
+                services.echo("status.logExported", String.valueOf(target.getFileName()));
+            } catch (IOException e) {
+                services.echo("status.logExportFailed", String.valueOf(e.getMessage()));
+            }
+        });
     }
 
     void openSettings(SettingsWindow.Page page) {
@@ -270,7 +427,7 @@ public final class MainWindow {
     void openDebugLog() {
         DebugLogWindow window = debugLog;
         if (window == null) {
-            window = new DebugLogWindow(services, stage, this::openReportProblem);
+            window = new DebugLogWindow(services, stage);
             debugLog = window;
         }
         window.show();
@@ -285,24 +442,60 @@ public final class MainWindow {
                 .chooseSaveFile(
                         stage, Messages.tr("command.config.export"), ConfigExporter.defaultName(LocalDateTime.now()));
         if (target == null) return;
-        try {
-            int count = ConfigExporter.export(services.store().dir(), target);
-            services.echo("status.configExported", count, String.valueOf(target.getFileName()));
-        } catch (IOException e) {
-            services.echo("status.configExportFailed", String.valueOf(e.getMessage()));
-        }
+        Path dir = services.store().dir();
+        Background.run(
+                () -> { // the walk and the zip write stay off the FX thread (PERF-01)
+                    services.store().flush();
+                    try {
+                        int count = ConfigExporter.export(dir, target);
+                        services.echo("status.configExported", count, String.valueOf(target.getFileName()));
+                    } catch (IOException e) {
+                        services.echo("status.configExportFailed", String.valueOf(e.getMessage()));
+                    }
+                });
     }
 
+    /**
+     * Import Configuration: the zip is read and checked off the FX thread, then the question lists the
+     * parts it holds, and only the ticked ones replace this computer's (SET-12, WIN-05).
+     */
     void importConfig() {
         Path source = services.host().chooseOpenFile(stage, Messages.tr("command.config.import"));
         if (source == null) return;
-        try {
-            int count = ConfigExporter.importFrom(source, services.store().dir());
-            services.store().reload();
-            services.echo("status.configImported", count);
-        } catch (IOException e) {
-            services.echo("status.configImportFailed", String.valueOf(e.getMessage()));
+        Path dir = services.store().dir();
+        Background.run(() -> {
+            ConfigImport.Scan scan;
+            try {
+                scan = ConfigImport.read(source);
+            } catch (IOException e) {
+                services.echo("status.configImportFailed", String.valueOf(e.getMessage()));
+                return;
+            }
+            Platform.runLater(() -> askAndImport(source, scan, dir));
+        });
+    }
+
+    private void askAndImport(Path source, ConfigImport.Scan scan, Path dir) {
+        List<ConfigImport.Part> parts = List.copyOf(scan.available());
+        Confirmations.Question question = Confirmations.importConfig(String.valueOf(source.getFileName()), parts);
+        if (!services.host().confirm(stage, question)) return;
+        java.util.Set<ConfigImport.Part> ticked = java.util.EnumSet.noneOf(ConfigImport.Part.class);
+        for (int i = 0; i < parts.size(); i++) {
+            if (question.choices().get(i).ticked()) ticked.add(parts.get(i));
         }
+        if (ticked.isEmpty()) return;
+        Background.run(() -> {
+            try {
+                int count = ConfigImport.apply(scan, dir, ticked);
+                ConfigStore.Loaded loaded = services.store().read(); // the file work, here
+                Platform.runLater(() -> {
+                    services.store().install(loaded);
+                    services.echo("status.configImported", count);
+                });
+            } catch (IOException e) {
+                services.echo("status.configImportFailed", String.valueOf(e.getMessage()));
+            }
+        });
     }
 
     /** Another launch handed its arguments over: come to the front and say so. */
@@ -313,9 +506,21 @@ public final class MainWindow {
         services.echo("status.handOff");
     }
 
+    /**
+     * The one quit path: File → Quit, the window's close button and the system's Quit all come here. It
+     * closes the app's other windows and dialogs first, so no nested event loop is left running, then
+     * saves the window geometry and the settings, then exits (TRAY-04).
+     */
     void quit() {
+        for (javafx.stage.Window other : List.copyOf(javafx.stage.Window.getWindows())) {
+            if (other != stage) other.hide();
+        }
         saveWindowState();
-        services.host().exit();
+        // The last save is waited for off the FX thread (PERF-01); the exit comes back to it.
+        Background.run(() -> {
+            services.store().flush();
+            Platform.runLater(services.host()::exit);
+        });
     }
 
     /** Remembers size, position and maximized state for the next launch. */
@@ -364,6 +569,17 @@ public final class MainWindow {
     }
 
     MessageLogView messageLog() {
+        MessageLogView view = messageLog;
+        if (view == null) {
+            view = new MessageLogView(services, overlays, statusBar::refreshUnread);
+            messageLog = view;
+        }
+        return view;
+    }
+
+    /** The Message Log if it has been built, without building it. */
+    @Nullable
+    MessageLogView builtMessageLog() {
         return messageLog;
     }
 

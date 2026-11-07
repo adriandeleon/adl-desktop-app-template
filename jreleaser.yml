@@ -117,7 +117,10 @@ distributions:
         branchPush: 'exampleapp-{{projectVersion}}'
 
 # Everything else in artifacts/. The two distributions above attach the arm64 dmg and the msi, so
-# they are left out here; the release-asset check in release.yml makes sure nothing is missing.
+# they are left out here; the release-asset check in release.yml makes sure nothing is missing. The
+# .asc files are each Linux download's OpenPGP signature and exampleapp-signing-key.asc, the public
+# key that made them (the one committed as packaging/linux/signing-key.asc). release.yml attests
+# exactly these patterns and the distributions' artifacts; ReleaseSupplyChainTest keeps them equal.
 files:
   globs:
     - pattern: 'artifacts/*-macos-x64.dmg'

@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 
 import com.example.app.AppInfo;
 import com.example.app.cli.CommandLine;
+import com.example.app.command.Keymap;
 import com.example.app.config.ConfigDir;
 import com.example.app.config.ConfigStore;
 import com.example.app.i18n.Messages;
@@ -44,10 +45,13 @@ public final class Startup {
     public record Running(
             AppServices services,
             MainWindow window,
-            @Nullable SingleInstance instance) implements AutoCloseable {
+            @Nullable SingleInstance instance,
+            java.util.concurrent.atomic.AtomicBoolean afterFirstPaint)
+            implements AutoCloseable {
         @Override
         public void close() {
             services.sync().stop();
+            services.store().flush();
             if (instance != null) instance.close();
             DebugLog.onUncaught(null);
         }
@@ -58,6 +62,7 @@ public final class Startup {
     public static Running start(Stage stage, CommandLine cli, Host host) {
         // Before any stylesheet: CSS naming a font that is not registered yet falls back silently.
         Fonts.load();
+        Themes.installUiFont();
         Path dir = ConfigDir.resolve(cli.configDir(), cli.dev());
         DebugLog.attachFile(dir);
         ConfigStore store = ConfigStore.open(dir);
@@ -69,6 +74,8 @@ public final class Startup {
         MainWindow window = new MainWindow(stage, services, !cli.noSession());
         DebugLog.onUncaught(error -> services.echoText(
                 Messages.tr("status.uncaughtError", String.valueOf(error)), MessageLog.Severity.ERROR));
+        // A press anywhere outside a right-click menu closes it, in every window (MENU-06/07).
+        ContextMenuDismissal.install();
         window.show();
         LOG.info(AppInfo.NAME + " " + AppInfo.VERSION + " started, config " + AppInfo.tildeHome(dir.toString()));
 
@@ -82,11 +89,19 @@ public final class Startup {
         SingleInstance instance = cli.newInstance()
                 ? null
                 : SingleInstance.listen(dir, args -> Platform.runLater(() -> window.handOff(args)));
-        services.updates().scheduleStartupCheck();
+        // What nobody waits for starts after the first frame has painted (PERF-15, DIAG-05).
+        java.util.concurrent.atomic.AtomicBoolean afterFirstPaint = new java.util.concurrent.atomic.AtomicBoolean();
+        FirstPaint.then(stage.getScene(), () -> {
+            afterFirstPaint.set(true);
+            Fonts.loadDeferred();
+            // Every keymap parsed now, off the FX thread, so picking one later parses nothing (PERF-01).
+            Background.run(() -> Keymap.PRESETS.forEach(Keymap::load));
+            services.updates().scheduleStartupCheck();
+        });
         services.sync().startAutomatic();
         smokeTest(System.getProperty(SMOKE_TEST), host);
         aotTrain(System.getProperty(AOT_TRAIN), host);
-        return new Running(services, window, instance);
+        return new Running(services, window, instance, afterFirstPaint);
     }
 
     /** Ends an AOT training run after the window has settled. */
@@ -100,13 +115,13 @@ public final class Startup {
     /** The packaged-app smoke test: proves the JVM, JavaFX and the first window came up. */
     static void smokeTest(@Nullable String file, Host host) {
         if (file == null || file.isBlank()) return;
-        Platform.runLater(() -> {
+        Platform.runLater(() -> Background.run(() -> {
             try {
                 Files.writeString(Path.of(file), "window-shown\n", StandardCharsets.UTF_8);
             } catch (IOException e) {
                 LOG.log(Level.WARNING, "Smoke test could not write " + file, e);
             }
-            host.exit();
-        });
+            Platform.runLater(host::exit);
+        }));
     }
 }

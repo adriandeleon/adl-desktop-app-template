@@ -40,7 +40,15 @@ class PureUiTest {
             log.add("m" + i, MessageLog.Severity.ERROR, t.plusMinutes(i));
         assertEquals(MessageLog.MAX_ENTRIES, log.entries().size());
         assertEquals(MessageLog.MAX_ENTRIES + 3, log.unreadErrors());
+        // PERF-11: the newest is kept, the oldest dropped, and the log knows how many it cut.
+        assertEquals(
+                "m" + (MessageLog.MAX_ENTRIES + 2), log.entries().getFirst().text());
+        assertEquals("m3", log.entries().getLast().text());
+        assertTrue(log.entries().stream()
+                .noneMatch(e -> e.text().equals("m2") || e.text().equals("one")));
+        assertEquals(6, log.dropped()); // the three from before and m0..m2
         log.clear();
+        assertEquals(0, log.dropped());
         assertTrue(log.entries().isEmpty());
         assertEquals(0, log.unreadErrors());
     }
@@ -68,6 +76,17 @@ class PureUiTest {
         assertEquals(2, SettingsSearch.field("syn", "sync now"));
         assertEquals(1, SettingsSearch.field("ync", "sync now"));
         assertEquals(0, SettingsSearch.field("x", "sync now"));
+
+        // SET-03: a title hit outranks a keyword hit; a whole word outranks part of one; visible text counts.
+        var titled = new SettingsSearch.Entry("Theme", "", "Appearance", "");
+        var keyworded = new SettingsSearch.Entry("Colors", "", "Appearance", "theme");
+        assertTrue(SettingsSearch.score("theme", titled) > SettingsSearch.score("theme", keyworded));
+        var whole = new SettingsSearch.Entry("Sync now", "", "Sync", "");
+        var part = new SettingsSearch.Entry("Synchronize", "", "Sync", "");
+        assertTrue(SettingsSearch.score("sync", whole) > SettingsSearch.score("sync", part));
+        var button = new SettingsSearch.Entry("Backup", "", "Export… Import…", "Advanced", "");
+        assertTrue(SettingsSearch.score("import", button) > 0);
+        assertTrue(SettingsSearch.score("import", button) > SettingsSearch.score("import", keyworded));
     }
 
     @Test

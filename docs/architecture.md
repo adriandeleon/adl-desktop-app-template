@@ -7,7 +7,7 @@ class with a unit test; the toolkit code around it stays thin.**
 |---|---|---|
 | `com.example.app` | Entry point and identity | `Main` (CLI, hand-off, then `Application.launch`), `App`, `AppInfo` |
 | `cli` | The command line, pure | `CommandLine` |
-| `config` | Versioned `settings.json`, export/import | `Settings`, `ConfigStore`, `Migrations`, `ConfigDir`, `ConfigExporter` |
+| `config` | Versioned `settings.json`, export/import | `Settings`, `ConfigStore`, `Migrations`, `ConfigDir`, `ConfigExporter`, `ConfigImport` |
 | `command` | Commands and key bindings, pure | `CommandRegistry`, `Command`, `KeyStroke`, `Keymap`, `Keybindings`, `FuzzyMatch` |
 | `i18n` | The string catalogs | `Messages` (`tr`) |
 | `instance` | One app per config folder | `SingleInstance` (Unix-domain socket) |
@@ -21,7 +21,7 @@ class with a unit test; the toolkit code around it stays thin.**
 1. `Main.main`: `java.awt.headless=true` first, then `DebugLog.install()` (logging + the uncaught
    exception handler), then `Main.run`: `--help`, `--version` and `--report` answer and exit; a second
    launch hands its arguments to the running app (`SingleInstance.handOff`) and exits.
-2. `App.start` calls `Startup.start`: fonts, config folder, session log file, settings (migrated),
+2. `App.start` calls `Startup.start`: fonts (and the UI-font listener on every window), config folder, session log file, settings (migrated),
    language, theme, `AppServices`, `MainWindow`, the single-instance listener, the update check
    (once per session, at most daily, 5 s after the first frame) and Settings Sync.
 
@@ -58,6 +58,6 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
 
 ## Config folder
 
-`~/.exampleapp` (`--config-dir`, `--dev`, `EXAMPLEAPP_CONFIG_DIR`): `settings.json`,
+`~/.exampleapp` (`--config-dir`, then `EXAMPLEAPP_CONFIG_DIR`, then the default, `~/.exampleapp-dev` with `--dev`): `settings.json`,
 `exampleapp-session.log` (+ `.prev.log`), `instance.sock`, `sync/`, and backups
 (`settings.json.v<n>.bak`, `settings.json.broken.bak`).

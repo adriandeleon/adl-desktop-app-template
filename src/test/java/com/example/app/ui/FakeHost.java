@@ -13,6 +13,12 @@ final class FakeHost implements Host {
     volatile int exits;
     volatile Path saveAnswer;
     volatile Path openAnswer;
+    /** The questions asked, and the answer the next one gets (the capture hook). */
+    final List<Confirmations.Question> questions = new CopyOnWriteArrayList<>();
+
+    volatile boolean confirmAnswer = true;
+    /** Runs on each question before it is answered: a test unticks a choice here. */
+    volatile java.util.function.Consumer<Confirmations.Question> onQuestion = q -> {};
 
     @Override
     public void openUrl(String url) {
@@ -27,6 +33,13 @@ final class FakeHost implements Host {
     @Override
     public Path chooseOpenFile(Window owner, String title) {
         return openAnswer;
+    }
+
+    @Override
+    public boolean confirm(Window owner, Confirmations.Question question) {
+        questions.add(question);
+        onQuestion.accept(question);
+        return confirmAnswer;
     }
 
     @Override

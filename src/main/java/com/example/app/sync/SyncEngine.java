@@ -59,6 +59,28 @@ public final class SyncEngine {
         return null;
     }
 
+    /**
+     * Why {@code branch} cannot be a sync branch, as a catalog suffix ({@code empty}, {@code invalid}), or
+     * null when it can: Git's own rules for a branch name ({@code git check-ref-format --branch}).
+     */
+    public static @Nullable String checkBranch(String branch) {
+        String b = branch.trim();
+        if (b.isEmpty()) return "empty";
+        boolean bad = b.startsWith("-")
+                || b.startsWith("/")
+                || b.endsWith("/")
+                || b.endsWith(".")
+                || b.endsWith(".lock")
+                || b.contains("..")
+                || b.contains("//")
+                || b.contains("@{")
+                || b.equals("@")
+                || b.contains("/.")
+                || b.startsWith(".")
+                || b.chars().anyMatch(c -> c < 0x20 || c == 0x7f || " ~^:?*[\\".indexOf(c) >= 0);
+        return bad ? "invalid" : null;
+    }
+
     /** One sync of {@code local} against the repository's {@code branch}. */
     public Result sync(String url, String branch, Map<String, String> local) {
         String refused = checkUrl(url);
@@ -115,8 +137,12 @@ public final class SyncEngine {
                 : git.run(repo, "checkout", "-q", "-B", branch);
     }
 
-    private static Map<String, String> read(Path file) throws IOException {
+    /** A synced data file larger than this is refused before it is read (PERF-12): bindings are tiny. */
+    public static final long MAX_DATA_BYTES = 1024 * 1024;
+
+    static Map<String, String> read(Path file) throws IOException {
         if (!Files.isRegularFile(file)) return new TreeMap<>();
+        if (Files.size(file) > MAX_DATA_BYTES) throw new IOException(file.getFileName() + " is larger than 1 MB");
         return JSON.readValue(Files.readString(file, StandardCharsets.UTF_8), MAP);
     }
 

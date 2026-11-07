@@ -10,6 +10,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 
+import com.example.app.AppInfo;
 import com.example.app.report.Redactor;
 import com.example.app.update.ReleaseInfo;
 import com.example.app.update.UpdateService;
@@ -66,6 +67,43 @@ class DialogsFxTest {
     }
 
     @Test
+    void theConfirmDialogNamesTheActionInRedAndEveryOtherWayOutIsCancel() throws Exception {
+        Confirmations.Question question = Confirmations.importConfig(
+                "backup.zip",
+                java.util.List.of(
+                        com.example.app.config.ConfigImport.Part.PREFERENCES,
+                        com.example.app.config.ConfigImport.Part.KEY_BINDINGS));
+        javafx.scene.control.Alert alert =
+                call(() -> Confirm.dialog(question, app.window().stage()));
+        var buttons = alert.getButtonTypes();
+        assertEquals(2, buttons.size());
+        var action = buttons.get(0);
+        var cancel = buttons.get(1);
+        assertEquals("Overwrite", action.getText());
+        assertEquals(javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE, cancel.getButtonData());
+        assertEquals("Cancel", cancel.getText());
+        assertTrue(call(
+                () -> alert.getDialogPane().lookupButton(action).getStyleClass().contains("danger")));
+        assertFalse(call(
+                () -> alert.getDialogPane().lookupButton(cancel).getStyleClass().contains("danger")));
+        // One check box per part, all ticked; with none ticked the action waits.
+        java.util.List<javafx.scene.control.CheckBox> boxes =
+                call(() -> alert.getDialogPane().lookupAll(".check-box").stream()
+                        .map(n -> (javafx.scene.control.CheckBox) n)
+                        .toList());
+        assertEquals(2, boxes.size());
+        run(() -> boxes.forEach(b -> b.setSelected(false)));
+        assertTrue(call(() -> alert.getDialogPane().lookupButton(action).isDisabled()));
+        assertFalse(question.choices().get(0).ticked());
+        run(() -> boxes.get(1).setSelected(true));
+        assertFalse(call(() -> alert.getDialogPane().lookupButton(action).isDisabled()));
+        assertTrue(question.choices().get(1).ticked());
+        assertTrue(Confirm.confirmed(alert, java.util.Optional.of(action)));
+        assertFalse(Confirm.confirmed(alert, java.util.Optional.of(cancel)));
+        assertFalse(Confirm.confirmed(alert, java.util.Optional.empty()), "Escape or the close button");
+    }
+
+    @Test
     void aboutShowsEveryUpdateState() throws Exception {
         AboutDialog about = call(() -> new AboutDialog(services, app.window().stage()));
         run(about::show);
@@ -93,6 +131,8 @@ class DialogsFxTest {
             if (!((Hyperlink) n).getText().equals("Check now")) ((Hyperlink) n).fire();
         }));
         assertTrue(host.opened.stream().anyMatch(u -> u.endsWith("settings.json")));
+        // ABOUT-05/06: "Built to Pauta <edition>" opens the edition's own page.
+        assertTrue(host.opened.contains("https://pauta-project.dev/" + AppInfo.PAUTA_EDITION + "/"));
         run(() -> about.dialog().close());
     }
 
@@ -118,14 +158,19 @@ class DialogsFxTest {
         assertNotNull(window);
         assertTrue(call(() -> window.text().getText()).contains("something to see"));
 
+        // Export runs a command and writes off the FX thread (PERF-01): wait for its echo.
         host.saveAnswer = dir.resolve("debug.log");
-        run(window::export);
+        run(() -> services.commands().run("debugLog.export"));
+        FxTestSupport.waitUntil(() -> app.window().statusBar().echo().getText().startsWith("Saved the Debug Log"));
         assertTrue(Files.readString(host.saveAnswer).contains("something to see"));
         host.saveAnswer = dir.resolve("no/such/folder/debug.log");
-        run(window::export);
-        assertTrue(call(() -> app.window().statusBar().echo().getText()).startsWith("Saving the Debug Log failed"));
+        run(() -> services.commands().run("debugLog.export"));
+        FxTestSupport.waitUntil(
+                () -> app.window().statusBar().echo().getText().startsWith("Saving the Debug Log failed"));
         host.saveAnswer = null;
-        run(window::export);
+        run(() -> services.commands().run("debugLog.export"));
+        assertTrue(call(() -> app.window().isDebugLogOpen()));
+        assertEquals(null, services.commands().get("debugLog.refresh").unavailableReason());
 
         run(() -> window.stage().getScene().getRoot().lookupAll(".button").forEach(n -> {
             String label = ((Button) n).getText();
@@ -134,6 +179,7 @@ class DialogsFxTest {
         assertFalse(call(() -> window.text().getText()).contains("something to see"));
         run(() -> FxTestSupport.press(window.stage().getScene(), KeyCode.ESCAPE, false, false, false, false));
         assertFalse(call(() -> window.stage().isShowing()));
+        assertNotNull(services.commands().get("debugLog.refresh").unavailableReason());
         run(app.window()::openDebugLog);
         assertTrue(call(() -> window.stage().isShowing()));
     }

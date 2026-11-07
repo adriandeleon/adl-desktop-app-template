@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import javafx.scene.control.Button;
+import javafx.scene.control.TextInputDialog;
 
 import com.example.app.command.KeyStroke;
 import com.example.app.config.ThemeChoice;
@@ -65,6 +66,12 @@ class SettingsWindowFxTest {
         long visible = call(
                 () -> settings.rows().stream().filter(r -> r.node().isVisible()).count());
         assertTrue(visible > 0 && visible < settings.rows().size());
+        // A row is found by its controls' visible text too (SET-03): the Sync page's "Create on GitHub…".
+        run(() -> settings.search().setText("create on github"));
+        assertTrue(call(() -> settings.rows().stream()
+                .anyMatch(r -> r.page() == SettingsWindow.Page.SYNC
+                        && r.node().isVisible()
+                        && r.entry().visibleText().contains("Create on GitHub"))));
         run(() -> settings.search().setText("dark"));
         assertEquals(
                 SettingsWindow.Page.APPEARANCE,
@@ -125,9 +132,35 @@ class SettingsWindowFxTest {
         // A conflict is marked on the field of the binding that lost.
         run(() -> settings.sidebar().getSelectionModel().select(SettingsWindow.Page.KEYMAP));
         run(() -> services.store().update(s -> s.keybindings.put("help.debugLog", "Shortcut+Q")));
-        assertTrue(call(() -> settings.stage().getScene().getRoot().lookupAll(".text-field").stream()
-                .anyMatch(n -> n.getStyleClass().contains("invalid"))));
-        // Every Reset button removes its override.
+        // The bindings are a virtualized list (PERF-08): the search narrows it to the rows in question.
+        boolean marked = false;
+        for (String query : java.util.List.of("quit", "debug log")) {
+            run(() -> settings.search().setText(query));
+            marked |= call(() -> {
+                settings.stage().getScene().getRoot().applyCss();
+                settings.stage().getScene().getRoot().layout(); // the list's cells follow at layout
+                return settings.bindingList().lookupAll(".text-field").stream()
+                        .anyMatch(n -> n.getStyleClass().contains("invalid"));
+            });
+        }
+        assertTrue(marked);
+        assertTrue(call(() -> settings.bindingList().getItems().size()
+                < services.commands().all().size()));
+        // Reset asks first (CONF-01); a Cancel keeps the user's binding.
+        host.confirmAnswer = false;
+        run(() -> {
+            settings.stage().getScene().getRoot().applyCss();
+            settings.stage().getScene().getRoot().layout();
+        });
+        run(() -> settings.stage().getScene().getRoot().lookupAll(".button").stream()
+                .filter(n -> n instanceof Button b && "Reset".equals(b.getText()))
+                .forEach(n -> ((Button) n).fire()));
+        assertEquals("Shortcut+Q", services.settings().keybindings.get("help.debugLog"));
+        assertEquals(1, host.questions.size(), "a reset with no binding of the user's asks nothing");
+        assertTrue(host.questions.get(0).message().contains("Shortcut+Q"));
+        assertEquals("Reset", host.questions.get(0).action());
+        // Every Reset button removes its override once the question is answered with Reset.
+        host.confirmAnswer = true;
         run(() -> settings.stage().getScene().getRoot().lookupAll(".button").stream()
                 .filter(n -> n instanceof Button b && "Reset".equals(b.getText()))
                 .forEach(n -> ((Button) n).fire()));
@@ -157,6 +190,21 @@ class SettingsWindowFxTest {
         });
         assertEquals(remote.toUri().toString(), services.settings().sync.repoUrl);
         assertEquals("trunk", services.settings().sync.branch);
+        // SET-04: a blank or invalid branch is marked, said why, and never committed.
+        for (String bad : java.util.List.of("", "bad branch", "a..b", "-x")) {
+            run(() -> {
+                settings.syncBranch().setText(bad);
+                settings.syncBranch().fireEvent(new javafx.event.ActionEvent());
+            });
+            assertTrue(call(() -> settings.syncBranch().getStyleClass().contains("invalid")), bad);
+            assertEquals("trunk", services.settings().sync.branch, bad);
+            assertTrue(call(() -> app.window().statusBar().echo().getText()).startsWith("Branch refused"), bad);
+        }
+        run(() -> {
+            settings.syncBranch().setText("trunk");
+            settings.syncBranch().fireEvent(new javafx.event.ActionEvent());
+        });
+        assertFalse(call(() -> settings.syncBranch().getStyleClass().contains("invalid")));
         assertTrue(call(() -> settings.syncInterval().getStyleClass().contains("invalid")));
         run(() -> {
             settings.syncInterval().setText("7");
@@ -185,5 +233,42 @@ class SettingsWindowFxTest {
                         n instanceof Button b && ("Open Sync Folder".equals(b.getText()) || "Open".equals(b.getText())))
                 .forEach(n -> ((Button) n).fire()));
         assertEquals(2, host.opened.size());
+    }
+
+    @Test
+    void everySyncSettingHasAPaletteCommandThatPromptsAndValidates() throws Exception {
+        TextInputDialog branch = call(() -> app.window().promptSyncBranch());
+        Button ok = (Button) branch.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
+        run(() -> branch.getEditor().setText("no good"));
+        assertTrue(call(ok::isDisabled), "an invalid branch keeps OK off");
+        run(() -> branch.getEditor().setText("release"));
+        assertFalse(call(ok::isDisabled));
+        run(ok::fire);
+        assertEquals("release", services.settings().sync.branch);
+
+        TextInputDialog interval = call(() -> app.window().promptSyncInterval());
+        Button intervalOk = (Button) interval.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
+        run(() -> interval.getEditor().setText("0"));
+        assertTrue(call(intervalOk::isDisabled));
+        run(() -> interval.getEditor().setText("30"));
+        run(intervalOk::fire);
+        assertEquals(30, services.settings().sync.intervalMinutes);
+
+        TextInputDialog repo = call(() -> app.window().promptSyncRepository());
+        Button repoOk = (Button) repo.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
+        run(() -> repo.getEditor().setText("https://me:token@github.com/me/sync.git"));
+        assertTrue(call(repoOk::isDisabled));
+        run(() -> repo.getEditor().setText("git@github.com:me/sync.git"));
+        run(repoOk::fire);
+        assertEquals("git@github.com:me/sync.git", services.settings().sync.repoUrl);
+
+        var about = services.commands().get("help.about");
+        TextInputDialog keys = call(() -> app.window().promptBinding(about));
+        Button keysOk = (Button) keys.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
+        run(() -> keys.getEditor().setText("Hyper+J"));
+        assertTrue(call(keysOk::isDisabled));
+        run(() -> keys.getEditor().setText("Ctrl+Alt+J"));
+        run(keysOk::fire);
+        assertEquals("Ctrl+Alt+J", services.settings().keybindings.get("help.about"));
     }
 }

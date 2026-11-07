@@ -30,6 +30,31 @@ class AppInfoTest {
     }
 
     @Test
+    void theEnvironmentNamesThePautaEditionRightAfterTheCommit() {
+        String env = AppInfo.environment(Path.of("/tmp/x"));
+        assertTrue(env.startsWith(AppInfo.versionText() + "\n"));
+        String[] lines = env.split("\n");
+        assertTrue(lines[1].startsWith("Commit "));
+        assertEquals("Pauta: " + AppInfo.PAUTA_EDITION, lines[2]);
+    }
+
+    @Test
+    void thePautaLinkIsTheEditionsOwnPageNeverLatest() {
+        assertEquals("https://pauta-project.dev/" + AppInfo.PAUTA_EDITION + "/", AppInfo.pautaUrl());
+        assertFalse(AppInfo.pautaUrl().contains("latest"));
+        assertFalse(AppInfo.PAUTA_EDITION.startsWith("${"));
+    }
+
+    @Test
+    void theDocsAndReleaseNotesFollowTheVersion() {
+        assertTrue(AppInfo.docsUrl().startsWith(AppInfo.WEBSITE + "/docs/v-"));
+        assertFalse(AppInfo.docsUrl().contains("SNAPSHOT"));
+        assertEquals(AppInfo.RELEASES_PAGE, AppInfo.releaseNotesUrl("1.0.0-SNAPSHOT"));
+        assertEquals(AppInfo.RELEASES_PAGE, AppInfo.releaseNotesUrl("0.0.0"));
+        assertEquals(AppInfo.RELEASES_PAGE + "/tag/v1.2.0", AppInfo.releaseNotesUrl("1.2.0"));
+    }
+
+    @Test
     void macCheckFollowsTheOsName() {
         assertEquals(System.getProperty("os.name").toLowerCase().startsWith("mac"), AppInfo.isMac());
     }

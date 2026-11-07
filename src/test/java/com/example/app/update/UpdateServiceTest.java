@@ -50,6 +50,12 @@ class UpdateServiceTest {
     }
 
     @Test
+    void anOversizedAnswerIsRefusedUnread() {
+        body = "{\"tag_name\":\"v9.0.0\",\"body\":\"" + "x".repeat(UpdateService.MAX_RESPONSE_BYTES) + "\"}";
+        assertEquals("response too large", service().check("1.0.0").error());
+    }
+
+    @Test
     void sameVersionIsUpToDate() {
         body = "{\"tag_name\":\"v1.0.0\"}";
         assertTrue(service().check("1.0.0").upToDate());

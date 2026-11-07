@@ -3,6 +3,7 @@ package com.example.app.ui;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -45,10 +46,19 @@ public final class UpdateCoordinator {
     private @Nullable ReleaseInfo latest;
     private @Nullable String error;
     private boolean scheduled;
+    /** The current request; an answer to an older one is dropped (PERF-03). */
+    private final AtomicLong generation = new AtomicLong();
+
+    private final Duration startupDelay;
 
     UpdateCoordinator(AppServices services, Function<String, UpdateService.Outcome> check) {
+        this(services, check, STARTUP_DELAY);
+    }
+
+    UpdateCoordinator(AppServices services, Function<String, UpdateService.Outcome> check, Duration startupDelay) {
         this.services = services;
         this.check = check;
+        this.startupDelay = startupDelay;
     }
 
     public State state() {
@@ -86,7 +96,7 @@ public final class UpdateCoordinator {
         if (scheduled || !automaticAllowed()) return false;
         if (!UpdateCheck.isDue(lastChecked(), System.currentTimeMillis())) return false;
         scheduled = true;
-        PauseTransition delay = new PauseTransition(javafx.util.Duration.millis(STARTUP_DELAY.toMillis()));
+        PauseTransition delay = new PauseTransition(javafx.util.Duration.millis(startupDelay.toMillis()));
         delay.setOnFinished(e -> checkNow(false));
         delay.play();
         return true;
@@ -97,10 +107,27 @@ public final class UpdateCoordinator {
         if (state == State.CHECKING) return;
         state = State.CHECKING;
         fire();
+        long mine = generation.incrementAndGet();
         Thread.ofPlatform().daemon().name("update-check").start(() -> {
             UpdateService.Outcome outcome = check.apply(AppInfo.VERSION);
-            Platform.runLater(() -> finish(outcome, manual));
+            Platform.runLater(() -> {
+                if (mine == generation.get()) finish(outcome, manual);
+            });
         });
+    }
+
+    /** Drops the check in flight, if any: its answer is never applied. */
+    public void cancel() {
+        generation.incrementAndGet();
+        if (state == State.CHECKING) {
+            state = State.NEVER;
+            fire();
+        }
+    }
+
+    /** How many listeners are registered (a closed About must leave none, PERF-13). */
+    int listenerCount() {
+        return listeners.size();
     }
 
     void finish(UpdateService.Outcome outcome, boolean manual) {

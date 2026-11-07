@@ -7,8 +7,11 @@ commit whose pom says exactly `X.Y.Z` releases it. `.github/workflows/release.ym
 
 1. **Dry run first** (Actions > Release > Run workflow, or `gh workflow run release.yml --ref master`).
    It runs the full tests, builds all five targets, smoke-tests and signs them (ad hoc and with a
-   throw-away key when secrets are missing) and runs the release-asset check, then stops. Nothing is
-   published. Read the run summary.
+   throw-away key when secrets are missing), runs the release-asset check, attests the downloads and
+   runs JReleaser with `--dry-run`, which renders the release, the cask and the winget manifest and
+   publishes nothing (the `jreleaser-logs` artifact holds them). A dry run from a `-SNAPSHOT` pom names
+   its downloads with the plain version, which JReleaser needs; the app inside keeps its `-SNAPSHOT`.
+   Read the run summary.
 2. **Set the version** in a pull request: `./mvnw versions:set -DnewVersion=X.Y.Z -DgenerateBackupPoms=false`.
 3. **Write the changelog**: rename `## [Unreleased]` in `CHANGELOG.md` to `## [X.Y.Z] - YYYY-MM-DD`
    (and start a new empty Unreleased section). The release notes are that section, after the install
@@ -27,7 +30,8 @@ A tag with a suffix (`v1.2.0-rc1`, pom `1.2.0-rc1`) is published as a pre-releas
 
 GitHub releases are immutable: a published release cannot gain or replace a file. That is why the
 **release-asset check** fails the run before publishing when any expected download is missing. When
-you add or drop a format, update the list in that job and the globs in `jreleaser.yml`. To redo a
+you add or drop a format, update the list in that job, the globs in `jreleaser.yml` and the
+attestation's `subject-path` (`ReleaseSupplyChainTest` fails until the last two agree). To redo a
 release, delete it (`gh release delete vX.Y.Z`) and the tag, and tag again.
 
 ## What runs
@@ -36,10 +40,10 @@ release, delete it (`gh release delete vX.Y.Z`) and the tag, and tag again.
 |---|---|
 | Preflight | The tag must equal the pom version (`./mvnw help:evaluate`), and not be a snapshot |
 | Full tests | `full-tests.yml` on Linux, macOS and Windows (also daily and on PRs labelled `full-ci`) |
-| Build (x5) | `-Pdist -Dskip.installers=false verify`, smoke test, macOS notarization, fat jar, upload |
+| Build (x5) | `-Pdist -Dskip.installers=false verify`, smoke test, macOS notarization (then the notarized app is launched once), fat jar, upload |
 | Sign Linux packages | OpenPGP signatures for every Linux download, in a job that runs no Maven |
 | Release-asset check | Every expected file present; the release notes can be written |
-| Publish (tag only) | Build provenance attestations, then JReleaser: the release, `checksums_sha256.txt`, notes |
+| Publish | Build provenance attestations, then JReleaser: the release, `checksums_sha256.txt`, notes. A dry run attests and runs JReleaser with `--dry-run` |
 | Reopen master (tag only) | The pull request to the next `-SNAPSHOT` |
 
 ## Secrets
@@ -63,16 +67,16 @@ family); the build provenance attestation is their only signature.
 
 ## The Linux signing key
 
-The family shares one OpenPGP release key. Commit its public half so the release can check that
-`LINUX_GPG_KEY` is that key, and so users can find it in the repository:
+The family shares one OpenPGP release key, "Adrian De Leon (release signing)", fingerprint
+`8486A7AF4FC8FEE93D83CDB4EA5FA138C2C09C4A`. Its public half is committed as
+`packaging/linux/signing-key.asc`, and `sign-linux` refuses a `LINUX_GPG_KEY` that is any other key.
+An app that signs with its own key replaces that file with its key's public half:
 
 ```bash
 gpg --armor --export <fingerprint> > packaging/linux/signing-key.asc
-git add packaging/linux/signing-key.asc
 ```
 
-Until the file exists, a tag still signs with `LINUX_GPG_KEY` and warns that it was not checked. Every
-release also attaches the key as `exampleapp-signing-key.asc`.
+Every release also attaches the key as `exampleapp-signing-key.asc`.
 
 Users verify a download with `gpg --import exampleapp-signing-key.asc` and `gpg --verify <file>.asc
 <file>`; `rpm --import` the same key and `rpm -K` checks the RPM's embedded signature. Any download's

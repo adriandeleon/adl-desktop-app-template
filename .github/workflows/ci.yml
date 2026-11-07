@@ -67,7 +67,7 @@ jobs:
       - name: Build and test
         run: ./mvnw -B --no-transfer-progress -Dspotless.check.skip=true verify
 
-      - name: Summarise coverage
+      - name: Summarize coverage
         if: always()
         run: |
           csv=target/site/jacoco/jacoco.csv
@@ -75,11 +75,12 @@ jobs:
           awk -F, 'NR == 1 { for (i = 1; i <= NF; i++) col[$i] = i; next }
             { lc += $col["LINE_COVERED"]; lm += $col["LINE_MISSED"]; mc += $col["METHOD_COVERED"]; mm += $col["METHOD_MISSED"]
               bc += $col["BRANCH_COVERED"]; bm += $col["BRANCH_MISSED"] }
-            END { print "### Coverage"; printf "Lines %.1f%% · methods %.1f%% · branches %.1f%% (floors: 90%% lines and methods)\n",
+            END { print "### Coverage"; printf "Lines %.1f%% · methods %.1f%% · branches %.1f%% (floors: 90%% lines and methods, 79%% branches, a line floor per package)\n",
               100 * lc / (lc + lm), 100 * mc / (mc + mm), 100 * bc / (bc + bm) }' "$csv" >> "$GITHUB_STEP_SUMMARY"
 
+      # Even when the tests pass: the reports are how a slow or skipped test is found.
       - name: Upload test reports
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: surefire-reports

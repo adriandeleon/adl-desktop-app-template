@@ -12,14 +12,14 @@
 ![Java](https://img.shields.io/badge/Java-25%2B-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-27%2B-1e90ff)
 ![Platforms](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
-[![Pauta](https://img.shields.io/badge/Pauta-1.1.0-0e8577)](https://github.com/adriandeleon/adl-desktop-apps-guidelines/blob/v1.1.0/CHANGELOG.md)
+[![Pauta](https://img.shields.io/badge/Pauta-2.0.0-0e8577)](https://pauta-project.dev/2.0.0/)
 [![Stars](https://img.shields.io/github/stars/adriandeleon/ExampleApp?style=flat)](https://github.com/adriandeleon/ExampleApp/stargazers)
 
 </p>
 
 <!-- template:start -->
 > [!IMPORTANT]
-> **This is the template for [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [1.1.0](https://github.com/adriandeleon/adl-desktop-apps-guidelines/blob/v1.1.0/CHANGELOG.md).** Click **Use this template**, clone your new repository, then run:
+> **This is the template for [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [2.0.0](https://pauta-project.dev/2.0.0/).** Click **Use this template**, clone your new repository, then run:
 >
 > ```bash
 > scripts/rename.sh MyApp com.myapp
@@ -31,14 +31,15 @@
 > names, moves the package folders, gives the Windows installer its own upgrade code, and deletes
 > this box, the rename check in CI and itself. Then replace the icon (`branding/`, then
 > `scripts/make-icons.sh`) and the screenshots, and write your app in `MainWindow`'s placeholder.
-> Everything Pauta 1.1.0 marks MUST is already here and tested: see
-> [docs/architecture.md](docs/architecture.md) for where each piece lives.
+> Everything Pauta 2.0.0 marks MUST is already here and tested, apart from what needs your own website
+> and repository settings ([TODO.md](TODO.md)): see [docs/architecture.md](docs/architecture.md) for
+> where each piece lives.
 <!-- template:end -->
 
 ExampleApp is a keyboard-first JavaFX desktop app for Windows, macOS and Linux. Every action is a
 command you can run from the Command Palette, and nothing leaves your computer unless you ask.
 
-Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [1.1.0](https://github.com/adriandeleon/adl-desktop-apps-guidelines/blob/v1.1.0/CHANGELOG.md).
+Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [2.0.0](https://pauta-project.dev/2.0.0/).
 
 <p align="center">
   <picture>
@@ -53,13 +54,26 @@ Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), 
   runs every command. CUA and Emacs keymaps, with your own bindings on top.
 - **Settings that apply as you change them.** A searchable Settings window, a palette command for
   every setting, and a versioned config folder that older versions never overwrite.
-- **Light and dark**, following your system, with the Inter typeface on every OS.
+- **Light and dark**, following your system: Caret & Ink, the Pauta family palette, with the Inter
+  typeface on every OS.
 - **Settings Sync** through a private Git repository you own.
 - **Nothing fails silently.** A Message Log of every status message, a Debug Log of everything
   logged, and Help → Report a Problem to open a redacted, prefilled GitHub issue.
 - **Six languages:** English, Spanish, Portuguese, French, Italian and German.
 - **Local first.** No telemetry. The only automatic network call is a once-a-day release check you
   can turn off.
+
+## Documentation
+
+The user guide lives on the website, [exampleapp-project.dev/docs](https://exampleapp-project.dev/docs/),
+and Help → Documentation opens the page for the version you run:
+
+- [Getting started](https://exampleapp-project.dev/docs/getting-started/): install, first launch, the first thing to do
+- [Keyboard reference](https://exampleapp-project.dev/docs/keymaps/): every command and its keys, CUA and Emacs
+- [Settings](https://exampleapp-project.dev/docs/settings/): every setting, the config folder, Settings Sync
+- [FAQ](https://exampleapp-project.dev/docs/faq/) and [What's new](https://exampleapp-project.dev/docs/whats-new/)
+
+This repository's [docs/](docs/README.md) is for contributors.
 
 ## Install
 
@@ -110,7 +124,8 @@ A second launch on the same config folder hands its arguments to the running app
 
 ## Config folder
 
-Settings live in `~/.exampleapp` (`~/.exampleapp-dev` with `--dev`, or `EXAMPLEAPP_CONFIG_DIR`):
+Settings live in `~/.exampleapp` (`~/.exampleapp-dev` with `--dev`); `--config-dir` or `EXAMPLEAPP_CONFIG_DIR`
+names another folder, in that order:
 
 | File | What |
 |---|---|
@@ -118,9 +133,9 @@ Settings live in `~/.exampleapp` (`~/.exampleapp-dev` with `--dev`, or `EXAMPLEA
 | `exampleapp-session.log` | This session's Debug Log; the previous one is `exampleapp-session.prev.log` |
 | `sync/` | The Settings Sync clone, when sync is set up |
 
-Settings → Advanced exports the folder as a `.zip` and imports one back.
+Settings → Advanced exports the folder as a `.zip` and imports one back, replacing only the parts you tick.
 
-## Licence
+## License
 
-ExampleApp is released under the [MIT License](LICENSE). Third-party components and their licences
+ExampleApp is released under the [MIT License](LICENSE). Third-party components and their licenses
 are listed in [NOTICE](NOTICE). ExampleApp is built with the help of AI coding tools.

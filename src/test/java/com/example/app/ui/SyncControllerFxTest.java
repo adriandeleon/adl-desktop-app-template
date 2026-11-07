@@ -103,4 +103,29 @@ class SyncControllerFxTest {
             return "Connected · syncing…";
         }));
     }
+
+    @Test
+    void anAnswerToARequestThatWasDroppedIsNeverApplied() throws Exception {
+        // PERF-03: each request takes a generation, checked again inside the runLater.
+        java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicBoolean answered = new java.util.concurrent.atomic.AtomicBoolean();
+        UpdateCoordinator updates = new UpdateCoordinator(services, version -> {
+            try {
+                release.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            answered.set(true);
+            return new com.example.app.update.UpdateService.Outcome(
+                    new com.example.app.update.ReleaseInfo("9.9.9", "https://example.com"), null);
+        });
+        run(() -> updates.checkNow(true));
+        assertEquals(UpdateCoordinator.State.CHECKING, updates.state());
+        run(updates::cancel);
+        release.countDown();
+        FxTestSupport.waitUntil(answered::get);
+        for (int i = 0; i < 20; i++) run(() -> {});
+        assertEquals(UpdateCoordinator.State.NEVER, updates.state(), "the stale answer was applied");
+        assertEquals(null, updates.latest());
+    }
 }

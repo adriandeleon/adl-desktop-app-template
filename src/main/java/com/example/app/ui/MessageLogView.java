@@ -13,8 +13,6 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -40,6 +38,9 @@ public final class MessageLogView {
     private final Runnable onRead;
     private final TextField filter = new TextField();
     private final ListView<MessageLog.Entry> list = new ListView<>();
+    /** Says how many older messages the bounded log no longer holds (PERF-11). */
+    private final Label cut = new Label();
+
     private final VBox card;
 
     public MessageLogView(AppServices services, OverlayHost host, Runnable onRead) {
@@ -50,8 +51,10 @@ public final class MessageLogView {
         Label title = new Label(Messages.tr("messagelog.title"));
         title.getStyleClass().add("message-log-title");
         filter.setPromptText(Messages.tr("messagelog.filter"));
-        filter.textProperty().addListener((obs, old, text) -> refresh());
+        Debounce filtering = new Debounce(this::refresh);
+        filter.textProperty().addListener((obs, old, text) -> filtering.request());
         filter.setOnKeyPressed(e -> {
+            filtering.flush();
             if ((e.getCode() == KeyCode.DOWN || e.getCode() == KeyCode.ENTER)
                     && !list.getItems().isEmpty()) {
                 list.requestFocus();
@@ -64,29 +67,30 @@ public final class MessageLogView {
         list.setPrefHeight(LIST_HEIGHT);
         list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         list.setPlaceholder(new Label(Messages.tr("messagelog.empty")));
-        list.setCellFactory(v -> new EntryCell());
+        // Each row's right-click menu holds its commands; the Menu key and Shift+F10 reach it too.
+        CommandMenu rowMenu =
+                new CommandMenu(services, java.util.Arrays.asList("messageLog.copy", null, "messageLog.clear"));
+        list.setCellFactory(v -> CommandMenu.onRow(new EntryCell(), () -> rowMenu));
+        RowContextMenu.install(list);
         list.setOnKeyPressed(e -> {
             if (e.isShortcutDown() && e.getCode() == KeyCode.C) {
-                copy(list.getSelectionModel().getSelectedItems());
+                services.commands().run("messageLog.copy");
                 e.consume();
             }
         });
 
         Button copy = new Button(Messages.tr("messagelog.copy"));
         copy.getStyleClass().add("flat");
-        copy.setOnAction(e -> copy(list.getItems()));
+        copy.setOnAction(e -> services.commands().run("messageLog.copy"));
         Button clear = new Button(Messages.tr("messagelog.clear"));
         clear.getStyleClass().add("flat");
-        clear.setOnAction(e -> {
-            services.messages().clear();
-            refresh();
-            onRead.run();
-        });
+        clear.setOnAction(e -> services.commands().run("messageLog.clear"));
+        cut.getStyleClass().add("hint");
         Label hint = new Label(Messages.tr("messagelog.hint"));
         hint.getStyleClass().add("hint");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox footer = new HBox(6, copy, clear, spacer, hint);
+        HBox footer = new HBox(6, copy, clear, cut, spacer, hint);
         footer.setAlignment(Pos.CENTER_LEFT);
 
         card = new VBox(8, title, filter, list, footer);
@@ -106,7 +110,19 @@ public final class MessageLogView {
         filter.requestFocus();
     }
 
+    /**
+     * What Copy copies: while the log is open, the selected entries or else the filtered list; when it
+     * is closed, every entry.
+     */
+    List<MessageLog.Entry> listed() {
+        if (card.getParent() == null) return services.messages().entries();
+        List<MessageLog.Entry> selected = list.getSelectionModel().getSelectedItems();
+        return List.copyOf(selected.isEmpty() ? list.getItems() : selected);
+    }
+
     void refresh() {
+        int dropped = services.messages().dropped();
+        cut.setText(dropped == 0 ? "" : Messages.tr("messagelog.cut", dropped));
         String query = filter.getText().toLowerCase(Locale.ROOT).strip();
         list.getItems()
                 .setAll(services.messages().entries().stream()
@@ -121,14 +137,12 @@ public final class MessageLogView {
                 .collect(Collectors.joining("\n"));
     }
 
-    private static void copy(List<MessageLog.Entry> entries) {
-        ClipboardContent content = new ClipboardContent();
-        content.putString(asText(entries));
-        Clipboard.getSystemClipboard().setContent(content);
-    }
-
     ListView<MessageLog.Entry> list() {
         return list;
+    }
+
+    Label cutNote() {
+        return cut;
     }
 
     TextField filter() {

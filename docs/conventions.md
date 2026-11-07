@@ -20,6 +20,18 @@
   `invalid` a warning.
 - Not translated: `--help`, `--version`, technical identifiers.
 
+## Docs in the same PR
+
+A change that affects behavior updates, in the same pull request, never as a follow-up:
+
+- `CHANGELOG.md`, under `## [Unreleased]`, an entry opening with a bold one-line summary for users;
+- `TODO.md`, when it adds, finishes or drops planned work;
+- the contributor guides in `docs/` it touches;
+- the website's user docs (the `exampleapp-website` repository) for what a user sees.
+
+A reviewer treats a feature pull request with no docs change as incomplete. When docs and code disagree,
+the code wins and the docs are fixed in the same change.
+
 ## Adding a setting
 
 Five places, in one pull request:
@@ -29,8 +41,9 @@ Five places, in one pull request:
 2. **Control**: built once in `SettingsWindow`, writing the field through `store.update`.
 3. **Row** on its page, with search keywords (`row(card, page, "settings.x", control, "keywords")`).
 4. **Load line** in the page's loader, setting the control from the model; safe to run any time.
-5. **Palette command** in `ui/Commands` that flips or picks the same field, with strings in every
-   catalog. Machine-local values (window placement, paths) never sync.
+5. **Palette command** in `ui/Commands` that flips, picks or prompts for the same field (SET-06): a
+   text value goes through `Prompts.text` with the same validator the Settings field uses, so an invalid
+   value is never committed. Strings in every catalog. Machine-local values (window placement, paths) never sync.
 
 ## Null safety
 
@@ -41,10 +54,18 @@ Do not suppress a report.
 ## UI
 
 - Every scene and dialog goes through `Themes.style(scene)` / `Dialogs.styled(dialog, owner)`: a
-  dialog is its own scene and inherits neither the stylesheet nor the Inter font.
+  dialog is its own scene and does not inherit the stylesheet. The Inter font needs nothing:
+  `Themes.installUiFont` attaches `ui-font.css` to every window's scene, popups and tooltips included.
 - Overlays go in the window's `OverlayHost`, never a `javafx.stage.Popup`.
-- CSS uses AtlantaFX tokens (`-color-fg-muted`, `-color-danger-fg`…), never hex. Readable text uses
-  `-color-fg-muted` or stronger.
+- The themes are Caret & Ink, `styles/editora-light.css` and `editora-dark.css`, copied unchanged from
+  Editora: update them only by copying Editora's again.
+- CSS uses the theme's `-color-*` roles, never hex. A state (amber not durable yet, red broken, green
+  verified, accent an offer) is a `-state-*` token from the `.root` block at the top of `app.css`,
+  never a role directly. Readable text uses `-color-fg-muted` or stronger; ink on an `-emphasis` fill
+  is `-color-fg-emphasis`, never white. `StyleContrastTest` holds all of this in both themes.
+- Glyphs come in two families (`Icons`): `Icons.line` (stroked, `icon-line`) and `Icons.of` (filled,
+  `toolbar-icon`), one class per node. A command's glyph comes from `Icons.forCommand(id)` /
+  `Icons.commandGlyph(id)`, so one action wears one glyph everywhere.
 - On/off rows use `SettingSwitch` (keyboard-operable), not a bare `ToggleSwitch`.
 - Platform differences live behind one check (`AppInfo.isMac()`, `Host`), never scattered.
 

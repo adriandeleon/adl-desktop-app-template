@@ -95,6 +95,48 @@ class MainWindowFxTest {
     }
 
     @Test
+    void thePaletteListsEveryRegisteredCommandItselfIncluded() throws Exception {
+        run(window::openPalette);
+        @SuppressWarnings("unchecked")
+        ListView<Picker.Ranked<String>> list = call(
+                () -> (ListView<Picker.Ranked<String>>) window.overlays().root().lookup(".list-view"));
+        java.util.Set<String> listed = call(
+                () -> list.getItems().stream().map(r -> r.item().value()).collect(java.util.stream.Collectors.toSet()));
+        java.util.Set<String> registered = services.commands().all().stream()
+                .map(com.example.app.command.Command::id)
+                .collect(java.util.stream.Collectors.toSet());
+        assertEquals(registered, listed); // PAL-02: palette.show too
+        run(() -> window.overlays().hide());
+    }
+
+    @Test
+    void helpOpensTheDocsAndTheReleaseNotesAndCopiesTheDetails() throws Exception {
+        run(() -> services.commands().run("help.documentation"));
+        assertEquals(AppInfo.docsUrl(), host.opened.getLast());
+        run(() -> services.commands().run("help.whatsNew"));
+        assertEquals(AppInfo.releaseNotesUrl(), host.opened.getLast());
+        // The welcome placeholder repeats Documentation and What's New, through the registry (DOCS-05/06).
+        java.util.List<javafx.scene.control.Button> buttons =
+                call(() -> window.stage().getScene().getRoot().lookupAll(".welcome .button").stream()
+                        .map(n -> (javafx.scene.control.Button) n)
+                        .toList());
+        for (String id : java.util.List.of("help.documentation", "help.whatsNew")) {
+            String title = services.commands().get(id).title();
+            javafx.scene.control.Button button = buttons.stream()
+                    .filter(b -> b.getText().equals(title))
+                    .findFirst()
+                    .orElseThrow();
+            int before = host.opened.size();
+            run(button::fire);
+            assertEquals(before + 1, host.opened.size(), id);
+        }
+        run(() -> services.commands().run("help.copyDetails"));
+        assertEquals(
+                AppInfo.environment(services.store().dir()),
+                call(() -> javafx.scene.input.Clipboard.getSystemClipboard().getString()));
+    }
+
+    @Test
     void escapeAndCtrlGCloseOverlays() throws Exception {
         run(window::openPalette);
         run(() -> press(window.overlays().root(), KeyCode.ESCAPE, false, false, false, false));
@@ -158,6 +200,9 @@ class MainWindowFxTest {
         assertEquals(0, call(() -> log.list().getSelectionModel().getSelectedIndex()));
         run(() -> press(log.list(), KeyCode.C, false, !AppInfo.isMac(), false, AppInfo.isMac()));
         assertTrue(MessageLogView.asText(services.messages().entries()).contains("Export failed: disk full"));
+        // The shortcut runs messageLog.copy, which copies the selection (KBD-01).
+        assertTrue(call(() -> javafx.scene.input.Clipboard.getSystemClipboard().getString())
+                .endsWith("Export failed: disk full"));
         run(() -> {
             for (var node : window.overlays().root().lookupAll(".button")) {
                 if (node instanceof javafx.scene.control.Button b) b.fire();
@@ -219,21 +264,38 @@ class MainWindowFxTest {
         run(() -> services.store().update(s -> s.keymap = "emacs"));
         host.saveAnswer = dir.resolve("backup.zip");
         run(window::exportConfig);
+        // The walk and the zip write run off the FX thread (PERF-01).
+        FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Exported"));
         assertTrue(Files.exists(host.saveAnswer));
         assertTrue(echo().startsWith("Exported 1 files"), echo());
 
         run(() -> services.store().update(s -> s.keymap = "cua"));
         host.openAnswer = host.saveAnswer;
+        // Import overwrites: it asks first, naming the file, and a Cancel changes nothing (WIN-05).
+        host.confirmAnswer = false;
         run(window::importConfig);
+        FxTestSupport.waitUntil(() -> !host.questions.isEmpty());
+        assertEquals("cua", services.settings().keymap);
+        assertTrue(host.questions.getLast().message().contains("backup.zip"));
+        assertEquals("Overwrite", host.questions.getLast().action());
+        // Only the ticked parts are replaced (SET-12): untick Preferences, keep the key bindings.
+        run(() -> services.store().update(s -> s.showStatusBar = false));
+        host.confirmAnswer = true;
+        host.onQuestion = q -> q.choices().stream()
+                .filter(c -> c.label().startsWith("Preferences"))
+                .forEach(c -> c.tick(false));
+        run(window::importConfig);
+        FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Imported"));
         assertEquals("emacs", services.settings().keymap);
-        assertTrue(echo().startsWith("Imported"), echo());
+        assertFalse(services.settings().showStatusBar, "an unticked part is kept");
+        host.onQuestion = q -> {};
 
         host.saveAnswer = dir.resolve("missing/folder/backup.zip");
         run(window::exportConfig);
-        assertTrue(echo().startsWith("Export failed"), echo());
+        FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Export failed"));
         host.openAnswer = dir.resolve("nope.zip");
         run(window::importConfig);
-        assertTrue(echo().startsWith("Import failed"), echo());
+        FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Import failed"));
         host.saveAnswer = null;
         host.openAnswer = null;
         run(window::exportConfig);
@@ -249,12 +311,20 @@ class MainWindowFxTest {
             window.stage().setHeight(450);
         });
         run(window::quit);
-        assertEquals(1, host.exits);
+        FxTestSupport.waitUntil(() -> host.exits == 1); // the last save is waited for off the FX thread
+        // TRAY-04: the window's close button takes the same path, closing the other windows first.
+        run(() -> window.openSettings(SettingsWindow.Page.GENERAL));
+        run(() -> window.stage()
+                .fireEvent(
+                        new javafx.stage.WindowEvent(window.stage(), javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST)));
+        FxTestSupport.waitUntil(() -> host.exits == 2);
+        assertFalse(call(() -> window.settingsWindow().stage().isShowing()), "quit closes the other windows first");
         assertEquals(700, services.settings().window.width);
         assertNotNull(services.settings().window.x);
         // Not a real maximize: JavaFX's Headless platform throws resizing a maximized stage on Windows
         // (HeadlessWindow.clearRect). What matters here is that the flag is saved and read back.
         run(() -> services.store().update(s -> s.window.maximized = true));
+        services.store().flush();
         assertTrue(ConfigStore.open(dir).settings().window.maximized);
     }
 
@@ -338,6 +408,7 @@ class MainWindowFxTest {
 
     @Test
     void theStartupCheckIsScheduledOnceWhenAllowed() throws Exception {
+        FxTestSupport.waitUntil(() -> app.afterFirstPaint().get()); // the startup's own call has run
         String saved = System.getProperty(UpdateCoordinator.PROPERTY);
         try {
             System.clearProperty(UpdateCoordinator.PROPERTY);

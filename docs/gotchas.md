@@ -14,7 +14,8 @@ Each of these cost one of the family's apps real time.
   OS keyboard focus and the whole app can stop receiving keystrokes. Use `OverlayHost`.
 - **Fonts before stylesheets.** CSS that names a font not yet registered silently falls back to the
   system face; `Startup` loads fonts first.
-- **Every dialog is a new scene.** Without `Dialogs.styled` it has neither the app CSS nor Inter.
+- **Every dialog is a new scene.** Without `Dialogs.styled` it has no app CSS. Inter reaches every
+  window, popups and tooltips included, through the window-list listener (`Themes.installUiFont`).
 - **Unix-domain socket paths are short** (about 104 bytes on macOS). A deep config folder gets its
   socket in the temp folder (`SingleInstance.socketPath`).
 - **A `.app` launched from Finder has a stripped `PATH`.** Anything that runs an external tool (git
@@ -32,3 +33,9 @@ Each of these cost one of the family's apps real time.
 - **A test must never reach the real `gh`.** The developer's GitHub CLI is signed in, and "Create on
   GitHub" would make a real repository: the suite sets `exampleapp.gh` to a command that does not exist.
 - **A key value with `{0}` is a MessageFormat pattern**: a single apostrophe in it swallows text.
+- **`settings.json` is written off the FX thread.** `ConfigStore.update` returns before the file is on
+  disk: call `store.flush()` before reading the file or opening a second store on the same folder.
+- **Filters and searches wait for typing to pause** (`Debounce`). The headless tests set
+  `Debounce.immediate`, so typing then reading needs no wait; a test of the pause turns it off.
+- **A result from a background thread checks its generation inside the `runLater`.** A sync or update
+  answer that arrives after `stop()` or `cancel()` must change nothing.

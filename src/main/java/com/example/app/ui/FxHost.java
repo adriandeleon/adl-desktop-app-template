@@ -42,6 +42,11 @@ public final class FxHost implements Host {
     }
 
     @Override
+    public boolean confirm(@Nullable Window owner, Confirmations.Question question) {
+        return Confirm.ask(question, owner);
+    }
+
+    @Override
     public void exit() {
         Platform.exit();
     }

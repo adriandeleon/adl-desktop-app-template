@@ -55,8 +55,41 @@ class DebugLogTest {
     @Test
     void isBounded() {
         for (int i = 0; i < DebugLog.MAX_ENTRIES + 5; i++) DebugLog.append("line " + i);
-        assertFalse(DebugLog.text().contains("line 4\n"));
-        assertTrue(DebugLog.text().endsWith("line " + (DebugLog.MAX_ENTRIES + 4)));
+        String text = DebugLog.text();
+        assertFalse(text.contains("line 4" + System.lineSeparator()), "the oldest are dropped");
+        assertTrue(text.endsWith("line " + (DebugLog.MAX_ENTRIES + 4)), "the newest are kept");
+        // PERF-11: a note of what was cut.
+        assertEquals(5, DebugLog.dropped());
+        assertTrue(text.startsWith("… 5 earlier lines are not kept here"), text.substring(0, 80));
+        DebugLog.clear();
+        assertEquals(0, DebugLog.dropped());
+    }
+
+    @Test
+    void theSessionFileStaysUnderItsCapAndKeepsTheNewestWithANote(@TempDir Path dir) throws Exception {
+        DebugLog.attachFile(dir);
+        String line = "x".repeat(1023);
+        long lines = DebugLog.MAX_FILE_BYTES / 1024 + 10;
+        for (long i = 0; i < lines; i++) DebugLog.append(line);
+        DebugLog.append("the newest line");
+        long size = Files.size(dir.resolve(DebugLog.FILE));
+        assertTrue(size <= DebugLog.MAX_FILE_BYTES, "size " + size);
+        String file = Files.readString(dir.resolve(DebugLog.FILE));
+        assertTrue(file.contains("earlier lines were cut to keep this file under"), "a note of the cut");
+        assertTrue(file.stripTrailing().endsWith("the newest line"), "PERF-11: the newest is kept");
+    }
+
+    @Test
+    void capturesEveryLevelTheLoggersEmit() {
+        DebugLog.install();
+        Logger logger = Logger.getLogger("com.example.app.Fine");
+        logger.setLevel(Level.FINE);
+        try {
+            logger.fine("a fine detail");
+        } finally {
+            logger.setLevel(null);
+        }
+        assertTrue(DebugLog.text().contains("FINE Fine — a fine detail"), "DIAG-02: all records");
     }
 
     @Test

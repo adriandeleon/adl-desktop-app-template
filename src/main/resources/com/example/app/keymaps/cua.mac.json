@@ -1,0 +1,12 @@
+{
+  "name": "CUA",
+  "notation": "cua",
+  "bindings": {
+    "palette.show": "Cmd+Shift+P",
+    "app.settings": "Cmd+,",
+    "app.quit": "Cmd+Q",
+    "view.messageLog": "Cmd+Shift+M",
+    "help.debugLog": "Cmd+Shift+L",
+    "help.about": "F12"
+  }
+}
