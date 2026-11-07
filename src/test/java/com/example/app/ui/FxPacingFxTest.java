@@ -25,12 +25,17 @@ class FxPacingFxTest {
     @BeforeAll
     static void boot() throws Exception {
         FxTestSupport.boot();
+    }
+
+    @org.junit.jupiter.api.BeforeEach
+    void realPauses() {
         Debounce.immediate = false;
     }
 
+    /** Back to what every other UI test expects (FxTestSupport.boot). */
     @AfterEach
     void immediateAgain() {
-        Debounce.immediate = false;
+        Debounce.immediate = true;
     }
 
     @Test

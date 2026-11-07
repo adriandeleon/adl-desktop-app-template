@@ -31,6 +31,11 @@ final class Chrome {
         return checking ? Messages.tr("palette.disabled.checking") : null;
     }
 
+    /** Why a key-binding row's command cannot run: no row is selected in Settings → Keymap. */
+    static @Nullable String bindingRowUnavailable(boolean selected) {
+        return selected ? null : Messages.tr("palette.disabled.noBindingSelected");
+    }
+
     /** Why Debug Log: Refresh cannot run, or null when it can. */
     static @Nullable String debugLogRefreshUnavailable(boolean open) {
         return open ? null : Messages.tr("palette.disabled.debugLogClosed");

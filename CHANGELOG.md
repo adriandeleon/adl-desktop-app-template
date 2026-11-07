@@ -42,6 +42,10 @@ one-line summary written for users.
   too large or from a newer version is refused before anything changes.
 - **A palette command for every setting.** Change Key Binding…, and Settings Sync: Set Repository…, Set
   Branch… and Set Interval… prompt for the value and refuse an invalid one.
+- **Find in the Debug Log.** `Ctrl/Cmd+F` there, or Debug Log: Find… from the palette, opens a find bar
+  that searches as you type, counts the matches and steps with Enter and Shift+Enter.
+- **Key-binding rows have a right-click menu,** Change and Reset, also in the palette for the selected
+  row.
 - **A macOS CUA keymap.** On a Mac the CUA keymap is `cua.mac.json`, with Cmd in place of Ctrl.
 - **Faster start-up from an AOT cache.** Installed builds carry a JDK 25 ahead-of-time cache; the first
   window appears about a third sooner.

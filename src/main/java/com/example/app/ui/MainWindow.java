@@ -351,6 +351,27 @@ public final class MainWindow {
         if (window != null) window.refresh();
     }
 
+    /** Debug Log: Find: opens the Debug Log and its find bar. */
+    void findInDebugLog() {
+        openDebugLog();
+        DebugLogWindow window = debugLog;
+        if (window != null) window.find();
+    }
+
+    /** The command whose key-binding row is selected in an open Settings → Keymap, or null. */
+    @Nullable
+    Command selectedBinding() {
+        SettingsWindow window = settings;
+        if (window == null || !window.stage().isShowing()) return null;
+        return window.bindingList().getSelectionModel().getSelectedItem();
+    }
+
+    void resetSelectedBinding() {
+        SettingsWindow window = settings;
+        Command selected = selectedBinding();
+        if (window != null && selected != null) window.resetBinding(selected);
+    }
+
     void clearDebugLog() {
         DebugLog.clear();
         refreshDebugLog();

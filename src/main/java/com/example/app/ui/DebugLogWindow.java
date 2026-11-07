@@ -29,6 +29,7 @@ public final class DebugLogWindow {
     private final AppServices services;
     private final Stage stage = new Stage();
     private final TextArea text = new TextArea();
+    private final DebugLogFindBar findBar = new DebugLogFindBar(text);
 
     public DebugLogWindow(AppServices services, @Nullable Window owner) {
         this.services = services;
@@ -40,7 +41,13 @@ public final class DebugLogWindow {
                 new CommandMenu(
                         services,
                         java.util.Arrays.asList(
-                                "debugLog.copy", "debugLog.export", null, "debugLog.refresh", "debugLog.clear")));
+                                "debugLog.find",
+                                null,
+                                "debugLog.copy",
+                                "debugLog.export",
+                                null,
+                                "debugLog.refresh",
+                                "debugLog.clear")));
 
         // Every button runs a command (KBD-01), so the palette and a key binding reach the same work.
         Button refresh = button("debuglog.refresh", "debugLog.refresh");
@@ -57,10 +64,15 @@ public final class DebugLogWindow {
         buttons.setAlignment(Pos.CENTER_LEFT);
         buttons.setPadding(new Insets(8));
 
-        BorderPane root = new BorderPane(text, null, null, buttons, null);
+        findBar.setPadding(new Insets(6, 8, 0, 8));
+        BorderPane root = new BorderPane(text, null, null, new javafx.scene.layout.VBox(findBar, buttons), null);
         Scene scene = Themes.style(new Scene(root, 820, 480));
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) stage.close();
+            else if (e.isShortcutDown() && e.getCode() == KeyCode.F) {
+                services.commands().run("debugLog.find");
+                e.consume();
+            }
         });
         stage.setScene(scene);
         stage.setTitle(Messages.tr("debuglog.title"));
@@ -87,6 +99,15 @@ public final class DebugLogWindow {
 
     Stage stage() {
         return stage;
+    }
+
+    /** Opens the find bar over the log (the {@code debugLog.find} command). */
+    void find() {
+        findBar.open();
+    }
+
+    DebugLogFindBar findBar() {
+        return findBar;
     }
 
     TextArea text() {

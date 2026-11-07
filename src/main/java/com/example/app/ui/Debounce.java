@@ -47,6 +47,11 @@ final class Debounce {
         return pause.getStatus() == Animation.Status.RUNNING;
     }
 
+    /** Drops a waiting action: nothing runs. */
+    void cancel() {
+        pause.stop();
+    }
+
     /** Runs a waiting action now (Enter in a filter field must act on what was typed). */
     void flush() {
         if (!pending()) return;

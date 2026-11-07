@@ -183,8 +183,47 @@ class RightClickMenusFxTest {
                 .map(MenuItem::getId)
                 .filter(java.util.Objects::nonNull)
                 .toList());
-        assertEquals(List.of("debugLog.copy", "debugLog.export", "debugLog.refresh", "debugLog.clear"), ids);
+        assertEquals(
+                List.of("debugLog.find", "debugLog.copy", "debugLog.export", "debugLog.refresh", "debugLog.clear"),
+                ids);
         run(window.stage()::close);
+    }
+
+    @Test
+    void aKeyBindingRowsMenuRunsItsCommandsOnThatRow() throws Exception {
+        run(() -> app.window().openSettings(SettingsWindow.Page.KEYMAP));
+        SettingsWindow settings = app.window().settingsWindow();
+        assertNotNull(settings);
+        assertNotNull(services.commands().get("keymap.resetBinding").unavailableReason(), "nothing selected yet");
+        run(() -> services.store().update(s -> s.keybindings.put("help.about", "Ctrl+Alt+J")));
+        run(() -> settings.search().setText("about"));
+        run(() -> {
+            settings.stage().getScene().getRoot().applyCss();
+            settings.stage().getScene().getRoot().layout();
+        });
+        ListCell<?> row = call(() -> settings.bindingList().lookupAll(".list-cell").stream()
+                .map(n -> (ListCell<?>) n)
+                .filter(c -> !c.isEmpty()
+                        && ((com.example.app.command.Command) c.getItem()).id().equals("help.about"))
+                .findFirst()
+                .orElseThrow());
+        run(() -> rightClick(row));
+        List<ContextMenu> open = call(RightClickMenusFxTest::openMenus);
+        assertEquals(1, open.size());
+        assertEquals(
+                List.of("keymap.changeBinding", "keymap.resetBinding"),
+                call(() -> open.getFirst().getItems().stream()
+                        .map(MenuItem::getId)
+                        .filter(java.util.Objects::nonNull)
+                        .toList()));
+        assertEquals("help.about", call(() -> app.window().selectedBinding().id()), "the right-click selected the row");
+        run(() -> open.getFirst().getItems().stream()
+                .filter(i -> "keymap.resetBinding".equals(i.getId()))
+                .findFirst()
+                .orElseThrow()
+                .fire());
+        assertEquals(null, services.settings().keybindings.get("help.about"), "Reset ran on that row");
+        assertTrue(host.questions.getLast().message().contains("Ctrl+Alt+J"));
     }
 
     private static void rightClick(Node node) {

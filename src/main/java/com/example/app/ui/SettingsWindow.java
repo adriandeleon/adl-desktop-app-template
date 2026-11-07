@@ -233,8 +233,10 @@ public final class SettingsWindow {
         VBox bindings = card(Page.KEYMAP, Messages.tr("settings.bindings.heading"));
         bindingList.getStyleClass().add("binding-list");
         bindingList.setFixedCellSize(BINDING_ROW_HEIGHT);
-        bindingList.setCellFactory(v -> new BindingCell());
-        bindingList.setFocusTraversable(false);
+        CommandMenu rowMenu =
+                new CommandMenu(services, java.util.Arrays.asList("keymap.changeBinding", null, "keymap.resetBinding"));
+        bindingList.setCellFactory(v -> CommandMenu.onRow(new BindingCell(), () -> rowMenu));
+        RowContextMenu.install(bindingList);
         for (Command command : services.commands().all()) {
             bindingEntries.put(
                     command,

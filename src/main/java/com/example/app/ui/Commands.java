@@ -1,6 +1,7 @@
 package com.example.app.ui;
 
 import com.example.app.AppInfo;
+import com.example.app.command.Command;
 import com.example.app.command.CommandRegistry;
 
 /**
@@ -34,6 +35,18 @@ final class Commands {
         r.register("settings.keymap", window::chooseKeymap);
         r.register("settings.language", window::chooseLanguage);
         r.register("settings.bindKey", window::chooseBinding);
+        // The actions of a key-binding row in Settings, on its right-click menu (MENU-05).
+        r.register(
+                "keymap.changeBinding",
+                () -> {
+                    Command selected = window.selectedBinding();
+                    if (selected != null) window.promptBinding(selected);
+                },
+                () -> Chrome.bindingRowUnavailable(window.selectedBinding() != null));
+        r.register(
+                "keymap.resetBinding",
+                window::resetSelectedBinding,
+                () -> Chrome.bindingRowUnavailable(window.selectedBinding() != null));
         r.register("settings.toggleUpdateCheck", () -> {
             services.store().update(s -> s.checkForUpdates = !s.checkForUpdates);
             services.echo(services.settings().checkForUpdates ? "status.updateCheckOn" : "status.updateCheckOff");
@@ -77,6 +90,7 @@ final class Commands {
                 "debugLog.refresh",
                 window::refreshDebugLog,
                 () -> Chrome.debugLogRefreshUnavailable(window.isDebugLogOpen()));
+        r.register("debugLog.find", window::findInDebugLog);
         r.register("debugLog.copy", () -> Clipboards.copy(DebugLog.text()));
         r.register("debugLog.clear", window::clearDebugLog);
         r.register("debugLog.export", window::exportDebugLog);
