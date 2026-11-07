@@ -28,6 +28,12 @@ public final class AppInfo {
     public static final String RELEASES_PAGE = HOMEPAGE + "/releases";
     public static final String LICENSE_URL = HOMEPAGE + "/blob/master/LICENSE";
     public static final String NEW_ISSUE_URL = HOMEPAGE + "/issues/new";
+    /**
+     * The app's website, from its {@code <app>-website} repository: the user documentation lives there
+     * under {@code /docs/} (DOCS-01, DOCS-02), not in this repository.
+     */
+    public static final String WEBSITE = "https://" + ID + "-project.dev";
+
     public static final String LATEST_RELEASE_API = "https://api.github.com/repos/" + GITHUB_REPO + "/releases/latest";
 
     public static final String VERSION = load("version", "0.0.0");
@@ -53,6 +59,25 @@ public final class AppInfo {
         } catch (IOException e) {
             return fallback;
         }
+    }
+
+    /**
+     * The user documentation for this build, {@code <website>/docs/v-<version>}: versioned, so a build
+     * never opens the docs of a different release, and without {@code -SNAPSHOT}, so a development
+     * build opens the release it is working toward.
+     */
+    public static String docsUrl() {
+        return WEBSITE + "/docs/v-" + VERSION.replace("-SNAPSHOT", "");
+    }
+
+    /** This build's release notes: its GitHub release, or the releases page for a development build. */
+    public static String releaseNotesUrl() {
+        return releaseNotesUrl(VERSION);
+    }
+
+    static String releaseNotesUrl(String version) {
+        if (version.isBlank() || version.endsWith("-SNAPSHOT") || version.equals("0.0.0")) return RELEASES_PAGE;
+        return RELEASES_PAGE + "/tag/v" + version;
     }
 
     /** True for a development build; a release drops the suffix. */

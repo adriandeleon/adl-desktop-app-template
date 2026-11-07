@@ -46,6 +46,15 @@ class AppInfoTest {
     }
 
     @Test
+    void theDocsAndReleaseNotesFollowTheVersion() {
+        assertTrue(AppInfo.docsUrl().startsWith(AppInfo.WEBSITE + "/docs/v-"));
+        assertFalse(AppInfo.docsUrl().contains("SNAPSHOT"));
+        assertEquals(AppInfo.RELEASES_PAGE, AppInfo.releaseNotesUrl("1.0.0-SNAPSHOT"));
+        assertEquals(AppInfo.RELEASES_PAGE, AppInfo.releaseNotesUrl("0.0.0"));
+        assertEquals(AppInfo.RELEASES_PAGE + "/tag/v1.2.0", AppInfo.releaseNotesUrl("1.2.0"));
+    }
+
+    @Test
     void macCheckFollowsTheOsName() {
         assertEquals(System.getProperty("os.name").toLowerCase().startsWith("mac"), AppInfo.isMac());
     }

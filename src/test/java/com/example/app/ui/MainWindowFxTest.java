@@ -95,6 +95,48 @@ class MainWindowFxTest {
     }
 
     @Test
+    void thePaletteListsEveryRegisteredCommandItselfIncluded() throws Exception {
+        run(window::openPalette);
+        @SuppressWarnings("unchecked")
+        ListView<Picker.Ranked<String>> list = call(
+                () -> (ListView<Picker.Ranked<String>>) window.overlays().root().lookup(".list-view"));
+        java.util.Set<String> listed = call(
+                () -> list.getItems().stream().map(r -> r.item().value()).collect(java.util.stream.Collectors.toSet()));
+        java.util.Set<String> registered = services.commands().all().stream()
+                .map(com.example.app.command.Command::id)
+                .collect(java.util.stream.Collectors.toSet());
+        assertEquals(registered, listed); // PAL-02: palette.show too
+        run(() -> window.overlays().hide());
+    }
+
+    @Test
+    void helpOpensTheDocsAndTheReleaseNotesAndCopiesTheDetails() throws Exception {
+        run(() -> services.commands().run("help.documentation"));
+        assertEquals(AppInfo.docsUrl(), host.opened.getLast());
+        run(() -> services.commands().run("help.whatsNew"));
+        assertEquals(AppInfo.releaseNotesUrl(), host.opened.getLast());
+        // The welcome placeholder repeats Documentation and What's New, through the registry (DOCS-05/06).
+        java.util.List<javafx.scene.control.Button> buttons =
+                call(() -> window.stage().getScene().getRoot().lookupAll(".welcome .button").stream()
+                        .map(n -> (javafx.scene.control.Button) n)
+                        .toList());
+        for (String id : java.util.List.of("help.documentation", "help.whatsNew")) {
+            String title = services.commands().get(id).title();
+            javafx.scene.control.Button button = buttons.stream()
+                    .filter(b -> b.getText().equals(title))
+                    .findFirst()
+                    .orElseThrow();
+            int before = host.opened.size();
+            run(button::fire);
+            assertEquals(before + 1, host.opened.size(), id);
+        }
+        run(() -> services.commands().run("help.copyDetails"));
+        assertEquals(
+                AppInfo.environment(services.store().dir()),
+                call(() -> javafx.scene.input.Clipboard.getSystemClipboard().getString()));
+    }
+
+    @Test
     void escapeAndCtrlGCloseOverlays() throws Exception {
         run(window::openPalette);
         run(() -> press(window.overlays().root(), KeyCode.ESCAPE, false, false, false, false));
@@ -158,6 +200,9 @@ class MainWindowFxTest {
         assertEquals(0, call(() -> log.list().getSelectionModel().getSelectedIndex()));
         run(() -> press(log.list(), KeyCode.C, false, !AppInfo.isMac(), false, AppInfo.isMac()));
         assertTrue(MessageLogView.asText(services.messages().entries()).contains("Export failed: disk full"));
+        // The shortcut runs messageLog.copy, which copies the selection (KBD-01).
+        assertTrue(call(() -> javafx.scene.input.Clipboard.getSystemClipboard().getString())
+                .endsWith("Export failed: disk full"));
         run(() -> {
             for (var node : window.overlays().root().lookupAll(".button")) {
                 if (node instanceof javafx.scene.control.Button b) b.fire();

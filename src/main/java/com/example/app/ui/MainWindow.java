@@ -129,7 +129,7 @@ public final class MainWindow {
         Label hint = new Label(Messages.tr("welcome.hint", chord.isEmpty() ? "—" : chord));
         HBox actions = new HBox(8);
         actions.setAlignment(Pos.CENTER);
-        for (String id : List.of("palette.show", "app.settings", "help.about")) {
+        for (String id : List.of("palette.show", "app.settings", "help.documentation", "help.whatsNew")) {
             Command command = services.commands().get(id);
             if (command == null) continue;
             Button button = new Button(command.title());
@@ -187,8 +187,8 @@ public final class MainWindow {
     // ---- what the commands do ----
 
     void openPalette() {
+        // Every registered command (PAL-02): one that cannot run now stays listed, grayed with the reason.
         List<Picker.Item<String>> items = services.commands().all().stream()
-                .filter(c -> !c.id().equals("palette.show"))
                 .sorted(java.util.Comparator.comparing(Command::title))
                 .map(c -> new Picker.Item<>(
                         c.id(),
@@ -247,6 +247,57 @@ public final class MainWindow {
         messageLog.show();
     }
 
+    /** Copies what the Message Log lists: the filtered entries while it is open, else every entry. */
+    void copyMessageLog() {
+        Clipboards.copy(MessageLogView.asText(messageLog.listed()));
+        services.echo("status.messageLogCopied");
+    }
+
+    /** Empties the Message Log and its unread count. */
+    void clearMessageLog() {
+        services.messages().clear();
+        messageLog.refresh();
+        statusBar.refreshUnread();
+    }
+
+    /** About's Copy details: the environment block, for a bug report. */
+    void copyDetails() {
+        Clipboards.copy(AppInfo.environment(services.store().dir()));
+        services.echo("status.detailsCopied");
+    }
+
+    boolean isDebugLogOpen() {
+        DebugLogWindow window = debugLog;
+        return window != null && window.stage().isShowing();
+    }
+
+    void refreshDebugLog() {
+        DebugLogWindow window = debugLog;
+        if (window != null) window.refresh();
+    }
+
+    void clearDebugLog() {
+        DebugLog.clear();
+        refreshDebugLog();
+    }
+
+    /** Saves the Debug Log as a text file the user chooses; the write runs off the FX thread. */
+    void exportDebugLog() {
+        DebugLogWindow window = debugLog;
+        Stage owner = window != null && window.stage().isShowing() ? window.stage() : stage;
+        Path target = services.host().chooseSaveFile(owner, Messages.tr("debuglog.export"), AppInfo.ID + "-debug.log");
+        if (target == null) return;
+        String text = DebugLog.text();
+        Background.run(() -> {
+            try {
+                java.nio.file.Files.writeString(target, text, java.nio.charset.StandardCharsets.UTF_8);
+                services.echo("status.logExported", String.valueOf(target.getFileName()));
+            } catch (IOException e) {
+                services.echo("status.logExportFailed", String.valueOf(e.getMessage()));
+            }
+        });
+    }
+
     void openSettings(SettingsWindow.Page page) {
         SettingsWindow window = settings;
         if (window == null) {
@@ -270,7 +321,7 @@ public final class MainWindow {
     void openDebugLog() {
         DebugLogWindow window = debugLog;
         if (window == null) {
-            window = new DebugLogWindow(services, stage, this::openReportProblem);
+            window = new DebugLogWindow(services, stage);
             debugLog = window;
         }
         window.show();

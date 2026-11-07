@@ -12,8 +12,6 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
@@ -67,9 +65,7 @@ public final class AboutDialog {
         environment.getStyleClass().add("about-env");
         environment.setWrapText(true);
         copy.setOnAction(e -> {
-            ClipboardContent content = new ClipboardContent();
-            content.putString(AppInfo.environment(services.store().dir()));
-            Clipboard.getSystemClipboard().setContent(content);
+            services.commands().run("help.copyDetails");
             copy.setText(Messages.tr("about.copied"));
         });
         VBox content = new VBox(14, head, updateBlock, copyright, links, environment, copy);

@@ -30,6 +30,11 @@ one-line summary written for users.
   edition's rules, and *Copy details* and `--version` carry a `Pauta:` line.
 - **Import and Reset ask before they overwrite.** Importing a configuration and resetting a key binding
   you set now name what is replaced, and Escape cancels.
+- **Help → Documentation and What's New.** Documentation opens this version's user guide on the
+  website, and What's New this build's release notes; both are on the start page too.
+- **Every button is a command.** Copy and Clear in the Message Log, the Debug Log's buttons and About's
+  Copy details run from the Command Palette and can be bound to keys. The palette lists every command,
+  itself included, and Help follows the family's order.
 - **Faster start-up from an AOT cache.** Installed builds carry a JDK 25 ahead-of-time cache; the first
   window appears about a third sooner.
 - **Settings Sync can create its repository.** Settings → Sync → Create on GitHub… makes a private

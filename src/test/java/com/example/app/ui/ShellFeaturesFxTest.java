@@ -69,7 +69,7 @@ class ShellFeaturesFxTest {
     void menusShowEachCommandsBindingAndFollowTheKeymap() throws Exception {
         // The in-window rendering, on every OS (macOS's own window uses the screen menu bar).
         AppMenus menus = call(() -> new AppMenus(services, false));
-        AppMenus.Row palette = menus.groups().get(1).getFirst();
+        AppMenus.Row palette = menus.groups().get(2).getFirst(); // Help opens with the palette (DOCS-07)
         assertInstanceOf(CustomMenuItem.class, palette.item());
         String cua = call(() -> AppMenus.displayText(palette));
         assertTrue(cua.startsWith("Command Palette   ") && cua.endsWith("P"), cua);
@@ -88,7 +88,7 @@ class ShellFeaturesFxTest {
             m.getOnShown().handle(null);
         }));
         double width = call(() -> palette.title().getMinWidth());
-        assertTrue(menus.groups().get(1).stream().allMatch(r -> r.title().getMinWidth() == width));
+        assertTrue(menus.groups().get(2).stream().allMatch(r -> r.title().getMinWidth() == width));
         run(() -> palette.item().fire());
         assertTrue(call(() -> app.window().overlays().isShowing()));
     }

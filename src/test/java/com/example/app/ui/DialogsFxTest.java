@@ -143,14 +143,19 @@ class DialogsFxTest {
         assertNotNull(window);
         assertTrue(call(() -> window.text().getText()).contains("something to see"));
 
+        // Export runs a command and writes off the FX thread (PERF-01): wait for its echo.
         host.saveAnswer = dir.resolve("debug.log");
-        run(window::export);
+        run(() -> services.commands().run("debugLog.export"));
+        FxTestSupport.waitUntil(() -> app.window().statusBar().echo().getText().startsWith("Saved the Debug Log"));
         assertTrue(Files.readString(host.saveAnswer).contains("something to see"));
         host.saveAnswer = dir.resolve("no/such/folder/debug.log");
-        run(window::export);
-        assertTrue(call(() -> app.window().statusBar().echo().getText()).startsWith("Saving the Debug Log failed"));
+        run(() -> services.commands().run("debugLog.export"));
+        FxTestSupport.waitUntil(
+                () -> app.window().statusBar().echo().getText().startsWith("Saving the Debug Log failed"));
         host.saveAnswer = null;
-        run(window::export);
+        run(() -> services.commands().run("debugLog.export"));
+        assertTrue(call(() -> app.window().isDebugLogOpen()));
+        assertEquals(null, services.commands().get("debugLog.refresh").unavailableReason());
 
         run(() -> window.stage().getScene().getRoot().lookupAll(".button").forEach(n -> {
             String label = ((Button) n).getText();
@@ -159,6 +164,7 @@ class DialogsFxTest {
         assertFalse(call(() -> window.text().getText()).contains("something to see"));
         run(() -> FxTestSupport.press(window.stage().getScene(), KeyCode.ESCAPE, false, false, false, false));
         assertFalse(call(() -> window.stage().isShowing()));
+        assertNotNull(services.commands().get("debugLog.refresh").unavailableReason());
         run(app.window()::openDebugLog);
         assertTrue(call(() -> window.stage().isShowing()));
     }

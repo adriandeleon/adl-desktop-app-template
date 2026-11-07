@@ -311,16 +311,15 @@ public final class SettingsWindow {
             if (!syncUrl.getStyleClass().contains("invalid")) services.sync().syncNow(true);
         });
         Button create = new Button(Messages.tr("settings.sync.createGithub"));
-        create.setOnAction(e -> promptCreateOnGitHub());
+        create.setOnAction(e -> services.commands().run("sync.createGitHubRepo"));
         HBox branchControl = new HBox(6, syncBranch, connect, create);
         branchControl.setAlignment(Pos.CENTER_RIGHT);
         row(repo, Page.SYNC, "settings.sync.branch", branchControl, "branch connect");
 
         Button now = new Button(Messages.tr("settings.sync.now"));
-        now.setOnAction(e -> services.sync().syncNow(true));
+        now.setOnAction(e -> services.commands().run("sync.now"));
         Button folder = new Button(Messages.tr("settings.sync.openFolder"));
-        folder.setOnAction(e -> services.host()
-                .openUrl(services.store().dir().resolve("sync").toUri().toString()));
+        folder.setOnAction(e -> services.commands().run("sync.openFolder"));
         syncPill.getStyleClass().add("pill");
         HBox status = new HBox(8, syncPill, now, folder);
         status.setAlignment(Pos.CENTER_RIGHT);

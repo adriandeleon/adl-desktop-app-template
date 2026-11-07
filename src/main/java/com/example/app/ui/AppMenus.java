@@ -59,19 +59,22 @@ final class AppMenus {
                         menu("menu.file", "app.settings", null, "config.export", "config.import", null, "app.quit"),
                         menu(
                                 "menu.view",
-                                "palette.show",
-                                "view.messageLog",
                                 "view.toggleStatusBar",
                                 null,
                                 "settings.theme",
                                 "settings.keymap",
                                 "settings.language"),
+                        // Pauta's Help order (DOCS-07); an app without a feature drops its row.
                         menu(
                                 "menu.help",
+                                "palette.show",
+                                "help.documentation",
+                                null,
+                                "help.checkForUpdates",
+                                "view.messageLog",
                                 "help.debugLog",
                                 "help.reportProblem",
                                 null,
-                                "help.checkForUpdates",
                                 "help.about"));
         services.onKeybindingsChanged(this::refresh);
         refresh();
