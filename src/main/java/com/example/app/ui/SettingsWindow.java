@@ -227,7 +227,7 @@ public final class SettingsWindow {
             field.setAccessibleText(command.title());
             Button reset = new Button(Messages.tr("settings.bindings.reset"));
             reset.getStyleClass().add("flat");
-            reset.setOnAction(e -> services.store().update(s -> s.keybindings.remove(command.id())));
+            reset.setOnAction(e -> resetBinding(command));
             field.setOnAction(e -> commitBinding(command.id(), field));
             field.focusedProperty().addListener((obs, was, focused) -> {
                 if (!focused) commitBinding(command.id(), field);
@@ -257,6 +257,15 @@ public final class SettingsWindow {
                 if (other != null) field.getStyleClass().add("invalid");
             });
         }
+    }
+
+    /** Removes the user's own binding for a command, after asking: it is something the user made. */
+    void resetBinding(Command command) {
+        String user = services.settings().keybindings.get(command.id());
+        if (user == null) return;
+        String keymapChord = services.keybindings().keymap().bindings().getOrDefault(command.id(), "");
+        if (!services.host().confirm(stage, Confirmations.resetBinding(command.title(), user, keymapChord))) return;
+        services.store().update(s -> s.keybindings.remove(command.id()));
     }
 
     /** Commits a binding: blank unbinds, an unparsable chord is marked and not saved. */

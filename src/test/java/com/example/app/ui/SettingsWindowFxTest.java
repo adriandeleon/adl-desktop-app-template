@@ -127,7 +127,17 @@ class SettingsWindowFxTest {
         run(() -> services.store().update(s -> s.keybindings.put("help.debugLog", "Shortcut+Q")));
         assertTrue(call(() -> settings.stage().getScene().getRoot().lookupAll(".text-field").stream()
                 .anyMatch(n -> n.getStyleClass().contains("invalid"))));
-        // Every Reset button removes its override.
+        // Reset asks first (CONF-01); a Cancel keeps the user's binding.
+        host.confirmAnswer = false;
+        run(() -> settings.stage().getScene().getRoot().lookupAll(".button").stream()
+                .filter(n -> n instanceof Button b && "Reset".equals(b.getText()))
+                .forEach(n -> ((Button) n).fire()));
+        assertEquals("Shortcut+Q", services.settings().keybindings.get("help.debugLog"));
+        assertEquals(1, host.questions.size(), "a reset with no binding of the user's asks nothing");
+        assertTrue(host.questions.get(0).message().contains("Shortcut+Q"));
+        assertEquals("Reset", host.questions.get(0).action());
+        // Every Reset button removes its override once the question is answered with Reset.
+        host.confirmAnswer = true;
         run(() -> settings.stage().getScene().getRoot().lookupAll(".button").stream()
                 .filter(n -> n instanceof Button b && "Reset".equals(b.getText()))
                 .forEach(n -> ((Button) n).fire()));

@@ -40,6 +40,9 @@ Run Maven from the repository root, **on JDK 25** (Palantir Java Format breaks o
 - [ ] A new package has a `package-info.java` with `@NullMarked`. Fix NullAway reports; never suppress.
 - [ ] A new dialog or window goes through `Dialogs.styled` / `Themes.style`. Overlays use
       `OverlayHost`, never `javafx.stage.Popup`.
+- [ ] Anything that removes or overwrites what the user made asks first through the one confirm helper:
+      `services.host().confirm(owner, Confirmations.<question>(…))`, its words in `Confirmations`, the
+      button the action's own verb (never OK or Yes). Tests answer it with `FakeHost.confirmAnswer`.
 - [ ] CSS colours are AtlantaFX `-color-*` tokens, never hex literals.
 - [ ] Failures reach the status bar (`services.echo`, key ending in `Failed`/`Error`) or the Debug Log
       (`java.util.logging`). Never a stack-trace dialog, never silence.

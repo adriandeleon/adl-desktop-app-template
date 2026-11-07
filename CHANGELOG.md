@@ -28,6 +28,8 @@ one-line summary written for users.
 - **Menus show each command's key binding,** in the active keymap, Emacs sequences included.
 - **About names the Pauta edition the app is built to.** A *Built to Pauta 2.0.0* link opens that
   edition's rules, and *Copy details* and `--version` carry a `Pauta:` line.
+- **Import and Reset ask before they overwrite.** Importing a configuration and resetting a key binding
+  you set now name what is replaced, and Escape cancels.
 - **Faster start-up from an AOT cache.** Installed builds carry a JDK 25 ahead-of-time cache; the first
   window appears about a third sooner.
 - **Settings Sync can create its repository.** Settings → Sync → Create on GitHub… makes a private

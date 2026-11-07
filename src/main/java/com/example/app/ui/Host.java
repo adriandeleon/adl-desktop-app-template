@@ -23,6 +23,12 @@ public interface Host {
     @Nullable
     Path chooseOpenFile(Window owner, String title);
 
+    /**
+     * Asks a question before a destructive action ({@link Confirm}); true only when the user pressed
+     * the action button. The tests answer it instead of pressing a native button.
+     */
+    boolean confirm(@Nullable Window owner, Confirmations.Question question);
+
     /** Ends the app. */
     void exit();
 }

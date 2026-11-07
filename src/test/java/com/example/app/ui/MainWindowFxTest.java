@@ -224,6 +224,13 @@ class MainWindowFxTest {
 
         run(() -> services.store().update(s -> s.keymap = "cua"));
         host.openAnswer = host.saveAnswer;
+        // Import overwrites: it asks first, naming the file, and a Cancel changes nothing (WIN-05).
+        host.confirmAnswer = false;
+        run(window::importConfig);
+        assertEquals("cua", services.settings().keymap);
+        assertTrue(host.questions.getLast().message().contains("backup.zip"));
+        assertEquals("Overwrite", host.questions.getLast().action());
+        host.confirmAnswer = true;
         run(window::importConfig);
         assertEquals("emacs", services.settings().keymap);
         assertTrue(echo().startsWith("Imported"), echo());

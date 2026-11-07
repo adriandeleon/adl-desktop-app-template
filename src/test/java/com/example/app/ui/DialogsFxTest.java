@@ -67,6 +67,28 @@ class DialogsFxTest {
     }
 
     @Test
+    void theConfirmDialogNamesTheActionInRedAndEveryOtherWayOutIsCancel() throws Exception {
+        Confirmations.Question question = Confirmations.importConfig("backup.zip");
+        javafx.scene.control.Alert alert =
+                call(() -> Confirm.dialog(question, app.window().stage()));
+        var buttons = alert.getButtonTypes();
+        assertEquals(2, buttons.size());
+        var action = buttons.get(0);
+        var cancel = buttons.get(1);
+        assertEquals("Overwrite", action.getText());
+        assertEquals(javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE, cancel.getButtonData());
+        assertEquals("Cancel", cancel.getText());
+        assertTrue(call(
+                () -> alert.getDialogPane().lookupButton(action).getStyleClass().contains("danger")));
+        assertFalse(call(
+                () -> alert.getDialogPane().lookupButton(cancel).getStyleClass().contains("danger")));
+        assertEquals(question.message(), alert.getContentText());
+        assertTrue(Confirm.confirmed(alert, java.util.Optional.of(action)));
+        assertFalse(Confirm.confirmed(alert, java.util.Optional.of(cancel)));
+        assertFalse(Confirm.confirmed(alert, java.util.Optional.empty()), "Escape or the close button");
+    }
+
+    @Test
     void aboutShowsEveryUpdateState() throws Exception {
         AboutDialog about = call(() -> new AboutDialog(services, app.window().stage()));
         run(about::show);

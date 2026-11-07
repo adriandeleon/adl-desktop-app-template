@@ -296,6 +296,8 @@ public final class MainWindow {
     void importConfig() {
         Path source = services.host().chooseOpenFile(stage, Messages.tr("command.config.import"));
         if (source == null) return;
+        // Import overwrites the user's settings: ask first (WIN-05, CONF-01).
+        if (!services.host().confirm(stage, Confirmations.importConfig(String.valueOf(source.getFileName())))) return;
         try {
             int count = ConfigExporter.importFrom(source, services.store().dir());
             services.store().reload();
