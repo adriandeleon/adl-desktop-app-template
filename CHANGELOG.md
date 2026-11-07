@@ -50,6 +50,13 @@ one-line summary written for users.
   and the keyboard focus ring at 3:1 on every surface.
 - **Tooltips, menus and popups use Inter too,** not only windows and dialogs.
 - **The Settings sidebar has line icons,** the same glyph each command will wear everywhere.
+- **Every download is checked harder before a release publishes it.** The notarized macOS app is
+  launched once before it is uploaded; the Linux downloads must be signed with the family's release
+  key, now committed as `packaging/linux/signing-key.asc`; every file the release attaches has a build
+  provenance attestation, and a test keeps the two lists the same. A dry run (Run workflow) now goes
+  as far as JReleaser with `--dry-run` and publishes nothing. CI keeps the test reports of every run,
+  coverage also has a 0.79 branch floor and a line floor per package, and tests fail when `NOTICE`
+  misses a bundled library or `LICENSE` and `NOTICE` stop being packaged.
 
 ### Fixed
 

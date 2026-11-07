@@ -9,6 +9,7 @@ runtime appears here.
 
 --------------------------------------------------------------------------------
 OpenJFX (JavaFX) — https://openjdk.org/projects/openjfx/
+org.openjfx:javafx-controls, with javafx-graphics and javafx-base
 Copyright Oracle and/or its affiliates.
 Licensed under the GNU General Public License, version 2, with the Classpath
 Exception (GPL-2.0-only WITH Classpath-exception-2.0). The javafx.base,
@@ -24,6 +25,7 @@ notices are in its legal/ directory (lib/runtime/legal on Linux,
 Contents/runtime/Contents/Home/legal on macOS, runtime\legal on Windows).
 
 AtlantaFX — https://github.com/mkpaz/atlantafx
+io.github.mkpaz:atlantafx-base
 Copyright (c) 2022 mkpaz. Licensed under the MIT License.
 
 Caret & Ink themes — https://github.com/adriandeleon/Editora
@@ -34,6 +36,7 @@ Licensed under the MIT License.
 
 Jackson (jackson-core, jackson-databind, jackson-annotations)
 https://github.com/FasterXML/jackson
+com.fasterxml.jackson.core:jackson-databind, with jackson-core and jackson-annotations
 Copyright FasterXML, LLC. Licensed under the Apache License, Version 2.0.
 
 Inter — https://rsms.me/inter/

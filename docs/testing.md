@@ -38,10 +38,29 @@
 | `MessagesTest` | Every catalog has every key; apostrophes follow the pattern rule; translations are not English copies |
 | `ConfigStoreTest#everySettingSurvivesARestart` | The settings round trip |
 | `MigrationsTest` | Every schema version has a migration step |
+| `NoticeCoverageTest` | Every runtime dependency in the pom has a `NOTICE` entry; the jar carries `LICENSE` and `NOTICE` |
+| `BuildHygieneTest` | The jar, the app image and the installers are handed `LICENSE` and `NOTICE`; the coverage floors below match the pom |
+| `ReleaseSupplyChainTest` | Signing, notarization and attestation steps stay where they are; the attested files are the files JReleaser attaches; a dry run publishes nothing |
 
 ## Coverage
 
-JaCoCo's `check` in `verify` fails below **0.90 lines** or **0.90 methods** for the whole build.
-Floors are a regression net, not a target: when a package grows past 300 lines, give it its own floor
-about three points below its measured level in the pom, and ratchet it up as coverage rises. CI writes
-the totals to the job summary.
+JaCoCo's `check` in `verify` fails below **0.90 lines**, **0.90 methods** or **0.79 branches** for
+the whole build, and below each package's own line floor:
+
+| Package | Line floor |
+|---|---|
+| `com.example.app` | 0.72 |
+| `com.example.app.cli` | 0.97 |
+| `com.example.app.command` | 0.96 |
+| `com.example.app.config` | 0.94 |
+| `com.example.app.i18n` | 0.94 |
+| `com.example.app.instance` | 0.95 |
+| `com.example.app.report` | 0.84 |
+| `com.example.app.sync` | 0.89 |
+| `com.example.app.ui` | 0.93 |
+| `com.example.app.update` | 0.90 |
+
+Floors are a regression net, not a target: each sits two to three points below the package's measured
+level. A new package gets its own floor in the pom; ratchet a floor up as coverage rises, never down.
+`BuildHygieneTest` fails when this table and the pom disagree. CI writes the totals to the job summary
+and uploads the JaCoCo report and the surefire reports, whether the tests passed or not.
