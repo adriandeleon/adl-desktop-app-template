@@ -66,6 +66,29 @@ public final class SettingsWindow {
         }
     }
 
+    /** Each page's commands, for its sidebar row's right-click menu; {@code null} is a separator. */
+    static final Map<Page, List<@Nullable String>> PAGE_COMMANDS = Map.of(
+            Page.GENERAL,
+                    java.util.Arrays.asList("settings.language", "settings.toggleUpdateCheck", "view.toggleStatusBar"),
+            Page.APPEARANCE, java.util.Arrays.asList("settings.theme", "view.toggleTitleBarMenus"),
+            Page.KEYMAP, java.util.Arrays.asList("settings.keymap", "settings.bindKey"),
+            Page.SYNC,
+                    java.util.Arrays.asList(
+                            "sync.now",
+                            "sync.toggleAuto",
+                            null,
+                            "sync.setRepository",
+                            "sync.setBranch",
+                            "sync.setInterval"),
+            Page.ADVANCED, java.util.Arrays.asList("config.export", "config.import", null, "config.openFolder"));
+
+    private final Map<Page, CommandMenu> pageMenus = new EnumMap<>(Page.class);
+
+    private CommandMenu pageMenu(Page page) {
+        return pageMenus.computeIfAbsent(
+                page, p -> new CommandMenu(services, PAGE_COMMANDS.getOrDefault(p, List.of())));
+    }
+
     /** A searchable row and the card it sits in. */
     record Row(Page page, Node node, VBox card, SettingsSearch.Entry entry) {}
 
@@ -121,7 +144,12 @@ public final class SettingsWindow {
         Debounce searching = new Debounce(() -> applySearch(search.getText()));
         search.textProperty().addListener((obs, old, text) -> searching.request());
         sidebar.getItems().setAll(Page.values());
-        sidebar.setCellFactory(v -> new PageCell());
+        // A page row's right-click menu holds that page's commands (MENU-05).
+        sidebar.setCellFactory(v -> {
+            PageCell cell = new PageCell();
+            return CommandMenu.onRow(cell, () -> pageMenu(java.util.Objects.requireNonNull(cell.getItem())));
+        });
+        RowContextMenu.install(sidebar);
         sidebar.getStyleClass().add("settings-sidebar");
         sidebar.getSelectionModel().selectedItemProperty().addListener((obs, old, page) -> {
             if (page != null) scroll.setContent(pages.get(page));

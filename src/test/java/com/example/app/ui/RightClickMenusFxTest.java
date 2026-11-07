@@ -226,6 +226,38 @@ class RightClickMenusFxTest {
         assertTrue(host.questions.getLast().message().contains("Ctrl+Alt+J"));
     }
 
+    @Test
+    void aSettingsPageRowsMenuHoldsThatPagesCommands() throws Exception {
+        run(() -> app.window().openSettings(SettingsWindow.Page.GENERAL));
+        SettingsWindow settings = app.window().settingsWindow();
+        assertNotNull(settings);
+        run(() -> {
+            settings.stage().getScene().getRoot().applyCss();
+            settings.stage().getScene().getRoot().layout();
+        });
+        ListCell<?> sync = call(() -> settings.sidebar().lookupAll(".list-cell").stream()
+                .map(n -> (ListCell<?>) n)
+                .filter(c -> c.getItem() == SettingsWindow.Page.SYNC)
+                .findFirst()
+                .orElseThrow());
+        run(() -> rightClick(sync));
+        List<ContextMenu> open = call(RightClickMenusFxTest::openMenus);
+        assertEquals(1, open.size());
+        assertEquals(
+                SettingsWindow.PAGE_COMMANDS.get(SettingsWindow.Page.SYNC).stream()
+                        .filter(java.util.Objects::nonNull)
+                        .toList(),
+                call(() -> open.getFirst().getItems().stream()
+                        .map(MenuItem::getId)
+                        .filter(java.util.Objects::nonNull)
+                        .toList()));
+        for (List<String> ids : SettingsWindow.PAGE_COMMANDS.values()) {
+            ids.stream()
+                    .filter(java.util.Objects::nonNull)
+                    .forEach(id -> assertNotNull(services.commands().get(id), id + " is not a command"));
+        }
+    }
+
     private static void rightClick(Node node) {
         Bounds b = node.getBoundsInLocal();
         double x = b.getMinX() + 10;
