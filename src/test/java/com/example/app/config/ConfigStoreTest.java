@@ -166,4 +166,31 @@ class ConfigStoreTest {
         org.junit.jupiter.api.Assertions.assertNull(Settings.Sync.parseInterval("0"));
         org.junit.jupiter.api.Assertions.assertNull(Settings.Sync.parseInterval("soon"));
     }
+
+    @Test
+    void aCopyHoldsEveryFieldSoTheWriterSavesWhatWasSet() throws Exception {
+        Settings s = new Settings();
+        s.theme = ThemeChoice.DARK;
+        s.language = "de";
+        s.keymap = "emacs";
+        s.keybindings.put("app.quit", "C-q");
+        s.checkForUpdates = false;
+        s.lastUpdateCheck = 42;
+        s.showStatusBar = false;
+        s.titleBarMenus = false;
+        s.window.x = 1.0;
+        s.window.y = 2.0;
+        s.window.width = 3;
+        s.window.height = 4;
+        s.window.maximized = true;
+        s.sync.repoUrl = "r";
+        s.sync.branch = "b";
+        s.sync.auto = false;
+        s.sync.intervalMinutes = 9;
+        s.sync.lastSync = 7;
+        Settings copy = s.copy();
+        assertEquals(ConfigStore.JSON.writeValueAsString(s), ConfigStore.JSON.writeValueAsString(copy));
+        copy.keybindings.put("help.about", "F1");
+        assertFalse(s.keybindings.containsKey("help.about"), "a deep copy");
+    }
 }

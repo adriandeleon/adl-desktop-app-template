@@ -506,8 +506,11 @@ public final class MainWindow {
             if (other != stage) other.hide();
         }
         saveWindowState();
-        services.store().flush();
-        services.host().exit();
+        // The last save is waited for off the FX thread (PERF-01); the exit comes back to it.
+        Background.run(() -> {
+            services.store().flush();
+            Platform.runLater(services.host()::exit);
+        });
     }
 
     /** Remembers size, position and maximized state for the next launch. */

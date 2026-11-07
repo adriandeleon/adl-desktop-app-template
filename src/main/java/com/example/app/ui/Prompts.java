@@ -47,7 +47,9 @@ final class Prompts {
             dialog.getEditor().getStyleClass().remove("invalid");
             if (reason != null) dialog.getEditor().getStyleClass().add("invalid");
         };
-        dialog.getEditor().textProperty().addListener((o, was, now) -> check.run());
+        // Validation waits for typing to pause (PERF-06); OK re-validates before it commits anyway.
+        Debounce checking = new Debounce(check);
+        dialog.getEditor().textProperty().addListener((o, was, now) -> checking.request());
         check.run();
         if (dialog.getDialogPane().getContent() instanceof javafx.scene.layout.GridPane grid) grid.add(why, 1, 1);
         Dialogs.styled(dialog, owner);

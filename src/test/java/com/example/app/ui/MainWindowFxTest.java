@@ -311,13 +311,13 @@ class MainWindowFxTest {
             window.stage().setHeight(450);
         });
         run(window::quit);
-        assertEquals(1, host.exits);
+        FxTestSupport.waitUntil(() -> host.exits == 1); // the last save is waited for off the FX thread
         // TRAY-04: the window's close button takes the same path, closing the other windows first.
         run(() -> window.openSettings(SettingsWindow.Page.GENERAL));
         run(() -> window.stage()
                 .fireEvent(
                         new javafx.stage.WindowEvent(window.stage(), javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST)));
-        assertEquals(2, host.exits);
+        FxTestSupport.waitUntil(() -> host.exits == 2);
         assertFalse(call(() -> window.settingsWindow().stage().isShowing()), "quit closes the other windows first");
         assertEquals(700, services.settings().window.width);
         assertNotNull(services.settings().window.x);

@@ -38,10 +38,7 @@ public final class StatusBar extends HBox {
         unread.setOnMouseClicked(e -> services.commands().run("view.messageLog"));
         update.getStyleClass().add("update-notice");
         update.setFocusTraversable(false);
-        update.setOnAction(e -> {
-            ReleaseInfo latest = services.updates().latest();
-            if (latest != null) services.host().openUrl(latest.url());
-        });
+        update.setOnAction(e -> services.commands().run("help.openNewRelease"));
         keymap.getStyleClass().add("status-item");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

@@ -79,6 +79,21 @@ final class Commands {
         r.register("help.documentation", () -> services.host().openUrl(AppInfo.docsUrl()));
         r.register("help.whatsNew", () -> services.host().openUrl(AppInfo.releaseNotesUrl()));
         r.register("help.about", window::openAbout);
+        r.register(
+                "help.openNewRelease",
+                () -> {
+                    com.example.app.update.ReleaseInfo latest =
+                            services.updates().latest();
+                    if (latest != null) services.host().openUrl(latest.url());
+                },
+                () -> Chrome.newReleaseUnavailable(services.updates().latest() != null));
+        r.register("help.homepage", () -> services.host().openUrl(AppInfo.HOMEPAGE));
+        r.register("help.releases", () -> services.host().openUrl(AppInfo.RELEASES_PAGE));
+        r.register("help.license", () -> services.host().openUrl(AppInfo.LICENSE_URL));
+        r.register("help.pauta", () -> services.host().openUrl(AppInfo.pautaUrl()));
+        r.register(
+                "config.openSettingsFile",
+                () -> services.host().openUrl(services.store().file().toUri().toString()));
         r.register("help.copyDetails", window::copyDetails);
         r.register(
                 "help.checkForUpdates",

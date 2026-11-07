@@ -36,6 +36,11 @@ final class Chrome {
         return selected ? null : Messages.tr("palette.disabled.noBindingSelected");
     }
 
+    /** Why Open the New Release cannot run: no newer release has been found. */
+    static @Nullable String newReleaseUnavailable(boolean found) {
+        return found ? null : Messages.tr("palette.disabled.noNewRelease");
+    }
+
     /** Why Debug Log: Refresh cannot run, or null when it can. */
     static @Nullable String debugLogRefreshUnavailable(boolean open) {
         return open ? null : Messages.tr("palette.disabled.debugLogClosed");

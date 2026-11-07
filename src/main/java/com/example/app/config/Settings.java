@@ -50,6 +50,34 @@ public final class Settings {
 
     public Sync sync = new Sync();
 
+    /**
+     * A deep copy, made on the FX thread so the writer serializes a snapshot off it (PERF-01). A new
+     * field is copied here too: {@code ConfigStoreTest} fails when the copy's JSON differs.
+     */
+    public Settings copy() {
+        Settings c = new Settings();
+        c.schemaVersion = schemaVersion;
+        c.theme = theme;
+        c.language = language;
+        c.keymap = keymap;
+        c.keybindings = new TreeMap<>(keybindings);
+        c.checkForUpdates = checkForUpdates;
+        c.lastUpdateCheck = lastUpdateCheck;
+        c.showStatusBar = showStatusBar;
+        c.titleBarMenus = titleBarMenus;
+        c.window.x = window.x;
+        c.window.y = window.y;
+        c.window.width = window.width;
+        c.window.height = window.height;
+        c.window.maximized = window.maximized;
+        c.sync.repoUrl = sync.repoUrl;
+        c.sync.branch = sync.branch;
+        c.sync.auto = sync.auto;
+        c.sync.intervalMinutes = sync.intervalMinutes;
+        c.sync.lastSync = sync.lastSync;
+        return c;
+    }
+
     /** The main window's last size and position. */
     public static final class Window {
         /** Null until the window has been placed once; then the OS chooses. */

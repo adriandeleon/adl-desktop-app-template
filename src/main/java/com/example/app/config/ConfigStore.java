@@ -67,7 +67,7 @@ public final class ConfigStore {
     private final ExecutorService writer = Executors.newSingleThreadExecutor(
             Thread.ofPlatform().daemon().name("settings-writer").factory());
 
-    private final AtomicReference<@Nullable String> pendingWrite = new AtomicReference<>();
+    private final AtomicReference<@Nullable Settings> pendingWrite = new AtomicReference<>();
 
     public ConfigStore(Path dir) {
         this.dir = dir;
@@ -180,18 +180,11 @@ public final class ConfigStore {
     }
 
     /**
-     * Saves the settings: the text is taken now, on the caller's thread, and written off it (PERF-01).
-     * The write is atomic: a crash mid-write leaves the old file, never half a new one.
+     * Saves the settings: a snapshot is taken now, on the caller's thread, and serialized and written
+     * off it (PERF-01). The write is atomic: a crash mid-write leaves the old file, never half a new one.
      */
     public void save() {
-        String text;
-        try {
-            text = JSON.writeValueAsString(settings);
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, "Could not save " + file(), e);
-            return;
-        }
-        if (pendingWrite.getAndSet(text) == null) writer.execute(this::writePending);
+        if (pendingWrite.getAndSet(settings.copy()) == null) writer.execute(this::writePending);
     }
 
     /** Waits until every save so far is on disk: before a reload, at exit, and in tests. */
@@ -204,9 +197,10 @@ public final class ConfigStore {
     }
 
     private void writePending() {
-        String text = pendingWrite.getAndSet(null);
-        if (text == null) return;
+        Settings snapshot = pendingWrite.getAndSet(null);
+        if (snapshot == null) return;
         try {
+            String text = JSON.writeValueAsString(snapshot);
             Files.createDirectories(dir);
             Path temp = Files.createTempFile(dir, FILE, ".tmp");
             Files.writeString(temp, text, StandardCharsets.UTF_8);

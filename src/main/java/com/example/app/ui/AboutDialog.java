@@ -53,13 +53,11 @@ public final class AboutDialog {
         String settingsFile = AppInfo.tildeHome(services.store().file().toString());
         VBox links = new VBox(
                 2,
-                link(Messages.tr("about.license"), AppInfo.LICENSE_URL),
-                link(Messages.tr("about.homepage"), AppInfo.HOMEPAGE),
-                link(Messages.tr("about.releases"), AppInfo.RELEASES_PAGE),
-                link(Messages.tr("about.pauta", AppInfo.PAUTA_EDITION), AppInfo.pautaUrl()),
-                link(
-                        Messages.tr("about.settingsFile", settingsFile),
-                        services.store().file().toUri().toString()));
+                link(Messages.tr("about.license"), "help.license"),
+                link(Messages.tr("about.homepage"), "help.homepage"),
+                link(Messages.tr("about.releases"), "help.releases"),
+                link(Messages.tr("about.pauta", AppInfo.PAUTA_EDITION), "help.pauta"),
+                link(Messages.tr("about.settingsFile", settingsFile), "config.openSettingsFile"));
 
         Label environment = new Label(AppInfo.environment(services.store().dir()));
         environment.getStyleClass().add("about-env");
@@ -97,9 +95,10 @@ public final class AboutDialog {
         return new Label();
     }
 
-    private Hyperlink link(String text, String url) {
+    /** A link that runs a command (KBD-01): the palette and a key binding reach the same page. */
+    private Hyperlink link(String text, String commandId) {
         Hyperlink link = new Hyperlink(text);
-        link.setOnAction(e -> services.host().openUrl(url));
+        link.setOnAction(e -> services.commands().run(commandId));
         return link;
     }
 
@@ -108,7 +107,7 @@ public final class AboutDialog {
         UpdateCoordinator updates = services.updates();
         updateBlock.getChildren().clear();
         Hyperlink checkNow = new Hyperlink(Messages.tr("about.checkNow"));
-        checkNow.setOnAction(e -> updates.checkNow(true));
+        checkNow.setOnAction(e -> services.commands().run("help.checkForUpdates"));
         String last = updates.lastChecked() <= 0
                 ? ""
                 : Messages.tr("about.lastChecked", Ago.format(updates.lastChecked(), System.currentTimeMillis()));
@@ -119,9 +118,7 @@ public final class AboutDialog {
                 Hyperlink available = new Hyperlink(
                         Messages.tr("about.updateAvailable") + " " + (latest == null ? "" : latest.version()));
                 available.getStyleClass().add("about-update-available");
-                available.setOnAction(e -> {
-                    if (latest != null) services.host().openUrl(latest.url());
-                });
+                available.setOnAction(e -> services.commands().run("help.openNewRelease"));
                 status = available;
             }
             case UP_TO_DATE -> status = styled(Messages.tr("about.upToDate"), "about-update-current");

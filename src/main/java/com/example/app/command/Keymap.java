@@ -32,9 +32,16 @@ public record Keymap(String id, String name, boolean emacs, Map<String, String> 
         return load(id, com.example.app.AppInfo.isMac());
     }
 
+    /** Each preset parsed once: a keymap or settings change on the FX thread parses no JSON (PERF-01). */
+    private static final Map<String, Keymap> LOADED = new java.util.concurrent.ConcurrentHashMap<>();
+
     /** Loads a bundled preset, its {@code .mac.json} variant when {@code mac} and there is one. */
     public static Keymap load(String id, boolean mac) {
         String chosen = PRESETS.contains(id) ? id : DEFAULT;
+        return LOADED.computeIfAbsent(chosen + (mac ? ".mac" : ""), key -> read(chosen, mac));
+    }
+
+    private static Keymap read(String chosen, boolean mac) {
         String base = "/com/example/app/keymaps/" + chosen;
         String resource =
                 mac && Keymap.class.getResource(base + ".mac.json") != null ? base + ".mac.json" : base + ".json";
