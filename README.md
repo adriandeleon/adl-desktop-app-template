@@ -88,7 +88,9 @@ You need JDK 25 or newer. The Maven Wrapper fetches Maven.
 ./mvnw clean -Pdist package       # native app image for this OS (clean is mandatory)
 ```
 
-[CONTRIBUTING.md](CONTRIBUTING.md) has the rest, and [docs/](docs/) explains how the app is built.
+[CONTRIBUTING.md](CONTRIBUTING.md) has the rest, and [docs/](docs/) explains how the app is built. To check
+the app against its Pauta edition, ask a coding agent to "audit against Pauta": the
+[`pauta-audit` skill](.claude/skills/pauta-audit/SKILL.md) writes `docs/pauta-audit.md`.
 
 ## Command line
 

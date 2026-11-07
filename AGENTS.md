@@ -5,6 +5,8 @@ It follows [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/)
 The edition is named in this line, the README's Pauta badge and its "Built to" line (and in the template
 box until `rename.sh` removes it). Moving to a newer edition means reading that edition's CHANGELOG for new
 or stronger MUSTs, meeting them, then changing every place together.
+To check the app against its edition, run the `pauta-audit` skill ([`.claude/skills/pauta-audit/`](.claude/skills/pauta-audit/SKILL.md)):
+it writes `docs/pauta-audit.md`, one row per rule with evidence, failed MUSTs first. `/pauta-audit KBD` audits one prefix.
 This file is operational rules, not a changelog: how the app is built lives in [`docs/`](docs/README.md).
 
 ## Essential commands
