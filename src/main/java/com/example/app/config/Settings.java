@@ -70,6 +70,16 @@ public final class Settings {
         public String branch = "main";
         public boolean auto = true;
         public int intervalMinutes = 15;
+
+        /** The interval a text means, or null for anything but a whole number of minutes from 1. */
+        public static @Nullable Integer parseInterval(String text) {
+            try {
+                int minutes = Integer.parseInt(text.trim());
+                return minutes >= 1 ? minutes : null;
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
         /** The last successful sync, epoch milliseconds; 0 for never. */
         public long lastSync;
     }

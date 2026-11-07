@@ -1,5 +1,8 @@
 package com.example.app.ui;
 
+import java.util.List;
+
+import com.example.app.config.ConfigImport;
 import com.example.app.i18n.Messages;
 
 /**
@@ -10,17 +13,63 @@ import com.example.app.i18n.Messages;
  */
 public final class Confirmations {
 
-    /** One question: the window title, the question itself, and the action button's verb. */
-    public record Question(String title, String message, String action) {}
+    /**
+     * One question: the window title, the question itself, the action button's verb, and the parts the
+     * user can tick (none for a plain question).
+     */
+    public record Question(String title, String message, String action, List<Choice> choices) {
+        public Question(String title, String message, String action) {
+            this(title, message, action, List.of());
+        }
+    }
+
+    /** A part the action applies to, ticked or not; the dialog's check box writes {@link #ticked}. */
+    public static final class Choice {
+        private final String label;
+        private boolean ticked;
+
+        public Choice(String label, boolean ticked) {
+            this.label = label;
+            this.ticked = ticked;
+        }
+
+        public String label() {
+            return label;
+        }
+
+        public boolean ticked() {
+            return ticked;
+        }
+
+        public void tick(boolean ticked) {
+            this.ticked = ticked;
+        }
+    }
 
     private Confirmations() {}
 
-    /** Before Import replaces the config folder with a {@code .zip}'s contents. */
-    public static Question importConfig(String fileName) {
+    /**
+     * Before Import replaces parts of the config folder with a {@code .zip}'s: one choice per part the zip
+     * holds, in {@code parts} order, all ticked.
+     */
+    public static Question importConfig(String fileName, List<ConfigImport.Part> parts) {
+        List<Choice> choices = parts.stream()
+                .map(p -> new Choice(Messages.tr("confirm.import.part." + partKey(p)), true))
+                .toList();
         return new Question(
                 Messages.tr("confirm.import.title"),
                 Messages.tr("confirm.import.question", fileName),
-                Messages.tr("confirm.import.action"));
+                Messages.tr("confirm.import.action"),
+                choices);
+    }
+
+    private static String partKey(ConfigImport.Part part) {
+        return switch (part) {
+            case PREFERENCES -> "preferences";
+            case KEY_BINDINGS -> "keyBindings";
+            case SYNC -> "sync";
+            case OTHER_FILES -> "otherFiles";
+        };
     }
 
     /** Before a binding the user set is removed and the keymap's own applies again. */

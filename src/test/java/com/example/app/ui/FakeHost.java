@@ -17,6 +17,8 @@ final class FakeHost implements Host {
     final List<Confirmations.Question> questions = new CopyOnWriteArrayList<>();
 
     volatile boolean confirmAnswer = true;
+    /** Runs on each question before it is answered: a test unticks a choice here. */
+    volatile java.util.function.Consumer<Confirmations.Question> onQuestion = q -> {};
 
     @Override
     public void openUrl(String url) {
@@ -36,6 +38,7 @@ final class FakeHost implements Host {
     @Override
     public boolean confirm(Window owner, Confirmations.Question question) {
         questions.add(question);
+        onQuestion.accept(question);
         return confirmAnswer;
     }
 

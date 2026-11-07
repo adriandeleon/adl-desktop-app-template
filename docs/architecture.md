@@ -7,7 +7,7 @@ class with a unit test; the toolkit code around it stays thin.**
 |---|---|---|
 | `com.example.app` | Entry point and identity | `Main` (CLI, hand-off, then `Application.launch`), `App`, `AppInfo` |
 | `cli` | The command line, pure | `CommandLine` |
-| `config` | Versioned `settings.json`, export/import | `Settings`, `ConfigStore`, `Migrations`, `ConfigDir`, `ConfigExporter` |
+| `config` | Versioned `settings.json`, export/import | `Settings`, `ConfigStore`, `Migrations`, `ConfigDir`, `ConfigExporter`, `ConfigImport` |
 | `command` | Commands and key bindings, pure | `CommandRegistry`, `Command`, `KeyStroke`, `Keymap`, `Keybindings`, `FuzzyMatch` |
 | `i18n` | The string catalogs | `Messages` (`tr`) |
 | `instance` | One app per config folder | `SingleInstance` (Unix-domain socket) |
@@ -58,6 +58,6 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
 
 ## Config folder
 
-`~/.exampleapp` (`--config-dir`, `--dev`, `EXAMPLEAPP_CONFIG_DIR`): `settings.json`,
+`~/.exampleapp` (`--config-dir`, then `EXAMPLEAPP_CONFIG_DIR`, then the default, `~/.exampleapp-dev` with `--dev`): `settings.json`,
 `exampleapp-session.log` (+ `.prev.log`), `instance.sock`, `sync/`, and backups
 (`settings.json.v<n>.bak`, `settings.json.broken.bak`).

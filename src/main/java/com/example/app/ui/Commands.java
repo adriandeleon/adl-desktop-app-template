@@ -34,6 +34,7 @@ final class Commands {
         r.register("settings.theme", window::chooseTheme);
         r.register("settings.keymap", window::chooseKeymap);
         r.register("settings.language", window::chooseLanguage);
+        r.register("settings.bindKey", window::chooseBinding);
         r.register("settings.toggleUpdateCheck", () -> {
             services.store().update(s -> s.checkForUpdates = !s.checkForUpdates);
             services.echo(services.settings().checkForUpdates ? "status.updateCheckOn" : "status.updateCheckOff");
@@ -51,6 +52,9 @@ final class Commands {
                         .openUrl(services.store().dir().resolve("sync").toUri().toString()));
         r.register("sync.setup", () -> window.openSettings(SettingsWindow.Page.SYNC));
         r.register("sync.createGitHubRepo", window::createSyncRepo);
+        r.register("sync.setRepository", window::promptSyncRepository);
+        r.register("sync.setBranch", window::promptSyncBranch);
+        r.register("sync.setInterval", window::promptSyncInterval);
         r.register(
                 "sync.now",
                 () -> services.sync().syncNow(true),

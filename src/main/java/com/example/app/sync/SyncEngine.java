@@ -59,6 +59,28 @@ public final class SyncEngine {
         return null;
     }
 
+    /**
+     * Why {@code branch} cannot be a sync branch, as a catalog suffix ({@code empty}, {@code invalid}), or
+     * null when it can: Git's own rules for a branch name ({@code git check-ref-format --branch}).
+     */
+    public static @Nullable String checkBranch(String branch) {
+        String b = branch.trim();
+        if (b.isEmpty()) return "empty";
+        boolean bad = b.startsWith("-")
+                || b.startsWith("/")
+                || b.endsWith("/")
+                || b.endsWith(".")
+                || b.endsWith(".lock")
+                || b.contains("..")
+                || b.contains("//")
+                || b.contains("@{")
+                || b.equals("@")
+                || b.contains("/.")
+                || b.startsWith(".")
+                || b.chars().anyMatch(c -> c < 0x20 || c == 0x7f || " ~^:?*[\\".indexOf(c) >= 0);
+        return bad ? "invalid" : null;
+    }
+
     /** One sync of {@code local} against the repository's {@code branch}. */
     public Result sync(String url, String branch, Map<String, String> local) {
         String refused = checkUrl(url);

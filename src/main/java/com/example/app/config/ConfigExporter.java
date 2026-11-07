@@ -1,23 +1,20 @@
 package com.example.app.config;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import com.example.app.AppInfo;
 
 /**
- * Export and import of the config folder as a {@code .zip}. Transient files (the instance socket,
+ * Export of the config folder as a {@code .zip}; {@link ConfigImport} reads one back. Transient files (the instance socket,
  * session logs, the sync clone, backups) stay out of it.
  */
 public final class ConfigExporter {
@@ -60,38 +57,5 @@ public final class ConfigExporter {
             }
         }
         return files.size();
-    }
-
-    /**
-     * Restores a config folder from {@code zip}; returns how many files were written. An entry that
-     * would land outside {@code dir} ("zip slip") rejects the whole archive before anything is written.
-     */
-    public static int importFrom(Path zip, Path dir) throws IOException {
-        Path root = dir.toAbsolutePath().normalize();
-        try (InputStream in = Files.newInputStream(zip);
-                ZipInputStream check = new ZipInputStream(in)) {
-            for (ZipEntry entry; (entry = check.getNextEntry()) != null; ) target(root, entry);
-        }
-        int count = 0;
-        try (InputStream in = Files.newInputStream(zip);
-                ZipInputStream zipIn = new ZipInputStream(in)) {
-            for (ZipEntry entry; (entry = zipIn.getNextEntry()) != null; ) {
-                if (entry.isDirectory()) continue;
-                Path target = target(root, entry);
-                Path parent = target.getParent();
-                if (parent != null) Files.createDirectories(parent);
-                Files.copy(zipIn, target, StandardCopyOption.REPLACE_EXISTING);
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private static Path target(Path root, ZipEntry entry) throws IOException {
-        Path target = root.resolve(entry.getName()).normalize();
-        if (!target.startsWith(root) || target.equals(root)) {
-            throw new IOException("unsafe entry in archive: " + entry.getName());
-        }
-        return target;
     }
 }

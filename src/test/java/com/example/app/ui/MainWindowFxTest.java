@@ -272,20 +272,28 @@ class MainWindowFxTest {
         // Import overwrites: it asks first, naming the file, and a Cancel changes nothing (WIN-05).
         host.confirmAnswer = false;
         run(window::importConfig);
+        FxTestSupport.waitUntil(() -> !host.questions.isEmpty());
         assertEquals("cua", services.settings().keymap);
         assertTrue(host.questions.getLast().message().contains("backup.zip"));
         assertEquals("Overwrite", host.questions.getLast().action());
+        // Only the ticked parts are replaced (SET-12): untick Preferences, keep the key bindings.
+        run(() -> services.store().update(s -> s.showStatusBar = false));
         host.confirmAnswer = true;
+        host.onQuestion = q -> q.choices().stream()
+                .filter(c -> c.label().startsWith("Preferences"))
+                .forEach(c -> c.tick(false));
         run(window::importConfig);
+        FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Imported"));
         assertEquals("emacs", services.settings().keymap);
-        assertTrue(echo().startsWith("Imported"), echo());
+        assertFalse(services.settings().showStatusBar, "an unticked part is kept");
+        host.onQuestion = q -> {};
 
         host.saveAnswer = dir.resolve("missing/folder/backup.zip");
         run(window::exportConfig);
         assertTrue(echo().startsWith("Export failed"), echo());
         host.openAnswer = dir.resolve("nope.zip");
         run(window::importConfig);
-        assertTrue(echo().startsWith("Import failed"), echo());
+        FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Import failed"));
         host.saveAnswer = null;
         host.openAnswer = null;
         run(window::exportConfig);

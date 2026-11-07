@@ -13,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -24,11 +25,14 @@ import javafx.stage.StageStyle;
 
 import com.example.app.AppInfo;
 import com.example.app.command.Command;
+import com.example.app.command.KeyStroke;
 import com.example.app.command.Keymap;
 import com.example.app.config.ConfigExporter;
+import com.example.app.config.ConfigImport;
 import com.example.app.config.Settings;
 import com.example.app.config.ThemeChoice;
 import com.example.app.i18n.Messages;
+import com.example.app.sync.SyncEngine;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -243,6 +247,74 @@ public final class MainWindow {
                 .show();
     }
 
+    // ---- a palette command per setting that a picker or a toggle does not cover (SET-06) ----
+
+    TextInputDialog promptSyncRepository() {
+        return Prompts.text(
+                stage,
+                Messages.tr("command.sync.setRepository"),
+                Messages.tr("settings.sync.repo.title"),
+                services.settings().sync.repoUrl,
+                url -> url.isEmpty() ? null : reason(SyncEngine.checkUrl(url), "settings.sync.url."),
+                url -> services.store().update(s -> s.sync.repoUrl = url));
+    }
+
+    TextInputDialog promptSyncBranch() {
+        return Prompts.text(
+                stage,
+                Messages.tr("command.sync.setBranch"),
+                Messages.tr("settings.sync.branch.title"),
+                services.settings().sync.branch,
+                branch -> reason(SyncEngine.checkBranch(branch), "settings.sync.branch."),
+                branch -> services.store().update(s -> s.sync.branch = branch));
+    }
+
+    TextInputDialog promptSyncInterval() {
+        return Prompts.text(
+                stage,
+                Messages.tr("command.sync.setInterval"),
+                Messages.tr("settings.sync.interval.prompt"),
+                String.valueOf(services.settings().sync.intervalMinutes),
+                text -> Settings.Sync.parseInterval(text) == null
+                        ? Messages.tr("settings.sync.interval.invalid")
+                        : null,
+                text -> {
+                    Integer minutes = Settings.Sync.parseInterval(text);
+                    if (minutes != null) services.store().update(s -> s.sync.intervalMinutes = minutes);
+                });
+    }
+
+    private static @Nullable String reason(@Nullable String suffix, String prefix) {
+        return suffix == null ? null : Messages.tr(prefix + suffix);
+    }
+
+    /** Settings → Keymap from the palette: pick a command, then type its keys (blank unbinds). */
+    void chooseBinding() {
+        List<Picker.Item<Command>> items = services.commands().all().stream()
+                .sorted(java.util.Comparator.comparing(Command::title))
+                .map(c -> new Picker.Item<>(
+                        c, c.title(), c.description(), services.keybindings().label(c.id()), null))
+                .toList();
+        new Picker<>(overlays, Messages.tr("picker.bindKey"), "", items, this::promptBinding).show();
+    }
+
+    TextInputDialog promptBinding(Command command) {
+        String base = services.keybindings().keymap().bindings().getOrDefault(command.id(), "");
+        String current = services.settings().keybindings.getOrDefault(command.id(), base);
+        return Prompts.text(
+                stage,
+                Messages.tr("command.settings.bindKey"),
+                command.title(),
+                current,
+                text -> text.isEmpty() || KeyStroke.parseSequence(text) != null
+                        ? null
+                        : Messages.tr("settings.bindings.invalid"),
+                text -> services.store().update(s -> {
+                    if (text.equals(base)) s.keybindings.remove(command.id());
+                    else s.keybindings.put(command.id(), text);
+                }));
+    }
+
     void openMessageLog() {
         messageLog.show();
     }
@@ -344,18 +416,46 @@ public final class MainWindow {
         }
     }
 
+    /**
+     * Import Configuration: the zip is read and checked off the FX thread, then the question lists the
+     * parts it holds, and only the ticked ones replace this computer's (SET-12, WIN-05).
+     */
     void importConfig() {
         Path source = services.host().chooseOpenFile(stage, Messages.tr("command.config.import"));
         if (source == null) return;
-        // Import overwrites the user's settings: ask first (WIN-05, CONF-01).
-        if (!services.host().confirm(stage, Confirmations.importConfig(String.valueOf(source.getFileName())))) return;
-        try {
-            int count = ConfigExporter.importFrom(source, services.store().dir());
-            services.store().reload();
-            services.echo("status.configImported", count);
-        } catch (IOException e) {
-            services.echo("status.configImportFailed", String.valueOf(e.getMessage()));
+        Path dir = services.store().dir();
+        Background.run(() -> {
+            ConfigImport.Scan scan;
+            try {
+                scan = ConfigImport.read(source);
+            } catch (IOException e) {
+                services.echo("status.configImportFailed", String.valueOf(e.getMessage()));
+                return;
+            }
+            Platform.runLater(() -> askAndImport(source, scan, dir));
+        });
+    }
+
+    private void askAndImport(Path source, ConfigImport.Scan scan, Path dir) {
+        List<ConfigImport.Part> parts = List.copyOf(scan.available());
+        Confirmations.Question question = Confirmations.importConfig(String.valueOf(source.getFileName()), parts);
+        if (!services.host().confirm(stage, question)) return;
+        java.util.Set<ConfigImport.Part> ticked = java.util.EnumSet.noneOf(ConfigImport.Part.class);
+        for (int i = 0; i < parts.size(); i++) {
+            if (question.choices().get(i).ticked()) ticked.add(parts.get(i));
         }
+        if (ticked.isEmpty()) return;
+        Background.run(() -> {
+            try {
+                int count = ConfigImport.apply(scan, dir, ticked);
+                Platform.runLater(() -> {
+                    services.store().reload();
+                    services.echo("status.configImported", count);
+                });
+            } catch (IOException e) {
+                services.echo("status.configImportFailed", String.valueOf(e.getMessage()));
+            }
+        });
     }
 
     /** Another launch handed its arguments over: come to the front and say so. */

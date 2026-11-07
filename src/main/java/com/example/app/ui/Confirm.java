@@ -1,10 +1,17 @@
 package com.example.app.ui;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
+import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 
 import com.example.app.i18n.Messages;
@@ -27,6 +34,27 @@ public final class Confirm {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, question.message(), action, cancel);
         alert.setTitle(question.title());
         alert.setHeaderText(null);
+        if (!question.choices().isEmpty()) {
+            Label message = new Label(question.message());
+            message.setWrapText(true);
+            VBox content = new VBox(8, message);
+            List<CheckBox> boxes = new ArrayList<>();
+            for (Confirmations.Choice choice : question.choices()) {
+                CheckBox box = new CheckBox(choice.label());
+                box.setSelected(choice.ticked());
+                box.selectedProperty().addListener((o, was, now) -> choice.tick(now));
+                boxes.add(box);
+            }
+            content.getChildren().addAll(boxes);
+            alert.getDialogPane().setContent(content);
+            // Nothing ticked, nothing to do: the action waits for a tick.
+            alert.getDialogPane()
+                    .lookupButton(action)
+                    .disableProperty()
+                    .bind(Bindings.createBooleanBinding(
+                            () -> boxes.stream().noneMatch(CheckBox::isSelected),
+                            boxes.stream().map(CheckBox::selectedProperty).toArray(Observable[]::new)));
+        }
         alert.getDialogPane().lookupButton(action).getStyleClass().add("danger");
         return Dialogs.styled(alert, owner);
     }

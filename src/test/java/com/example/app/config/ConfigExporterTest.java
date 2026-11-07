@@ -31,7 +31,9 @@ class ConfigExporterTest {
         assertEquals(2, ConfigExporter.export(dir, zip));
 
         Path restored = out.resolve("restored");
-        assertEquals(2, ConfigExporter.importFrom(zip, restored));
+        ConfigImport.Scan scan = ConfigImport.read(zip);
+        assertEquals(java.util.Set.of(ConfigImport.Part.OTHER_FILES), scan.available());
+        ConfigImport.apply(scan, restored, java.util.EnumSet.allOf(ConfigImport.Part.class));
         assertEquals("{}", Files.readString(restored.resolve("themes/mine.json")));
         assertFalse(Files.exists(restored.resolve("sync")));
     }
@@ -49,7 +51,7 @@ class ConfigExporterTest {
             zipOut.write(1);
             zipOut.closeEntry();
         }
-        assertThrows(IOException.class, () -> ConfigExporter.importFrom(zip, dir));
+        assertThrows(IOException.class, () -> ConfigImport.read(zip));
         assertFalse(Files.exists(dir.resolve("ok.json")));
     }
 
@@ -62,8 +64,11 @@ class ConfigExporterTest {
             zipOut.putNextEntry(new ZipEntry("folder/a.json"));
             zipOut.write('a');
             zipOut.closeEntry();
+            zipOut.putNextEntry(new ZipEntry("settings.json"));
+            zipOut.write("{}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            zipOut.closeEntry();
         }
-        assertEquals(1, ConfigExporter.importFrom(zip, dir));
+        ConfigImport.apply(ConfigImport.read(zip), dir, java.util.EnumSet.of(ConfigImport.Part.OTHER_FILES));
         assertTrue(Files.exists(dir.resolve("folder/a.json")));
     }
 

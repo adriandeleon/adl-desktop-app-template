@@ -3,14 +3,20 @@ package com.example.app.ui;
 import java.util.Locale;
 
 /**
- * Settings search scoring. A row is found by its title, description, card heading, page name and
- * English keywords. Title hits rank above description hits; whole words above word starts above
- * anywhere. Every word of the query has to match somewhere. Pure, so the ranking is unit-tested.
+ * Settings search scoring (SET-03). A row is found by its title, description, visible text (its
+ * controls' labels), card heading, page name and English keywords. Title hits rank above description
+ * and visible-text hits, which rank above heading, page and keyword hits; whole words above word starts
+ * above anywhere. Every word of the query has to match somewhere. Pure, so the ranking is unit-tested.
  */
 public final class SettingsSearch {
 
     /** What a row can be found by. */
-    public record Entry(String title, String description, String context, String keywords) {}
+    public record Entry(String title, String description, String visibleText, String context, String keywords) {
+
+        public Entry(String title, String description, String context, String keywords) {
+            this(title, description, "", context, keywords);
+        }
+    }
 
     private SettingsSearch() {}
 
@@ -23,7 +29,7 @@ public final class SettingsSearch {
             int best = Math.max(
                     field(word, entry.title()) * 4,
                     Math.max(
-                            field(word, entry.description()) * 2,
+                            Math.max(field(word, entry.description()), field(word, entry.visibleText())) * 2,
                             field(word, entry.context() + " " + entry.keywords())));
             if (best == 0) return 0;
             total += best;

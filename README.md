@@ -109,7 +109,8 @@ A second launch on the same config folder hands its arguments to the running app
 
 ## Config folder
 
-Settings live in `~/.exampleapp` (`~/.exampleapp-dev` with `--dev`, or `EXAMPLEAPP_CONFIG_DIR`):
+Settings live in `~/.exampleapp` (`~/.exampleapp-dev` with `--dev`); `--config-dir` or `EXAMPLEAPP_CONFIG_DIR`
+names another folder, in that order:
 
 | File | What |
 |---|---|
@@ -117,7 +118,7 @@ Settings live in `~/.exampleapp` (`~/.exampleapp-dev` with `--dev`, or `EXAMPLEA
 | `exampleapp-session.log` | This session's Debug Log; the previous one is `exampleapp-session.prev.log` |
 | `sync/` | The Settings Sync clone, when sync is set up |
 
-Settings → Advanced exports the folder as a `.zip` and imports one back.
+Settings → Advanced exports the folder as a `.zip` and imports one back, replacing only the parts you tick.
 
 ## Licence
 

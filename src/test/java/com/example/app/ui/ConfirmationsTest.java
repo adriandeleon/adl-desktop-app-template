@@ -7,6 +7,7 @@ import com.example.app.i18n.Messages;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,7 +21,8 @@ class ConfirmationsTest {
 
     private static List<Confirmations.Question> every() {
         return List.of(
-                Confirmations.importConfig("exampleapp-config.zip"),
+                Confirmations.importConfig(
+                        "exampleapp-config.zip", java.util.List.of(com.example.app.config.ConfigImport.Part.values())),
                 Confirmations.resetBinding("About", "Ctrl+Alt+J", "F12"),
                 Confirmations.resetBinding("About", "Ctrl+Alt+J", ""));
     }
@@ -31,6 +33,8 @@ class ConfirmationsTest {
         List<Confirmations.Question> questions = every();
         assertTrue(questions.get(0).message().contains("exampleapp-config.zip"));
         assertTrue(questions.get(0).message().contains("overwritten"));
+        assertEquals(4, questions.get(0).choices().size(), "one choice per part, all ticked");
+        assertTrue(questions.get(0).choices().stream().allMatch(Confirmations.Choice::ticked));
         assertTrue(questions.get(1).message().contains("About"));
         assertTrue(questions.get(1).message().contains("Ctrl+Alt+J")
                 && questions.get(1).message().contains("F12"));
@@ -49,6 +53,7 @@ class ConfirmationsTest {
                     assertFalse(action.equals(vague), language + ": " + question.action());
                 }
                 assertFalse(question.message().contains("{"), language + ": " + question.message());
+                question.choices().forEach(c -> assertFalse(c.label().startsWith("confirm."), language));
                 assertTrue(
                         question.message().endsWith(".") || question.message().endsWith("?"), language);
             }

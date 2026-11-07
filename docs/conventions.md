@@ -29,8 +29,9 @@ Five places, in one pull request:
 2. **Control**: built once in `SettingsWindow`, writing the field through `store.update`.
 3. **Row** on its page, with search keywords (`row(card, page, "settings.x", control, "keywords")`).
 4. **Load line** in the page's loader, setting the control from the model; safe to run any time.
-5. **Palette command** in `ui/Commands` that flips or picks the same field, with strings in every
-   catalog. Machine-local values (window placement, paths) never sync.
+5. **Palette command** in `ui/Commands` that flips, picks or prompts for the same field (SET-06): a
+   text value goes through `Prompts.text` with the same validator the Settings field uses, so an invalid
+   value is never committed. Strings in every catalog. Machine-local values (window placement, paths) never sync.
 
 ## Null safety
 

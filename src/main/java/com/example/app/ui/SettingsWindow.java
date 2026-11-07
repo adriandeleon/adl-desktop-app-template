@@ -346,6 +346,7 @@ public final class SettingsWindow {
             syncUrl.setText(s.repoUrl);
             syncUrl.getStyleClass().remove("invalid");
             syncBranch.setText(s.branch);
+            syncBranch.getStyleClass().remove("invalid");
             syncAuto.setSelected(s.auto);
             syncInterval.setText(String.valueOf(s.intervalMinutes));
             syncInterval.getStyleClass().remove("invalid");
@@ -384,24 +385,30 @@ public final class SettingsWindow {
         return dialog;
     }
 
-    private void commitBranch() {
+    /** Commits the branch: a blank or invalid name is marked, said why, and never committed (SET-04). */
+    void commitBranch() {
         String branch = syncBranch.getText().trim();
-        if (!branch.isEmpty() && !branch.equals(services.settings().sync.branch)) {
-            services.store().update(s -> s.sync.branch = branch);
+        String refused = SyncEngine.checkBranch(branch);
+        if (refused != null) {
+            if (!syncBranch.getStyleClass().contains("invalid"))
+                syncBranch.getStyleClass().add("invalid");
+            services.echo("status.sync.invalidBranch", Messages.tr("settings.sync.branch." + refused));
+            return;
         }
+        syncBranch.getStyleClass().remove("invalid");
+        if (!branch.equals(services.settings().sync.branch)) services.store().update(s -> s.sync.branch = branch);
     }
 
-    private void commitInterval() {
-        try {
-            int minutes = Integer.parseInt(syncInterval.getText().trim());
-            if (minutes < 1) throw new NumberFormatException();
-            syncInterval.getStyleClass().remove("invalid");
-            if (minutes != services.settings().sync.intervalMinutes) {
-                services.store().update(s -> s.sync.intervalMinutes = minutes);
-            }
-        } catch (NumberFormatException e) {
+    void commitInterval() {
+        Integer minutes = Settings.Sync.parseInterval(syncInterval.getText());
+        if (minutes == null) {
             if (!syncInterval.getStyleClass().contains("invalid"))
                 syncInterval.getStyleClass().add("invalid");
+            return;
+        }
+        syncInterval.getStyleClass().remove("invalid");
+        if (minutes != services.settings().sync.intervalMinutes) {
+            services.store().update(s -> s.sync.intervalMinutes = minutes);
         }
     }
 
@@ -412,8 +419,9 @@ public final class SettingsWindow {
         syncPill.getStyleClass()
                 .add(
                         switch (services.sync().pill()) {
-                            case CONNECTED, SYNCING -> "green";
-                            case NOT_CONNECTED -> "amber";
+                            // Green only once a sync is verified; one in flight is not durable yet (ICON-18).
+                            case CONNECTED -> "green";
+                            case SYNCING, NOT_CONNECTED -> "amber";
                             case FAILING -> "red";
                         });
     }
@@ -481,7 +489,29 @@ public final class SettingsWindow {
             HBox.setHgrow(control, Priority.ALWAYS);
         }
         card.getChildren().add(row);
-        rows.add(new Row(page, row, card, new SettingsSearch.Entry(title, description, page.title(), keywords)));
+        String heading = card.getChildren().isEmpty()
+                        || !(card.getChildren().getFirst() instanceof Label first)
+                        || !first.getStyleClass().contains("settings-card-heading")
+                ? ""
+                : first.getText();
+        rows.add(new Row(
+                page,
+                row,
+                card,
+                new SettingsSearch.Entry(
+                        title, description, visibleText(control), page.title() + " " + heading, keywords)));
+    }
+
+    /** The text a row's controls show (button and label text), so a search finds a row by it. */
+    static String visibleText(Node control) {
+        StringBuilder text = new StringBuilder();
+        if (control instanceof javafx.scene.control.Labeled labeled && labeled.getText() != null) {
+            text.append(labeled.getText()).append(' ');
+        }
+        if (control instanceof javafx.scene.Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) text.append(visibleText(child));
+        }
+        return text.toString();
     }
 
     /** Filters every page by {@code query} and opens the page with the best match. */

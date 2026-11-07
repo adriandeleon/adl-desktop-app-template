@@ -68,7 +68,11 @@ class DialogsFxTest {
 
     @Test
     void theConfirmDialogNamesTheActionInRedAndEveryOtherWayOutIsCancel() throws Exception {
-        Confirmations.Question question = Confirmations.importConfig("backup.zip");
+        Confirmations.Question question = Confirmations.importConfig(
+                "backup.zip",
+                java.util.List.of(
+                        com.example.app.config.ConfigImport.Part.PREFERENCES,
+                        com.example.app.config.ConfigImport.Part.KEY_BINDINGS));
         javafx.scene.control.Alert alert =
                 call(() -> Confirm.dialog(question, app.window().stage()));
         var buttons = alert.getButtonTypes();
@@ -82,7 +86,18 @@ class DialogsFxTest {
                 () -> alert.getDialogPane().lookupButton(action).getStyleClass().contains("danger")));
         assertFalse(call(
                 () -> alert.getDialogPane().lookupButton(cancel).getStyleClass().contains("danger")));
-        assertEquals(question.message(), alert.getContentText());
+        // One check box per part, all ticked; with none ticked the action waits.
+        java.util.List<javafx.scene.control.CheckBox> boxes =
+                call(() -> alert.getDialogPane().lookupAll(".check-box").stream()
+                        .map(n -> (javafx.scene.control.CheckBox) n)
+                        .toList());
+        assertEquals(2, boxes.size());
+        run(() -> boxes.forEach(b -> b.setSelected(false)));
+        assertTrue(call(() -> alert.getDialogPane().lookupButton(action).isDisabled()));
+        assertFalse(question.choices().get(0).ticked());
+        run(() -> boxes.get(1).setSelected(true));
+        assertFalse(call(() -> alert.getDialogPane().lookupButton(action).isDisabled()));
+        assertTrue(question.choices().get(1).ticked());
         assertTrue(Confirm.confirmed(alert, java.util.Optional.of(action)));
         assertFalse(Confirm.confirmed(alert, java.util.Optional.of(cancel)));
         assertFalse(Confirm.confirmed(alert, java.util.Optional.empty()), "Escape or the close button");

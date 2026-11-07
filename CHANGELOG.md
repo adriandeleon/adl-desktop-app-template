@@ -37,6 +37,11 @@ one-line summary written for users.
   itself included, and Help follows the family's order.
 - **Right-click menus.** Message Log rows and the Debug Log have menus of their commands; the Menu key
   and Shift+F10 open the selected row's, and a click anywhere else closes it.
+- **Import replaces only what you tick.** Importing a configuration lists its parts (preferences, key
+  bindings, sync setup, other files); the ones you untick stay as they are. A zip that is not an export,
+  too large or from a newer version is refused before anything changes.
+- **A palette command for every setting.** Change Key Binding…, and Settings Sync: Set Repository…, Set
+  Branch… and Set Interval… prompt for the value and refuse an invalid one.
 - **Faster start-up from an AOT cache.** Installed builds carry a JDK 25 ahead-of-time cache; the first
   window appears about a third sooner.
 - **Settings Sync can create its repository.** Settings → Sync → Create on GitHub… makes a private
@@ -60,5 +65,9 @@ one-line summary written for users.
 
 ### Fixed
 
+- **An invalid sync branch is refused.** A blank or malformed branch name is marked and never saved.
+- **Settings search finds a row by its buttons' text,** and ranks a title above a keyword.
+- **`EXAMPLEAPP_CONFIG_DIR` wins over `--dev`,** so the order is `--config-dir`, the variable, the default.
+- **The sync status turns green only once a sync has succeeded;** while one runs it is amber.
 - **A theme name this version does not know no longer resets all your settings.** The theme falls
   back to System and every other setting is kept.
