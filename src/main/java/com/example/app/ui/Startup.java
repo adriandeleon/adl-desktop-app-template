@@ -44,7 +44,9 @@ public final class Startup {
     public record Running(
             AppServices services,
             MainWindow window,
-            @Nullable SingleInstance instance) implements AutoCloseable {
+            @Nullable SingleInstance instance,
+            java.util.concurrent.atomic.AtomicBoolean afterFirstPaint)
+            implements AutoCloseable {
         @Override
         public void close() {
             services.sync().stop();
@@ -86,11 +88,17 @@ public final class Startup {
         SingleInstance instance = cli.newInstance()
                 ? null
                 : SingleInstance.listen(dir, args -> Platform.runLater(() -> window.handOff(args)));
-        services.updates().scheduleStartupCheck();
+        // What nobody waits for starts after the first frame has painted (PERF-15, DIAG-05).
+        java.util.concurrent.atomic.AtomicBoolean afterFirstPaint = new java.util.concurrent.atomic.AtomicBoolean();
+        FirstPaint.then(stage.getScene(), () -> {
+            afterFirstPaint.set(true);
+            Fonts.loadDeferred();
+            services.updates().scheduleStartupCheck();
+        });
         services.sync().startAutomatic();
         smokeTest(System.getProperty(SMOKE_TEST), host);
         aotTrain(System.getProperty(AOT_TRAIN), host);
-        return new Running(services, window, instance);
+        return new Running(services, window, instance, afterFirstPaint);
     }
 
     /** Ends an AOT training run after the window has settled. */

@@ -399,6 +399,7 @@ class MainWindowFxTest {
 
     @Test
     void theStartupCheckIsScheduledOnceWhenAllowed() throws Exception {
+        FxTestSupport.waitUntil(() -> app.afterFirstPaint().get()); // the startup's own call has run
         String saved = System.getProperty(UpdateCoordinator.PROPERTY);
         try {
             System.clearProperty(UpdateCoordinator.PROPERTY);

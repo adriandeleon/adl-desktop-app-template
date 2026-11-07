@@ -78,6 +78,12 @@ public final class SettingsWindow {
     private final List<Row> rows = new ArrayList<>();
     private final List<Runnable> loaders = new ArrayList<>();
     private final Map<Page, Boolean> pageHits = new EnumMap<>(Page.class);
+    private final ListView<Command> bindingList = new ListView<>();
+    private final javafx.collections.ObservableList<Command> bindingSource =
+            javafx.collections.FXCollections.observableArrayList();
+    private final javafx.collections.transformation.FilteredList<Command> bindingFilter =
+            new javafx.collections.transformation.FilteredList<>(bindingSource);
+    private final Map<Command, SettingsSearch.Entry> bindingEntries = new java.util.LinkedHashMap<>();
 
     private final ComboBox<String> language = new ComboBox<>();
     private final SettingSwitch updates = new SettingSwitch(Messages.tr("settings.updates.title"));
@@ -222,42 +228,99 @@ public final class SettingsWindow {
         row(presets, Page.KEYMAP, "settings.keymap", keymap, "emacs cua shortcuts keys");
         loaders.add(() -> keymap.setValue(services.settings().keymap));
 
+        // One row per registered command: a list that grows with the registry, so a virtualized
+        // ListView with a fixed cell size, filtered by the search (PERF-08).
         VBox bindings = card(Page.KEYMAP, Messages.tr("settings.bindings.heading"));
+        bindingList.getStyleClass().add("binding-list");
+        bindingList.setFixedCellSize(BINDING_ROW_HEIGHT);
+        bindingList.setCellFactory(v -> new BindingCell());
+        bindingList.setFocusTraversable(false);
         for (Command command : services.commands().all()) {
-            TextField field = new TextField();
+            bindingEntries.put(
+                    command,
+                    new SettingsSearch.Entry(
+                            command.title(),
+                            command.description(),
+                            Messages.tr("settings.bindings.reset"),
+                            Page.KEYMAP.title() + " " + Messages.tr("settings.bindings.heading"),
+                            command.id()));
+        }
+        bindingSource.setAll(bindingEntries.keySet());
+        bindingFilter.setPredicate(c -> true);
+        bindingList.setItems(bindingFilter);
+        bindingList
+                .prefHeightProperty()
+                .bind(javafx.beans.binding.Bindings.min(
+                                javafx.beans.binding.Bindings.size(bindingFilter), BINDING_ROWS_SHOWN)
+                        .multiply(BINDING_ROW_HEIGHT)
+                        .add(2));
+        bindings.getChildren().add(bindingList);
+        loaders.add(bindingList::refresh);
+    }
+
+    static final double BINDING_ROW_HEIGHT = 58;
+    static final int BINDING_ROWS_SHOWN = 8;
+
+    /** A key-binding row: the command's title and description, its keys, and Reset. */
+    private final class BindingCell extends ListCell<Command> {
+        private final Label title = new Label();
+        private final Label description = new Label();
+        private final TextField field = new TextField();
+        private final Button reset = new Button(Messages.tr("settings.bindings.reset"));
+        private final HBox row;
+
+        BindingCell() {
+            title.getStyleClass().add("setting-title");
+            description.getStyleClass().add("setting-desc");
             field.setPrefColumnCount(14);
-            field.setAccessibleText(command.title());
-            Button reset = new Button(Messages.tr("settings.bindings.reset"));
             reset.getStyleClass().add("flat");
-            reset.setOnAction(e -> resetBinding(command));
-            field.setOnAction(e -> commitBinding(command.id(), field));
-            field.focusedProperty().addListener((obs, was, focused) -> {
-                if (!focused) commitBinding(command.id(), field);
+            reset.setOnAction(e -> {
+                Command command = getItem();
+                if (command != null) resetBinding(command);
             });
+            field.setOnAction(e -> commit());
+            field.focusedProperty().addListener((obs, was, focused) -> {
+                if (!focused) commit();
+            });
+            VBox text = new VBox(2, title, description);
+            HBox.setHgrow(text, Priority.ALWAYS);
             HBox control = new HBox(6, field, reset);
             control.setAlignment(Pos.CENTER_RIGHT);
-            addRow(
-                    bindings,
-                    Page.KEYMAP,
-                    command.title(),
-                    command.description(),
-                    control,
-                    command.id() + " " + Messages.tr("settings.bindings.heading"));
-            loaders.add(() -> {
-                String user = services.settings().keybindings.get(command.id());
-                field.setText(
-                        user != null
-                                ? user
-                                : services.keybindings().keymap().bindings().getOrDefault(command.id(), ""));
-                field.getStyleClass().remove("invalid");
-                String other = services.keybindings().conflicts().get(command.id());
-                field.setTooltip(
-                        other == null
-                                ? null
-                                : new javafx.scene.control.Tooltip(
-                                        Messages.tr("settings.bindings.conflict", Messages.tr("command." + other))));
-                if (other != null) field.getStyleClass().add("invalid");
-            });
+            row = new HBox(16, text, control);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.getStyleClass().add("setting-row");
+        }
+
+        private void commit() {
+            Command command = getItem();
+            if (command != null && !isEmpty()) commitBinding(command.id(), field);
+        }
+
+        @Override
+        protected void updateItem(@Nullable Command command, boolean empty) {
+            super.updateItem(command, empty);
+            setText(null);
+            if (empty || command == null) {
+                setGraphic(null);
+                return;
+            }
+            title.setText(command.title());
+            description.setText(command.description());
+            field.setAccessibleText(command.title());
+            String user = services.settings().keybindings.get(command.id());
+            field.setText(
+                    user != null
+                            ? user
+                            : services.keybindings().keymap().bindings().getOrDefault(command.id(), ""));
+            field.getStyleClass().remove("invalid");
+            String other = services.keybindings().conflicts().get(command.id());
+            field.setTooltip(
+                    other == null
+                            ? null
+                            : new javafx.scene.control.Tooltip(
+                                    Messages.tr("settings.bindings.conflict", Messages.tr("command." + other))));
+            if (other != null) field.getStyleClass().add("invalid");
+            setGraphic(row);
         }
     }
 
@@ -531,11 +594,26 @@ public final class SettingsWindow {
                 best = row.page();
             }
         }
+        // The key bindings are a filtered list rather than rows: the search narrows the list.
+        java.util.Set<Command> matched = new java.util.HashSet<>();
+        for (Map.Entry<Command, SettingsSearch.Entry> binding : bindingEntries.entrySet()) {
+            int score = SettingsSearch.score(query, binding.getValue());
+            if (score > 0) {
+                matched.add(binding.getKey());
+                pageHits.put(Page.KEYMAP, true);
+            }
+            if (score > bestScore) {
+                bestScore = score;
+                best = Page.KEYMAP;
+            }
+        }
+        bindingFilter.setPredicate(matched::contains);
         for (VBox page : pages.values()) {
             for (Node child : page.getChildren()) {
                 if (child instanceof VBox card && card.getStyleClass().contains("settings-card")) {
                     boolean any = card.getChildren().stream()
-                            .anyMatch(n -> n.getStyleClass().contains("setting-row") && n.isVisible());
+                            .anyMatch(n -> (n.getStyleClass().contains("setting-row") && n.isVisible())
+                                    || (n == bindingList && !bindingFilter.isEmpty()));
                     card.setVisible(any);
                     card.setManaged(any);
                 }
@@ -582,6 +660,10 @@ public final class SettingsWindow {
 
     ListView<Page> sidebar() {
         return sidebar;
+    }
+
+    ListView<Command> bindingList() {
+        return bindingList;
     }
 
     List<Row> rows() {

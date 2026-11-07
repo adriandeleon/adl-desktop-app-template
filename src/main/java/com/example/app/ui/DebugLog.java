@@ -43,6 +43,12 @@ public final class DebugLog {
     static final int MAX_ENTRIES = 2000;
 
     /**
+     * The session file stops growing here, with a note saying so (PERF-11): a runaway logger must not fill
+     * the disk. The Debug Log window keeps the newest lines either way.
+     */
+    static final long MAX_FILE_BYTES = 8L * 1024 * 1024;
+
+    /**
      * The lock is one byte far past the end of the file, not the whole file: another instance still
      * sees it, but on Windows a whole-file lock also stops anyone (an editor, a second launch's
      * {@code --report}) from reading the log while the app runs.
@@ -56,12 +62,15 @@ public final class DebugLog {
     private static @Nullable FileLock lock;
     private static @Nullable Path file;
     private static @Nullable Handler handler;
+    private static int dropped;
+    private static long fileBytes;
+    private static boolean fileFull;
     private static volatile @Nullable Consumer<Throwable> onUncaught;
 
     private DebugLog() {}
 
     /**
-     * Captures logging (INFO and above) and installs the uncaught exception handler. The first thing
+     * Captures every logging record the loggers emit and installs the uncaught exception handler. The first thing
      * {@code main} does after the AWT guard, so a failure during start-up is captured too.
      */
     public static synchronized void install() {
@@ -70,7 +79,8 @@ public final class DebugLog {
             Handler h = new Handler() {
                 @Override
                 public void publish(LogRecord record) {
-                    if (record.getLevel().intValue() >= Level.INFO.intValue()) append(format(record));
+                    // Everything the (already level-gated) loggers emit, FINE included (DIAG-02).
+                    append(format(record));
                 }
 
                 @Override
@@ -79,6 +89,7 @@ public final class DebugLog {
                 @Override
                 public void close() {}
             };
+            h.setLevel(Level.ALL);
             root.addHandler(h);
             handler = h;
         }
@@ -141,6 +152,8 @@ public final class DebugLog {
             }
         }
         opened.truncate(0);
+        fileBytes = 0;
+        fileFull = false;
         channel = opened;
         lock = held;
         file = candidate;
@@ -167,15 +180,27 @@ public final class DebugLog {
 
     static synchronized void append(String line) {
         ENTRIES.addLast(line);
-        while (ENTRIES.size() > MAX_ENTRIES) ENTRIES.removeFirst();
+        while (ENTRIES.size() > MAX_ENTRIES) {
+            ENTRIES.removeFirst();
+            dropped++;
+        }
         write(line);
     }
 
     private static void write(String line) {
         FileChannel out = channel;
-        if (out == null) return;
+        if (out == null || fileFull) return;
+        byte[] encoded = (line + System.lineSeparator()).getBytes(StandardCharsets.UTF_8);
+        if (fileBytes + encoded.length > MAX_FILE_BYTES) {
+            fileFull = true;
+            encoded = (stamp("The session log reached " + MAX_FILE_BYTES / (1024 * 1024)
+                                    + " MB; later lines are only in the Debug Log window.")
+                            + System.lineSeparator())
+                    .getBytes(StandardCharsets.UTF_8);
+        }
+        fileBytes += encoded.length;
         try {
-            ByteBuffer bytes = ByteBuffer.wrap((line + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
+            ByteBuffer bytes = ByteBuffer.wrap(encoded);
             out.position(out.size());
             while (bytes.hasRemaining()) out.write(bytes);
         } catch (IOException e) {
@@ -183,13 +208,22 @@ public final class DebugLog {
         }
     }
 
-    /** Everything captured this session, oldest first. */
+    /** Everything kept this session, oldest first, after a note of how many older lines were cut. */
     public static synchronized String text() {
-        return String.join(System.lineSeparator(), ENTRIES);
+        String kept = String.join(System.lineSeparator(), ENTRIES);
+        if (dropped == 0) return kept;
+        return "… " + dropped + " earlier lines are not kept here; the session file has them." + System.lineSeparator()
+                + kept;
+    }
+
+    /** How many of the oldest lines were cut to keep the log within {@link #MAX_ENTRIES}. */
+    static synchronized int dropped() {
+        return dropped;
     }
 
     public static synchronized void clear() {
         ENTRIES.clear();
+        dropped = 0;
     }
 
     static String format(LogRecord record) {

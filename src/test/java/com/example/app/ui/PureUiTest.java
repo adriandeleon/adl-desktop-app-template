@@ -40,7 +40,15 @@ class PureUiTest {
             log.add("m" + i, MessageLog.Severity.ERROR, t.plusMinutes(i));
         assertEquals(MessageLog.MAX_ENTRIES, log.entries().size());
         assertEquals(MessageLog.MAX_ENTRIES + 3, log.unreadErrors());
+        // PERF-11: the newest is kept, the oldest dropped, and the log knows how many it cut.
+        assertEquals(
+                "m" + (MessageLog.MAX_ENTRIES + 2), log.entries().getFirst().text());
+        assertEquals("m3", log.entries().getLast().text());
+        assertTrue(log.entries().stream()
+                .noneMatch(e -> e.text().equals("m2") || e.text().equals("one")));
+        assertEquals(6, log.dropped()); // the three from before and m0..m2
         log.clear();
+        assertEquals(0, log.dropped());
         assertTrue(log.entries().isEmpty());
         assertEquals(0, log.unreadErrors());
     }

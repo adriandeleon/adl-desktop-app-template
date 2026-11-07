@@ -132,10 +132,26 @@ class SettingsWindowFxTest {
         // A conflict is marked on the field of the binding that lost.
         run(() -> settings.sidebar().getSelectionModel().select(SettingsWindow.Page.KEYMAP));
         run(() -> services.store().update(s -> s.keybindings.put("help.debugLog", "Shortcut+Q")));
-        assertTrue(call(() -> settings.stage().getScene().getRoot().lookupAll(".text-field").stream()
-                .anyMatch(n -> n.getStyleClass().contains("invalid"))));
+        // The bindings are a virtualized list (PERF-08): the search narrows it to the rows in question.
+        boolean marked = false;
+        for (String query : java.util.List.of("quit", "debug log")) {
+            run(() -> settings.search().setText(query));
+            marked |= call(() -> {
+                settings.stage().getScene().getRoot().applyCss();
+                settings.stage().getScene().getRoot().layout(); // the list's cells follow at layout
+                return settings.bindingList().lookupAll(".text-field").stream()
+                        .anyMatch(n -> n.getStyleClass().contains("invalid"));
+            });
+        }
+        assertTrue(marked);
+        assertTrue(call(() -> settings.bindingList().getItems().size()
+                < services.commands().all().size()));
         // Reset asks first (CONF-01); a Cancel keeps the user's binding.
         host.confirmAnswer = false;
+        run(() -> {
+            settings.stage().getScene().getRoot().applyCss();
+            settings.stage().getScene().getRoot().layout();
+        });
         run(() -> settings.stage().getScene().getRoot().lookupAll(".button").stream()
                 .filter(n -> n instanceof Button b && "Reset".equals(b.getText()))
                 .forEach(n -> ((Button) n).fire()));

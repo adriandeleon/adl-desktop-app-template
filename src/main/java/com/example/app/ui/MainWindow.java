@@ -49,7 +49,9 @@ public final class MainWindow {
     private final AppMenus menus;
     private final @Nullable HeaderBar headerBar;
     private final StatusBar statusBar;
-    private final MessageLogView messageLog;
+    /** Built on first open, not before the first frame (PERF-14). */
+    private @Nullable MessageLogView messageLog;
+
     private @Nullable SettingsWindow settings;
     private @Nullable DebugLogWindow debugLog;
 
@@ -72,7 +74,6 @@ public final class MainWindow {
         this.services = services;
         this.overlays = new OverlayHost(layout);
         this.statusBar = new StatusBar(services, this::openMessageLog);
-        this.messageLog = new MessageLogView(services, overlays, statusBar::refreshUnread);
         Commands.register(this, services);
 
         this.menus = new AppMenus(services, systemMenu);
@@ -316,19 +317,22 @@ public final class MainWindow {
     }
 
     void openMessageLog() {
-        messageLog.show();
+        messageLog().show();
     }
 
     /** Copies what the Message Log lists: the filtered entries while it is open, else every entry. */
     void copyMessageLog() {
-        Clipboards.copy(MessageLogView.asText(messageLog.listed()));
+        MessageLogView view = messageLog;
+        Clipboards.copy(MessageLogView.asText(
+                view != null ? view.listed() : services.messages().entries()));
         services.echo("status.messageLogCopied");
     }
 
     /** Empties the Message Log and its unread count. */
     void clearMessageLog() {
         services.messages().clear();
-        messageLog.refresh();
+        MessageLogView view = messageLog;
+        if (view != null) view.refresh();
         statusBar.refreshUnread();
     }
 
@@ -517,6 +521,17 @@ public final class MainWindow {
     }
 
     MessageLogView messageLog() {
+        MessageLogView view = messageLog;
+        if (view == null) {
+            view = new MessageLogView(services, overlays, statusBar::refreshUnread);
+            messageLog = view;
+        }
+        return view;
+    }
+
+    /** The Message Log if it has been built, without building it. */
+    @Nullable
+    MessageLogView builtMessageLog() {
         return messageLog;
     }
 

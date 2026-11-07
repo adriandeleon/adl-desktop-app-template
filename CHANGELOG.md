@@ -65,6 +65,12 @@ one-line summary written for users.
 
 ### Fixed
 
+- **The first window comes up sooner.** The Message Log is built when first opened, and the update
+  check and the monospaced font wait until the window has painted. Settings → Keymap lists the key
+  bindings in a scrolling list that stays fast however many commands there are.
+- **Logs say what they cut.** The Message Log and the Debug Log keep the newest entries with a note of
+  how many older ones are gone, the session log file stops at 8 MB with a note, and the Debug Log now
+  captures every level the app logs.
 - **The window never waits on the disk or the network.** Settings are saved, logs exported and imports
   read off the interface thread; filters wait for typing to pause, and a burst of background messages
   redraws the status bar once. Oversized settings files and update answers are refused unread.

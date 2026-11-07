@@ -38,6 +38,9 @@ public final class MessageLogView {
     private final Runnable onRead;
     private final TextField filter = new TextField();
     private final ListView<MessageLog.Entry> list = new ListView<>();
+    /** Says how many older messages the bounded log no longer holds (PERF-11). */
+    private final Label cut = new Label();
+
     private final VBox card;
 
     public MessageLogView(AppServices services, OverlayHost host, Runnable onRead) {
@@ -82,11 +85,12 @@ public final class MessageLogView {
         Button clear = new Button(Messages.tr("messagelog.clear"));
         clear.getStyleClass().add("flat");
         clear.setOnAction(e -> services.commands().run("messageLog.clear"));
+        cut.getStyleClass().add("hint");
         Label hint = new Label(Messages.tr("messagelog.hint"));
         hint.getStyleClass().add("hint");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox footer = new HBox(6, copy, clear, spacer, hint);
+        HBox footer = new HBox(6, copy, clear, cut, spacer, hint);
         footer.setAlignment(Pos.CENTER_LEFT);
 
         card = new VBox(8, title, filter, list, footer);
@@ -117,6 +121,8 @@ public final class MessageLogView {
     }
 
     void refresh() {
+        int dropped = services.messages().dropped();
+        cut.setText(dropped == 0 ? "" : Messages.tr("messagelog.cut", dropped));
         String query = filter.getText().toLowerCase(Locale.ROOT).strip();
         list.getItems()
                 .setAll(services.messages().entries().stream()
@@ -133,6 +139,10 @@ public final class MessageLogView {
 
     ListView<MessageLog.Entry> list() {
         return list;
+    }
+
+    Label cutNote() {
+        return cut;
     }
 
     TextField filter() {

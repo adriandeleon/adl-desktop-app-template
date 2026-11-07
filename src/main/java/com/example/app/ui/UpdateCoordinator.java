@@ -49,9 +49,16 @@ public final class UpdateCoordinator {
     /** The current request; an answer to an older one is dropped (PERF-03). */
     private final AtomicLong generation = new AtomicLong();
 
+    private final Duration startupDelay;
+
     UpdateCoordinator(AppServices services, Function<String, UpdateService.Outcome> check) {
+        this(services, check, STARTUP_DELAY);
+    }
+
+    UpdateCoordinator(AppServices services, Function<String, UpdateService.Outcome> check, Duration startupDelay) {
         this.services = services;
         this.check = check;
+        this.startupDelay = startupDelay;
     }
 
     public State state() {
@@ -89,7 +96,7 @@ public final class UpdateCoordinator {
         if (scheduled || !automaticAllowed()) return false;
         if (!UpdateCheck.isDue(lastChecked(), System.currentTimeMillis())) return false;
         scheduled = true;
-        PauseTransition delay = new PauseTransition(javafx.util.Duration.millis(STARTUP_DELAY.toMillis()));
+        PauseTransition delay = new PauseTransition(javafx.util.Duration.millis(startupDelay.toMillis()));
         delay.setOnFinished(e -> checkNow(false));
         delay.play();
         return true;

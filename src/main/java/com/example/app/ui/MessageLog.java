@@ -28,6 +28,7 @@ public final class MessageLog {
     private final Deque<Entry> entries = new ArrayDeque<>();
     private final List<Consumer<Entry>> listeners = new ArrayList<>();
     private int unreadErrors;
+    private int dropped;
 
     /**
      * Severity from the message key: one ending in {@code Failed} or {@code Error} is an error, one with
@@ -53,7 +54,10 @@ public final class MessageLog {
         if (repeat) entries.removeFirst();
         Entry entry = new Entry(now, text, severity);
         entries.addFirst(entry);
-        while (entries.size() > MAX_ENTRIES) entries.removeLast();
+        while (entries.size() > MAX_ENTRIES) {
+            entries.removeLast();
+            dropped++;
+        }
         if (severity == Severity.ERROR && !repeat) unreadErrors++;
         for (Consumer<Entry> listener : List.copyOf(listeners)) listener.accept(entry);
     }
@@ -68,6 +72,11 @@ public final class MessageLog {
         return unreadErrors;
     }
 
+    /** How many of the oldest entries were cut to keep the log within {@link #MAX_ENTRIES} (PERF-11). */
+    public int dropped() {
+        return dropped;
+    }
+
     public void markRead() {
         unreadErrors = 0;
     }
@@ -75,6 +84,7 @@ public final class MessageLog {
     public void clear() {
         entries.clear();
         unreadErrors = 0;
+        dropped = 0;
     }
 
     public void addListener(Consumer<Entry> listener) {
