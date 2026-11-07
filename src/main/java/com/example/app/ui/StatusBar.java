@@ -25,16 +25,17 @@ public final class StatusBar extends HBox {
     private final Hyperlink update = new Hyperlink();
     private final Label keymap = new Label();
 
-    public StatusBar(AppServices services, Runnable openLog) {
+    public StatusBar(AppServices services) {
         this.services = services;
         getStyleClass().add("status-bar");
         setAlignment(Pos.CENTER_LEFT);
         setSpacing(10);
 
         echo.getStyleClass().add("echo");
-        echo.setOnMouseClicked(e -> openLog.run());
+        // A click runs the Message Log command, like its menu row and its keys (WIN-01).
+        echo.setOnMouseClicked(e -> services.commands().run("view.messageLog"));
         unread.getStyleClass().add("unread-errors");
-        unread.setOnMouseClicked(e -> openLog.run());
+        unread.setOnMouseClicked(e -> services.commands().run("view.messageLog"));
         update.getStyleClass().add("update-notice");
         update.setFocusTraversable(false);
         update.setOnAction(e -> {

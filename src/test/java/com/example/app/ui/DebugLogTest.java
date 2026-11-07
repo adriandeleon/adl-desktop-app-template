@@ -66,18 +66,17 @@ class DebugLogTest {
     }
 
     @Test
-    void theSessionFileStopsAtItsCapWithANote(@TempDir Path dir) throws Exception {
+    void theSessionFileStaysUnderItsCapAndKeepsTheNewestWithANote(@TempDir Path dir) throws Exception {
         DebugLog.attachFile(dir);
         String line = "x".repeat(1023);
         long lines = DebugLog.MAX_FILE_BYTES / 1024 + 10;
         for (long i = 0; i < lines; i++) DebugLog.append(line);
-        DebugLog.append("after the cap");
+        DebugLog.append("the newest line");
         long size = Files.size(dir.resolve(DebugLog.FILE));
-        assertTrue(size <= DebugLog.MAX_FILE_BYTES + 200, "size " + size);
-        String tail = Files.readString(dir.resolve(DebugLog.FILE));
-        assertTrue(tail.stripTrailing().endsWith("later lines are only in the Debug Log window."));
-        assertFalse(tail.contains("after the cap"));
-        assertTrue(DebugLog.text().endsWith("after the cap"));
+        assertTrue(size <= DebugLog.MAX_FILE_BYTES, "size " + size);
+        String file = Files.readString(dir.resolve(DebugLog.FILE));
+        assertTrue(file.contains("earlier lines were cut to keep this file under"), "a note of the cut");
+        assertTrue(file.stripTrailing().endsWith("the newest line"), "PERF-11: the newest is kept");
     }
 
     @Test

@@ -29,6 +29,7 @@ import com.example.app.command.KeyStroke;
 import com.example.app.command.Keymap;
 import com.example.app.config.ConfigExporter;
 import com.example.app.config.ConfigImport;
+import com.example.app.config.ConfigStore;
 import com.example.app.config.Settings;
 import com.example.app.config.ThemeChoice;
 import com.example.app.i18n.Messages;
@@ -73,7 +74,7 @@ public final class MainWindow {
         this.stage = stage;
         this.services = services;
         this.overlays = new OverlayHost(layout);
-        this.statusBar = new StatusBar(services, this::openMessageLog);
+        this.statusBar = new StatusBar(services);
         Commands.register(this, services);
 
         this.menus = new AppMenus(services, systemMenu);
@@ -106,7 +107,11 @@ public final class MainWindow {
             }
             stage.setMaximized(window.maximized);
         }
-        stage.setOnCloseRequest(e -> saveWindowState());
+        // The window's close button is a Quit like any other: one path (TRAY-04).
+        stage.setOnCloseRequest(e -> {
+            e.consume();
+            quit();
+        });
 
         services.store().addListener(this::apply);
         services.onKeybindingsChanged(() -> layout.setCenter(placeholder()));
@@ -406,12 +411,17 @@ public final class MainWindow {
                 .chooseSaveFile(
                         stage, Messages.tr("command.config.export"), ConfigExporter.defaultName(LocalDateTime.now()));
         if (target == null) return;
-        try {
-            int count = ConfigExporter.export(services.store().dir(), target);
-            services.echo("status.configExported", count, String.valueOf(target.getFileName()));
-        } catch (IOException e) {
-            services.echo("status.configExportFailed", String.valueOf(e.getMessage()));
-        }
+        Path dir = services.store().dir();
+        Background.run(
+                () -> { // the walk and the zip write stay off the FX thread (PERF-01)
+                    services.store().flush();
+                    try {
+                        int count = ConfigExporter.export(dir, target);
+                        services.echo("status.configExported", count, String.valueOf(target.getFileName()));
+                    } catch (IOException e) {
+                        services.echo("status.configExportFailed", String.valueOf(e.getMessage()));
+                    }
+                });
     }
 
     /**
@@ -446,8 +456,9 @@ public final class MainWindow {
         Background.run(() -> {
             try {
                 int count = ConfigImport.apply(scan, dir, ticked);
+                ConfigStore.Loaded loaded = services.store().read(); // the file work, here
                 Platform.runLater(() -> {
-                    services.store().reload();
+                    services.store().install(loaded);
                     services.echo("status.configImported", count);
                 });
             } catch (IOException e) {
@@ -464,8 +475,17 @@ public final class MainWindow {
         services.echo("status.handOff");
     }
 
+    /**
+     * The one quit path: File → Quit, the window's close button and the system's Quit all come here. It
+     * closes the app's other windows and dialogs first, so no nested event loop is left running, then
+     * saves the window geometry and the settings, then exits (TRAY-04).
+     */
     void quit() {
+        for (javafx.stage.Window other : List.copyOf(javafx.stage.Window.getWindows())) {
+            if (other != stage) other.hide();
+        }
         saveWindowState();
+        services.store().flush();
         services.host().exit();
     }
 

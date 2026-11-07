@@ -264,6 +264,8 @@ class MainWindowFxTest {
         run(() -> services.store().update(s -> s.keymap = "emacs"));
         host.saveAnswer = dir.resolve("backup.zip");
         run(window::exportConfig);
+        // The walk and the zip write run off the FX thread (PERF-01).
+        FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Exported"));
         assertTrue(Files.exists(host.saveAnswer));
         assertTrue(echo().startsWith("Exported 1 files"), echo());
 
@@ -290,7 +292,7 @@ class MainWindowFxTest {
 
         host.saveAnswer = dir.resolve("missing/folder/backup.zip");
         run(window::exportConfig);
-        assertTrue(echo().startsWith("Export failed"), echo());
+        FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Export failed"));
         host.openAnswer = dir.resolve("nope.zip");
         run(window::importConfig);
         FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Import failed"));
@@ -310,6 +312,13 @@ class MainWindowFxTest {
         });
         run(window::quit);
         assertEquals(1, host.exits);
+        // TRAY-04: the window's close button takes the same path, closing the other windows first.
+        run(() -> window.openSettings(SettingsWindow.Page.GENERAL));
+        run(() -> window.stage()
+                .fireEvent(
+                        new javafx.stage.WindowEvent(window.stage(), javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST)));
+        assertEquals(2, host.exits);
+        assertFalse(call(() -> window.settingsWindow().stage().isShowing()), "quit closes the other windows first");
         assertEquals(700, services.settings().window.width);
         assertNotNull(services.settings().window.x);
         // Not a real maximize: JavaFX's Headless platform throws resizing a maximized stage on Windows

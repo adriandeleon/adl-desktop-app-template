@@ -68,6 +68,10 @@ one-line summary written for users.
 
 ### Fixed
 
+- **Closing the window quits the way File → Quit does,** closing Settings, the Debug Log and any dialog
+  first and saving the window's size and place.
+- **The session log keeps its newest lines.** When it reaches 8 MB it starts over with a note and the
+  newest lines, so the moments before a crash are always in it.
 - **The first window comes up sooner.** The Message Log is built when first opened, and the update
   check and the monospaced font wait until the window has painted. Settings → Keymap lists the key
   bindings in a scrolling list that stays fast however many commands there are.

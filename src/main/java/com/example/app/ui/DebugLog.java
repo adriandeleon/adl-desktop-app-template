@@ -43,8 +43,9 @@ public final class DebugLog {
     static final int MAX_ENTRIES = 2000;
 
     /**
-     * The session file stops growing here, with a note saying so (PERF-11): a runaway logger must not fill
-     * the disk. The Debug Log window keeps the newest lines either way.
+     * The session file never grows past this (PERF-11): when the next line would cross it, the file is
+     * rewritten with a note of the cut and the newest lines, so a runaway logger cannot fill the disk and
+     * the lines just before a crash are still there.
      */
     static final long MAX_FILE_BYTES = 8L * 1024 * 1024;
 
@@ -64,7 +65,7 @@ public final class DebugLog {
     private static @Nullable Handler handler;
     private static int dropped;
     private static long fileBytes;
-    private static boolean fileFull;
+
     private static volatile @Nullable Consumer<Throwable> onUncaught;
 
     private DebugLog() {}
@@ -153,7 +154,6 @@ public final class DebugLog {
         }
         opened.truncate(0);
         fileBytes = 0;
-        fileFull = false;
         channel = opened;
         lock = held;
         file = candidate;
@@ -189,22 +189,44 @@ public final class DebugLog {
 
     private static void write(String line) {
         FileChannel out = channel;
-        if (out == null || fileFull) return;
+        if (out == null) return;
         byte[] encoded = (line + System.lineSeparator()).getBytes(StandardCharsets.UTF_8);
-        if (fileBytes + encoded.length > MAX_FILE_BYTES) {
-            fileFull = true;
-            encoded = (stamp("The session log reached " + MAX_FILE_BYTES / (1024 * 1024)
-                                    + " MB; later lines are only in the Debug Log window.")
-                            + System.lineSeparator())
-                    .getBytes(StandardCharsets.UTF_8);
-        }
-        fileBytes += encoded.length;
         try {
+            if (fileBytes + encoded.length > MAX_FILE_BYTES) {
+                rewriteWithNewest(out);
+                return; // the newest lines, this one included, are in the file again
+            }
+            fileBytes += encoded.length;
             ByteBuffer bytes = ByteBuffer.wrap(encoded);
             out.position(out.size());
             while (bytes.hasRemaining()) out.write(bytes);
         } catch (IOException e) {
             // the in-memory copy is still there
+        }
+    }
+
+    /** Starts the file over: a note of the cut, then as many of the newest lines as fit in half the cap. */
+    private static void rewriteWithNewest(FileChannel out) throws IOException {
+        java.util.List<byte[]> newest = new java.util.ArrayList<>();
+        long size = 0;
+        for (java.util.Iterator<String> it = ENTRIES.descendingIterator(); it.hasNext(); ) {
+            byte[] bytes = (it.next() + System.lineSeparator()).getBytes(StandardCharsets.UTF_8);
+            if (size + bytes.length > MAX_FILE_BYTES / 2) break;
+            newest.add(0, bytes);
+            size += bytes.length;
+        }
+        byte[] note = (stamp("… earlier lines were cut to keep this file under " + MAX_FILE_BYTES / (1024 * 1024)
+                                + " MB; the newest follow.")
+                        + System.lineSeparator())
+                .getBytes(StandardCharsets.UTF_8);
+        out.truncate(0);
+        out.position(0);
+        fileBytes = 0;
+        for (byte[] chunk : java.util.stream.Stream.concat(java.util.stream.Stream.of(note), newest.stream())
+                .toList()) {
+            ByteBuffer bytes = ByteBuffer.wrap(chunk);
+            while (bytes.hasRemaining()) out.write(bytes);
+            fileBytes += chunk.length;
         }
     }
 

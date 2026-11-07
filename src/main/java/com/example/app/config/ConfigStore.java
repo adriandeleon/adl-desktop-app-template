@@ -126,37 +126,47 @@ public final class ConfigStore {
         for (Consumer<Settings> listener : listeners) listener.accept(settings);
     }
 
+    /** What a read of the file found: the settings, how they loaded, and the backup it made. */
+    public record Loaded(
+            Settings settings, LoadResult result, @Nullable Path backup) {}
+
     /** Re-reads the file (after an import or a sync) and notifies the listeners. */
     public void reload() {
+        install(read());
+    }
+
+    /**
+     * Reads the file without touching the live settings: file work that may run off the FX thread
+     * (PERF-01), then {@link #install} on it. Waits for pending saves first.
+     */
+    public Loaded read() {
         flush();
-        backup = null;
         Path file = file();
-        if (!Files.isRegularFile(file)) {
-            settings = new Settings();
-            loadResult = LoadResult.DEFAULTS;
-            fire();
-            return;
-        }
+        if (!Files.isRegularFile(file)) return new Loaded(new Settings(), LoadResult.DEFAULTS, null);
         try {
             if (Files.size(file) > MAX_FILE_BYTES) throw new IOException("larger than " + MAX_FILE_BYTES + " bytes");
             JsonNode tree = JSON.readTree(Files.readString(file, StandardCharsets.UTF_8));
             if (!(tree instanceof ObjectNode object)) throw new IOException("not a JSON object");
             int version = Migrations.versionOf(object);
             if (version > Settings.SCHEMA_VERSION) {
-                backup = copyAside(file, FILE + ".v" + version + ".bak");
-                settings = new Settings();
-                loadResult = LoadResult.NEWER_BACKED_UP;
-            } else {
-                settings = JSON.treeToValue(Migrations.migrate(object), Settings.class);
-                loadResult = version < Settings.SCHEMA_VERSION ? LoadResult.MIGRATED : LoadResult.LOADED;
-                if (loadResult == LoadResult.MIGRATED) save();
+                return new Loaded(
+                        new Settings(), LoadResult.NEWER_BACKED_UP, copyAside(file, FILE + ".v" + version + ".bak"));
             }
+            Settings loaded = JSON.treeToValue(Migrations.migrate(object), Settings.class);
+            return new Loaded(
+                    loaded, version < Settings.SCHEMA_VERSION ? LoadResult.MIGRATED : LoadResult.LOADED, null);
         } catch (IOException | RuntimeException e) {
             LOG.log(Level.WARNING, "Could not read " + file + "; using defaults", e);
-            backup = copyAside(file, FILE + ".broken.bak");
-            settings = new Settings();
-            loadResult = LoadResult.BROKEN_BACKED_UP;
+            return new Loaded(new Settings(), LoadResult.BROKEN_BACKED_UP, copyAside(file, FILE + ".broken.bak"));
         }
+    }
+
+    /** Makes a read the live settings and notifies the listeners; a migrated file is saved forward. */
+    public void install(Loaded loaded) {
+        settings = loaded.settings();
+        loadResult = loaded.result();
+        backup = loaded.backup();
+        if (loadResult == LoadResult.MIGRATED) save();
         fire();
     }
 
