@@ -31,8 +31,9 @@
 > names, moves the package folders, gives the Windows installer its own upgrade code, and deletes
 > this box, the rename check in CI and itself. Then replace the icon (`branding/`, then
 > `scripts/make-icons.sh`) and the screenshots, and write your app in `MainWindow`'s placeholder.
-> Everything Pauta 2.0.0 marks MUST is already here and tested: see
-> [docs/architecture.md](docs/architecture.md) for where each piece lives.
+> Everything Pauta 2.0.0 marks MUST is already here and tested, apart from what needs your own website
+> and repository settings ([TODO.md](TODO.md)): see [docs/architecture.md](docs/architecture.md) for
+> where each piece lives.
 <!-- template:end -->
 
 ExampleApp is a keyboard-first JavaFX desktop app for Windows, macOS and Linux. Every action is a
@@ -61,6 +62,18 @@ Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), 
 - **Six languages:** English, Spanish, Portuguese, French, Italian and German.
 - **Local first.** No telemetry. The only automatic network call is a once-a-day release check you
   can turn off.
+
+## Documentation
+
+The user guide lives on the website, [exampleapp-project.dev/docs](https://exampleapp-project.dev/docs/),
+and Help → Documentation opens the page for the version you run:
+
+- [Getting started](https://exampleapp-project.dev/docs/getting-started/): install, first launch, the first thing to do
+- [Keyboard reference](https://exampleapp-project.dev/docs/keymaps/): every command and its keys, CUA and Emacs
+- [Settings](https://exampleapp-project.dev/docs/settings/): every setting, the config folder, Settings Sync
+- [FAQ](https://exampleapp-project.dev/docs/faq/) and [What's new](https://exampleapp-project.dev/docs/whats-new/)
+
+This repository's [docs/](docs/README.md) is for contributors.
 
 ## Install
 
@@ -120,7 +133,7 @@ names another folder, in that order:
 
 Settings → Advanced exports the folder as a `.zip` and imports one back, replacing only the parts you tick.
 
-## Licence
+## License
 
-ExampleApp is released under the [MIT License](LICENSE). Third-party components and their licences
+ExampleApp is released under the [MIT License](LICENSE). Third-party components and their licenses
 are listed in [NOTICE](NOTICE). ExampleApp is built with the help of AI coding tools.

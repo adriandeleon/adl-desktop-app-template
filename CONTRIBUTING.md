@@ -35,8 +35,10 @@ You need **JDK 25** (Temurin is what CI and the releases use). The Maven Wrapper
 ## Pull requests
 
 1. Branch from `master` (`feat/…`, `fix/…`, `docs/…`).
-2. Keep one feature in one pull request, with its tests, strings, docs and a `CHANGELOG.md` entry
-   under `## [Unreleased]`.
+2. Keep one feature in one pull request, with its tests and strings. **Docs change in the same pull
+   request**: a `CHANGELOG.md` entry under `## [Unreleased]`, `TODO.md`, the guides in `docs/` it
+   touches, and the website's user docs ([docs/conventions.md](docs/conventions.md#docs-in-the-same-pr)).
+   A feature with no docs change is not done.
 3. `./mvnw verify` passes locally.
 4. CI runs **Format** and **Build & Test**; both must pass. Add the `full-ci` label to run the suite on
    Windows and macOS too.

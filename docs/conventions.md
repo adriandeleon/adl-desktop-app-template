@@ -20,6 +20,18 @@
   `invalid` a warning.
 - Not translated: `--help`, `--version`, technical identifiers.
 
+## Docs in the same PR
+
+A change that affects behavior updates, in the same pull request, never as a follow-up:
+
+- `CHANGELOG.md`, under `## [Unreleased]`, an entry opening with a bold one-line summary for users;
+- `TODO.md`, when it adds, finishes or drops planned work;
+- the contributor guides in `docs/` it touches;
+- the website's user docs (the `exampleapp-website` repository) for what a user sees.
+
+A reviewer treats a feature pull request with no docs change as incomplete. When docs and code disagree,
+the code wins and the docs are fixed in the same change.
+
 ## Adding a setting
 
 Five places, in one pull request:

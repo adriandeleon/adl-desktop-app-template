@@ -7,6 +7,8 @@ it through `AppInfo`, and this line, the README's Pauta badge and its "Built to"
 until `rename.sh` removes it) name the same number (`EditionTest` checks). Moving to a newer edition means reading that edition's CHANGELOG for new
 or stronger MUSTs, meeting them, then changing every place together.
 This file is operational rules, not a changelog: how the app is built lives in [`docs/`](docs/README.md).
+When documentation and code disagree, **the code wins**, and the documentation is fixed in the same change.
+User-facing feature documentation goes to the separate website repository (`exampleapp-website`), never here.
 
 ## Essential commands
 
@@ -25,8 +27,9 @@ Run Maven from the repository root, **on JDK 25** (Palantir Java Format breaks o
 
 - **One task, one branch, one worktree.** `git worktree add ../exampleapp-<topic> -b <type>/<topic>`;
   never switch branches under another session's feet, never stash someone else's work.
-- **A whole feature is one pull request**, with its tests, its strings in every catalog, its docs and
-  its CHANGELOG entry.
+- **A whole feature is one pull request**, with its tests and its strings in every catalog. **Docs
+  change in the same PR** (`docs/conventions.md#docs-in-the-same-pr`): `CHANGELOG.md`, `TODO.md`, the
+  guides in `docs/` it touches and the website's user docs, never as a follow-up.
 - **Before you push:** `./mvnw spotless:apply` and `./mvnw verify` pass locally.
 - Conventional commit subjects: `feat(ui): …`, `fix(sync): …`, `docs: …`, `test: …`, `chore: …`.
 

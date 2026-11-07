@@ -50,6 +50,8 @@ one-line summary written for users.
 
 ### Changed
 
+- **The README points to the user guide on the website,** and the contributor docs say who they are
+  for, that the code wins when they disagree with it, and that docs change in the same pull request.
 - **Links to Pauta point to its new home, [pauta-project.dev](https://pauta-project.dev/).**
 - **New default themes: Caret & Ink, the Pauta family palette, in light and dark.** They replace
   AtlantaFX Primer; System still follows your OS. Colored text and badges read at WCAG AA in both,
