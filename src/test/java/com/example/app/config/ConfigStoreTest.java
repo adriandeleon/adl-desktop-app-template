@@ -142,4 +142,28 @@ class ConfigStoreTest {
         store.flush();
         assertEquals(50, ConfigStore.open(dir).settings().sync.intervalMinutes);
     }
+
+    @Test
+    void aFileThatIsNotAnObjectOrAFolderThatCannotBeWrittenIsSurvived() throws Exception {
+        java.nio.file.Files.writeString(dir.resolve(ConfigStore.FILE), "[1, 2]");
+        assertEquals(
+                ConfigStore.LoadResult.BROKEN_BACKED_UP, ConfigStore.open(dir).loadResult());
+
+        Path notAFolder = java.nio.file.Files.writeString(dir.resolve("plain-file"), "x");
+        ConfigStore store = new ConfigStore(notAFolder);
+        store.update(s -> s.keymap = "emacs"); // the write fails off the caller's thread and is logged
+        store.flush();
+        assertEquals("emacs", store.settings().keymap);
+
+        Thread.currentThread().interrupt();
+        store.flush();
+        org.junit.jupiter.api.Assertions.assertTrue(Thread.interrupted(), "flush keeps the interrupt");
+    }
+
+    @Test
+    void anIntervalIsAWholeNumberOfMinutesFromOne() {
+        assertEquals(5, Settings.Sync.parseInterval(" 5 "));
+        org.junit.jupiter.api.Assertions.assertNull(Settings.Sync.parseInterval("0"));
+        org.junit.jupiter.api.Assertions.assertNull(Settings.Sync.parseInterval("soon"));
+    }
 }

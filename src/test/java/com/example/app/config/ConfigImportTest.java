@@ -128,4 +128,52 @@ class ConfigImportTest {
             assertFalse(ConfigImport.safe(bad), bad);
         }
     }
+
+    @Test
+    void tooManyEntriesABrokenZipOrBrokenSettingsAreRefused() throws Exception {
+        java.util.Map<String, byte[]> many = new java.util.LinkedHashMap<>();
+        many.put("settings.json", utf8("{}"));
+        for (int i = 0; i < ConfigImport.MAX_ENTRIES; i++) many.put("f" + i, new byte[0]);
+        assertEquals(
+                ConfigImport.Refused.Reason.TOO_LARGE,
+                assertThrows(ConfigImport.Refused.class, () -> ConfigImport.read(zip(many)))
+                        .reason());
+        Path broken = Files.write(dir.resolve("broken.zip"), new byte[] {'P', 'K', 3, 4, 20, 0, 9, 9, 9, 9, 9, 9});
+        assertEquals(
+                ConfigImport.Refused.Reason.NOT_A_ZIP,
+                assertThrows(ConfigImport.Refused.class, () -> ConfigImport.read(broken))
+                        .reason());
+        assertEquals(
+                ConfigImport.Refused.Reason.NOT_AN_EXPORT,
+                assertThrows(
+                                ConfigImport.Refused.class,
+                                () -> ConfigImport.read(zip(Map.of("settings.json", utf8("{")))))
+                        .reason());
+    }
+
+    @Test
+    void aTotalOverTheLimitIsRefused() throws Exception {
+        java.util.Map<String, byte[]> big = new java.util.LinkedHashMap<>();
+        big.put("settings.json", utf8("{}"));
+        byte[] chunk = new byte[(int) ConfigImport.MAX_ENTRY_BYTES];
+        for (long total = 0; total <= ConfigImport.MAX_TOTAL_BYTES; total += chunk.length) big.put("c" + total, chunk);
+        assertEquals(
+                ConfigImport.Refused.Reason.TOO_LARGE,
+                assertThrows(ConfigImport.Refused.class, () -> ConfigImport.read(zip(big)))
+                        .reason());
+    }
+
+    @Test
+    void applyKeepsToTheFolderAndReplacesAnUnreadableSettingsFile() throws Exception {
+        Path here = dir.resolve("here");
+        Files.createDirectories(here);
+        Files.writeString(here.resolve("settings.json"), "{ broken");
+        var scan = new ConfigImport.Scan(
+                (com.fasterxml.jackson.databind.node.ObjectNode) ConfigStore.JSON.readTree("{\"keymap\":\"emacs\"}"),
+                Map.of("../outside.json", utf8("x"), "inside.json", utf8("y")));
+        ConfigImport.apply(scan, here, EnumSet.allOf(ConfigImport.Part.class));
+        assertFalse(Files.exists(dir.resolve("outside.json")), "a path outside the folder is never written");
+        assertTrue(Files.exists(here.resolve("inside.json")));
+        assertEquals("emacs", ConfigStore.open(here).settings().keymap);
+    }
 }

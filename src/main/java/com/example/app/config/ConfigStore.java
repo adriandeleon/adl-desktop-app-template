@@ -188,10 +188,8 @@ public final class ConfigStore {
     public void flush() {
         try {
             writer.submit(() -> {}).get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (java.util.concurrent.ExecutionException e) {
-            LOG.log(Level.WARNING, "Could not save " + file(), e);
+        } catch (InterruptedException | java.util.concurrent.ExecutionException e) {
+            Thread.currentThread().interrupt(); // the no-op task cannot fail: only an interrupt gets here
         }
     }
 
