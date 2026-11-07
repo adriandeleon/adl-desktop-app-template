@@ -28,6 +28,9 @@ public final class UpdateService {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(15);
 
+    /** A latest-release answer is a few kilobytes; a body past this is refused unread (PERF-12). */
+    public static final int MAX_RESPONSE_BYTES = 512 * 1024;
+
     private final String endpoint;
 
     /** Overrides the endpoint; the test suite points it at a closed local port so no test reaches GitHub. */
@@ -53,11 +56,18 @@ public final class UpdateService {
                 .connectTimeout(TIMEOUT)
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build()) {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<java.io.InputStream> response =
+                    client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            String body;
+            try (java.io.InputStream in = response.body()) {
+                byte[] bytes = in.readNBytes(MAX_RESPONSE_BYTES + 1);
+                if (bytes.length > MAX_RESPONSE_BYTES) return new Outcome(null, "response too large");
+                body = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+            }
             // 404: no release published yet. Nothing newer, not an error.
             if (response.statusCode() == 404) return new Outcome(null, null);
             if (response.statusCode() != 200) return new Outcome(null, "HTTP " + response.statusCode());
-            ReleaseInfo latest = UpdateCheck.parseLatest(response.body());
+            ReleaseInfo latest = UpdateCheck.parseLatest(body);
             boolean newer = latest != null && UpdateCheck.isNewer(currentVersion, latest.version());
             return new Outcome(newer ? latest : null, null);
         } catch (HttpTimeoutException e) {

@@ -36,6 +36,7 @@ final class FxTestSupport {
     static synchronized void boot() throws Exception {
         if (booted) return;
         DebugLog.install(); // as Main does first: the Debug Log tests need its handler
+        Debounce.immediate = true; // typing then reading needs no wait; DebounceFxTest covers the pause
         FxToolkit.registerPrimaryStage();
         run(() -> {
             Fonts.load();

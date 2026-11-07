@@ -88,8 +88,13 @@ public final class Picker<T> {
         card.setMaxWidth(WIDTH);
         card.setMaxHeight(Region.USE_PREF_SIZE);
 
-        query.textProperty().addListener((obs, old, text) -> refresh());
-        query.addEventFilter(KeyEvent.KEY_PRESSED, this::onKey);
+        // Ranking waits for typing to pause (PERF-06); a key that acts on the list flushes it first.
+        Debounce ranking = new Debounce(this::refresh);
+        query.textProperty().addListener((obs, old, text) -> ranking.request());
+        query.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            ranking.flush();
+            onKey(e);
+        });
         list.getSelectionModel()
                 .selectedItemProperty()
                 .addListener((obs, old, row) -> description.setText(

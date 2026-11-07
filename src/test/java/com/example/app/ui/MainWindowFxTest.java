@@ -315,6 +315,7 @@ class MainWindowFxTest {
         // Not a real maximize: JavaFX's Headless platform throws resizing a maximized stage on Windows
         // (HeadlessWindow.clearRect). What matters here is that the flag is saved and read back.
         run(() -> services.store().update(s -> s.window.maximized = true));
+        services.store().flush();
         assertTrue(ConfigStore.open(dir).settings().window.maximized);
     }
 

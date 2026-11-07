@@ -3,6 +3,7 @@ package com.example.app.ui;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -45,6 +46,8 @@ public final class UpdateCoordinator {
     private @Nullable ReleaseInfo latest;
     private @Nullable String error;
     private boolean scheduled;
+    /** The current request; an answer to an older one is dropped (PERF-03). */
+    private final AtomicLong generation = new AtomicLong();
 
     UpdateCoordinator(AppServices services, Function<String, UpdateService.Outcome> check) {
         this.services = services;
@@ -97,10 +100,27 @@ public final class UpdateCoordinator {
         if (state == State.CHECKING) return;
         state = State.CHECKING;
         fire();
+        long mine = generation.incrementAndGet();
         Thread.ofPlatform().daemon().name("update-check").start(() -> {
             UpdateService.Outcome outcome = check.apply(AppInfo.VERSION);
-            Platform.runLater(() -> finish(outcome, manual));
+            Platform.runLater(() -> {
+                if (mine == generation.get()) finish(outcome, manual);
+            });
         });
+    }
+
+    /** Drops the check in flight, if any: its answer is never applied. */
+    public void cancel() {
+        generation.incrementAndGet();
+        if (state == State.CHECKING) {
+            state = State.NEVER;
+            fire();
+        }
+    }
+
+    /** How many listeners are registered (a closed About must leave none, PERF-13). */
+    int listenerCount() {
+        return listeners.size();
     }
 
     void finish(UpdateService.Outcome outcome, boolean manual) {

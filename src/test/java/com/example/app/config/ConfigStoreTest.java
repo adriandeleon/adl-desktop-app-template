@@ -58,6 +58,7 @@ class ConfigStoreTest {
         });
         assertEquals(1, heard.size());
         store.removeListener(listener);
+        store.flush(); // saves are written off the caller's thread
 
         ConfigStore again = ConfigStore.open(dir);
         assertEquals(ConfigStore.LoadResult.LOADED, again.loadResult());
@@ -88,6 +89,7 @@ class ConfigStoreTest {
         ConfigStore store = ConfigStore.open(dir);
         assertEquals(ConfigStore.LoadResult.MIGRATED, store.loadResult());
         assertEquals(ThemeChoice.DARK, store.settings().theme);
+        store.flush();
         assertTrue(Files.readString(store.file()).contains("\"schemaVersion\" : " + Settings.SCHEMA_VERSION));
     }
 
@@ -120,5 +122,24 @@ class ConfigStoreTest {
         ConfigStore store = new ConfigStore(file.resolve("sub"));
         store.save(); // the parent is a file: cannot create the folder
         assertFalse(Files.exists(file.resolve("sub")));
+    }
+
+    @Test
+    void anOversizedFileIsSetAsideUnread() throws Exception {
+        java.nio.file.Files.writeString(
+                dir.resolve(ConfigStore.FILE), "{\"pad\":\"" + "x".repeat((int) ConfigStore.MAX_FILE_BYTES) + "\"}");
+        ConfigStore store = ConfigStore.open(dir);
+        assertEquals(ConfigStore.LoadResult.BROKEN_BACKED_UP, store.loadResult());
+    }
+
+    @Test
+    void aBurstOfChangesIsWrittenOffTheCallersThreadAndEndsWithTheNewest() throws Exception {
+        ConfigStore store = ConfigStore.open(dir);
+        for (int i = 1; i <= 50; i++) {
+            int minutes = i;
+            store.update(s -> s.sync.intervalMinutes = minutes);
+        }
+        store.flush();
+        assertEquals(50, ConfigStore.open(dir).settings().sync.intervalMinutes);
     }
 }

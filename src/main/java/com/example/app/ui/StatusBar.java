@@ -1,5 +1,7 @@
 package com.example.app.ui;
 
+import java.util.List;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -9,6 +11,7 @@ import javafx.scene.layout.Region;
 
 import com.example.app.i18n.Messages;
 import com.example.app.update.ReleaseInfo;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The status bar. Its left side is the echo area, one line of feedback for the last action, errors in
@@ -43,20 +46,27 @@ public final class StatusBar extends HBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
         getChildren().addAll(echo, unread, spacer, update, keymap);
 
-        services.messages().addListener(entry -> {
-            echo.setText(entry.text());
-            echo.getStyleClass().removeAll("error", "warning");
-            if (entry.severity() == MessageLog.Severity.ERROR)
-                echo.getStyleClass().add("error");
-            if (entry.severity() == MessageLog.Severity.WARNING)
-                echo.getStyleClass().add("warning");
-            refreshUnread();
-        });
+        // A burst of messages redraws the bar once (PERF-06), with the newest.
+        services.messages().addListener(entry -> redraw.request());
         services.updates().addListener(this::refreshUpdate);
         services.onKeybindingsChanged(this::refreshKeymap);
         refreshUnread();
         refreshUpdate();
         refreshKeymap();
+    }
+
+    private final Redraw redraw = new Redraw(this::showNewest);
+
+    private void showNewest() {
+        List<MessageLog.Entry> entries = services.messages().entries();
+        MessageLog.@Nullable Entry entry = entries.isEmpty() ? null : entries.getFirst();
+        echo.setText(entry == null ? "" : entry.text());
+        echo.getStyleClass().removeAll("error", "warning");
+        if (entry != null && entry.severity() == MessageLog.Severity.ERROR)
+            echo.getStyleClass().add("error");
+        if (entry != null && entry.severity() == MessageLog.Severity.WARNING)
+            echo.getStyleClass().add("warning");
+        refreshUnread();
     }
 
     /** Called when the log has been opened or cleared. */

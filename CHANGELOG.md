@@ -65,6 +65,9 @@ one-line summary written for users.
 
 ### Fixed
 
+- **The window never waits on the disk or the network.** Settings are saved, logs exported and imports
+  read off the interface thread; filters wait for typing to pause, and a burst of background messages
+  redraws the status bar once. Oversized settings files and update answers are refused unread.
 - **An invalid sync branch is refused.** A blank or malformed branch name is marked and never saved.
 - **Settings search finds a row by its buttons' text,** and ranks a title above a keyword.
 - **`EXAMPLEAPP_CONFIG_DIR` wins over `--dev`,** so the order is `--config-dir`, the variable, the default.

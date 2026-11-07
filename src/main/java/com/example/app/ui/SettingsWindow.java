@@ -112,7 +112,8 @@ public final class SettingsWindow {
 
         search.setPromptText(Messages.tr("settings.search"));
         search.getStyleClass().add("settings-search");
-        search.textProperty().addListener((obs, old, text) -> applySearch(text));
+        Debounce searching = new Debounce(() -> applySearch(search.getText()));
+        search.textProperty().addListener((obs, old, text) -> searching.request());
         sidebar.getItems().setAll(Page.values());
         sidebar.setCellFactory(v -> new PageCell());
         sidebar.getStyleClass().add("settings-sidebar");

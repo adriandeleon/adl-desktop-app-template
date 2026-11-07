@@ -41,6 +41,7 @@ class ThemeChoiceTest {
         assertEquals("emacs", store.settings().keymap);
         assertEquals(false, store.settings().showStatusBar);
         store.save();
+        store.flush();
         assertTrue(Files.readString(store.file()).contains("\"theme\" : \"SYSTEM\""));
     }
 }

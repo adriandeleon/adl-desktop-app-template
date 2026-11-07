@@ -48,6 +48,7 @@ public final class Startup {
         @Override
         public void close() {
             services.sync().stop();
+            services.store().flush();
             if (instance != null) instance.close();
             DebugLog.onUncaught(null);
         }
@@ -103,13 +104,13 @@ public final class Startup {
     /** The packaged-app smoke test: proves the JVM, JavaFX and the first window came up. */
     static void smokeTest(@Nullable String file, Host host) {
         if (file == null || file.isBlank()) return;
-        Platform.runLater(() -> {
+        Platform.runLater(() -> Background.run(() -> {
             try {
                 Files.writeString(Path.of(file), "window-shown\n", StandardCharsets.UTF_8);
             } catch (IOException e) {
                 LOG.log(Level.WARNING, "Smoke test could not write " + file, e);
             }
-            host.exit();
-        });
+            Platform.runLater(host::exit);
+        }));
     }
 }

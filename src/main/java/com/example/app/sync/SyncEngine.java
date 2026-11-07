@@ -137,8 +137,12 @@ public final class SyncEngine {
                 : git.run(repo, "checkout", "-q", "-B", branch);
     }
 
-    private static Map<String, String> read(Path file) throws IOException {
+    /** A synced data file larger than this is refused before it is read (PERF-12): bindings are tiny. */
+    public static final long MAX_DATA_BYTES = 1024 * 1024;
+
+    static Map<String, String> read(Path file) throws IOException {
         if (!Files.isRegularFile(file)) return new TreeMap<>();
+        if (Files.size(file) > MAX_DATA_BYTES) throw new IOException(file.getFileName() + " is larger than 1 MB");
         return JSON.readValue(Files.readString(file, StandardCharsets.UTF_8), MAP);
     }
 

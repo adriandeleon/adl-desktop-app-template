@@ -50,6 +50,7 @@ class ConfigImportTest {
             s.sync.repoUrl = "git@example.com:me/mine.git";
             s.window.width = 1234;
         });
+        store.flush();
         Path zip = zip(
                 Map.of(
                         "settings.json",

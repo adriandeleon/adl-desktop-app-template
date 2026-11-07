@@ -32,6 +32,10 @@ public final class AppServices {
     private final UpdateCoordinator updates;
     private final SyncController sync;
     private final List<Runnable> keybindingListeners = new CopyOnWriteArrayList<>();
+    /** Messages echoed off the FX thread, drained there in batches (PERF-07). */
+    private final FxBatcher<MessageLog.Entry> offThread =
+            new FxBatcher<>(batch -> batch.forEach(e -> messages.add(e.text(), e.severity(), e.time())));
+
     private Keybindings keybindings;
     private String keymapState = "";
 
@@ -106,7 +110,7 @@ public final class AppServices {
         if (Platform.isFxApplicationThread()) {
             messages.add(text, severity, LocalTime.now());
         } else {
-            Platform.runLater(() -> messages.add(text, severity, LocalTime.now()));
+            offThread.offer(new MessageLog.Entry(LocalTime.now(), text, severity));
         }
     }
 }

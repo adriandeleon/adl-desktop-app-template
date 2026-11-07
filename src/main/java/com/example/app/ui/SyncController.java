@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -43,6 +44,9 @@ public final class SyncController {
     private final PauseTransition dirty = new PauseTransition(DIRTY_DELAY);
     private @Nullable Timeline interval;
     private boolean running;
+    /** The current sync or create request; a result for an older one is dropped (PERF-03). */
+    private final AtomicLong generation = new AtomicLong();
+
     private @Nullable String lastError;
     private String lastBindings;
 
@@ -105,9 +109,13 @@ public final class SyncController {
         if (isConfigured() && services.settings().sync.auto) syncNow(false);
     }
 
+    /** Stops the automatic runs; a sync or create still in flight is never applied. */
     public void stop() {
         if (interval != null) interval.stop();
         dirty.stop();
+        generation.incrementAndGet();
+        running = false;
+        creating = false;
     }
 
     /** Runs a sync now. A manual run with nothing set up says how to set it up. */
@@ -123,9 +131,12 @@ public final class SyncController {
         String url = services.settings().sync.repoUrl;
         String branch = services.settings().sync.branch;
         Map<String, String> local = new TreeMap<>(services.settings().keybindings);
+        long mine = generation.incrementAndGet();
         Thread.ofPlatform().daemon().name("settings-sync").start(() -> {
             SyncEngine.Result result = engine.sync(url, branch, local);
-            Platform.runLater(() -> finish(result, manual));
+            Platform.runLater(() -> {
+                if (mine == generation.get()) finish(result, manual);
+            });
         });
     }
 
@@ -163,9 +174,12 @@ public final class SyncController {
         creating = true;
         services.echo("status.sync.creating", name);
         String description = Messages.tr("settings.sync.repoDescription", AppInfo.NAME);
+        long mine = generation.incrementAndGet();
         Thread.ofPlatform().daemon().name("github-create").start(() -> {
             GitHubCli.Created created = gitHub.createPrivate(name.strip(), description);
-            Platform.runLater(() -> created(created));
+            Platform.runLater(() -> {
+                if (mine == generation.get()) created(created);
+            });
         });
     }
 

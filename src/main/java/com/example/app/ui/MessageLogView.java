@@ -48,8 +48,10 @@ public final class MessageLogView {
         Label title = new Label(Messages.tr("messagelog.title"));
         title.getStyleClass().add("message-log-title");
         filter.setPromptText(Messages.tr("messagelog.filter"));
-        filter.textProperty().addListener((obs, old, text) -> refresh());
+        Debounce filtering = new Debounce(this::refresh);
+        filter.textProperty().addListener((obs, old, text) -> filtering.request());
         filter.setOnKeyPressed(e -> {
+            filtering.flush();
             if ((e.getCode() == KeyCode.DOWN || e.getCode() == KeyCode.ENTER)
                     && !list.getItems().isEmpty()) {
                 list.requestFocus();

@@ -8,6 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +34,12 @@ public final class ConfigStore {
 
     public static final String FILE = "settings.json";
 
+    /**
+     * A settings file larger than this is not read (PERF-12): it was not written by this app, and is kept
+     * aside as broken like any unreadable one.
+     */
+    public static final long MAX_FILE_BYTES = 1024 * 1024;
+
     private static final Logger LOG = Logger.getLogger(ConfigStore.class.getName());
 
     static final ObjectMapper JSON = new ObjectMapper()
@@ -51,6 +60,14 @@ public final class ConfigStore {
     private Settings settings = new Settings();
     private LoadResult loadResult = LoadResult.DEFAULTS;
     private @Nullable Path backup;
+    /**
+     * Saves run here, off the caller's thread (PERF-01): one at a time, in order, and a burst of changes
+     * writes only the newest text.
+     */
+    private final ExecutorService writer = Executors.newSingleThreadExecutor(
+            Thread.ofPlatform().daemon().name("settings-writer").factory());
+
+    private final AtomicReference<@Nullable String> pendingWrite = new AtomicReference<>();
 
     public ConfigStore(Path dir) {
         this.dir = dir;
@@ -92,6 +109,11 @@ public final class ConfigStore {
         fire();
     }
 
+    /** How many listeners are registered: a closed window must leave none of its own behind (PERF-13). */
+    public int listenerCount() {
+        return listeners.size();
+    }
+
     public void addListener(Consumer<Settings> listener) {
         listeners.add(listener);
     }
@@ -106,6 +128,7 @@ public final class ConfigStore {
 
     /** Re-reads the file (after an import or a sync) and notifies the listeners. */
     public void reload() {
+        flush();
         backup = null;
         Path file = file();
         if (!Files.isRegularFile(file)) {
@@ -115,6 +138,7 @@ public final class ConfigStore {
             return;
         }
         try {
+            if (Files.size(file) > MAX_FILE_BYTES) throw new IOException("larger than " + MAX_FILE_BYTES + " bytes");
             JsonNode tree = JSON.readTree(Files.readString(file, StandardCharsets.UTF_8));
             if (!(tree instanceof ObjectNode object)) throw new IOException("not a JSON object");
             int version = Migrations.versionOf(object);
@@ -145,12 +169,39 @@ public final class ConfigStore {
         }
     }
 
-    /** Writes the file atomically: a crash mid-write leaves the old file, never half a new one. */
+    /**
+     * Saves the settings: the text is taken now, on the caller's thread, and written off it (PERF-01).
+     * The write is atomic: a crash mid-write leaves the old file, never half a new one.
+     */
     public void save() {
+        String text;
+        try {
+            text = JSON.writeValueAsString(settings);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Could not save " + file(), e);
+            return;
+        }
+        if (pendingWrite.getAndSet(text) == null) writer.execute(this::writePending);
+    }
+
+    /** Waits until every save so far is on disk: before a reload, at exit, and in tests. */
+    public void flush() {
+        try {
+            writer.submit(() -> {}).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (java.util.concurrent.ExecutionException e) {
+            LOG.log(Level.WARNING, "Could not save " + file(), e);
+        }
+    }
+
+    private void writePending() {
+        String text = pendingWrite.getAndSet(null);
+        if (text == null) return;
         try {
             Files.createDirectories(dir);
             Path temp = Files.createTempFile(dir, FILE, ".tmp");
-            Files.writeString(temp, JSON.writeValueAsString(settings), StandardCharsets.UTF_8);
+            Files.writeString(temp, text, StandardCharsets.UTF_8);
             try {
                 Files.move(temp, file(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             } catch (AtomicMoveNotSupportedException e) {
