@@ -3,7 +3,8 @@
 #   push a tag vX.Y.Z   the full release: the tag must equal the pom version, then the five-target
 #                       matrix, signing, the release-asset check, attestations, JReleaser, and a pull
 #                       request that reopens master at the next -SNAPSHOT.
-#   workflow_dispatch   a dry run: everything up to and including the asset check, then stops.
+#   workflow_dispatch   a dry run: the same jobs, up to JReleaser with --dry-run, which renders the
+#                       release, the cask and the winget manifest and publishes nothing; no bump.
 #                       Signing without secrets uses ad-hoc (macOS) and throw-away (Linux) keys.
 name: Release
 
@@ -39,13 +40,15 @@ jobs:
 
       # The pom is the single source of truth. A tag that disagrees with it would publish installers
       # labelled with a version they were not built from, so it fails here, before anything builds.
+      # A dry run from a -SNAPSHOT pom names its downloads with the plain version: JReleaser refuses a
+      # snapshot for an immutable release even with --dry-run. The app inside keeps its -SNAPSHOT.
       - name: Resolve and check the version
         id: version
         shell: bash
         run: |
           set -euo pipefail
           pom=$(./mvnw -B -q --no-transfer-progress help:evaluate -Dexpression=project.version -DforceStdout)
-          echo "version=$pom" >> "$GITHUB_OUTPUT"
+          echo "version=${pom%-SNAPSHOT}" >> "$GITHUB_OUTPUT"
           if [ "$GITHUB_REF_TYPE" = tag ]; then
             tag="${GITHUB_REF_NAME#v}"
             if [ "$tag" != "$pom" ]; then
@@ -211,7 +214,7 @@ jobs:
 
       # Apple scans the signed dmg and issues a ticket; stapling attaches it so Gatekeeper accepts the
       # dmg offline. A rejection prints Apple's log, which names each offending file. The checks at
-      # the end are what Gatekeeper does on a user's Mac.
+      # the end are what Gatekeeper does on a user's Mac, then the notarized app is launched once.
       - name: Notarize the dmg (macOS)
         if: steps.macsign.outputs.enabled == 'true'
         shell: bash
@@ -261,8 +264,12 @@ jobs:
           spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg"
           hdiutil attach -nobrowse -readonly -mountpoint "$mnt" "$dmg" > /dev/null
           trap 'hdiutil detach "$mnt" > /dev/null 2>&1 || true' EXIT
-          spctl --assess --type execute --verbose=2 "$mnt"/*.app
-          echo "- ${TARGET}: signed, notarized and stapled" >> "$GITHUB_STEP_SUMMARY"
+          app="$(ls -d "$mnt"/*.app | head -1)"
+          spctl --assess --type execute --verbose=2 "$app"
+          # Launch the notarized app itself, from the stapled dmg, under the hardened runtime: the JVM
+          # starts only with the JIT entitlements, and the first window proves the JavaFX natives load.
+          bash scripts/smoke-test.sh "$app/Contents/MacOS/ExampleApp" "$RUNNER_TEMP/smoke-notarized"
+          echo "- ${TARGET}: signed, notarized, stapled and launched" >> "$GITHUB_STEP_SUMMARY"
 
       # Platform-specific (it carries this OS's JavaFX natives), so built on each runner that ships one.
       # No `clean`: target/installers must survive.
@@ -312,9 +319,9 @@ jobs:
   # on a runner that runs Maven, and once for both architectures. It replaces the build's artifacts
   # with the signed files and adds the public key as exampleapp-signing-key.asc.
   #
-  # With LINUX_GPG_KEY the key must match the committed packaging/linux/signing-key.asc, when there is
-  # one (a new repository has none yet: docs/release.md says how to add it). A tag without the secret
-  # fails; a dry run without it signs with a key made for the run, so the step is still exercised.
+  # With LINUX_GPG_KEY the key must be the family's release key, committed as
+  # packaging/linux/signing-key.asc. A tag without the secret fails; a dry run without it signs with a
+  # key made for the run, so the step is still exercised.
   sign-linux:
     name: Sign Linux packages
     needs: build
@@ -346,14 +353,9 @@ jobs:
           LINUX_GPG_PASSPHRASE: ${{ secrets.LINUX_GPG_PASSPHRASE }}
         run: |
           set -euo pipefail
-          committed=packaging/linux/signing-key.asc
           if [ -n "$LINUX_GPG_KEY" ]; then
             export EXAMPLEAPP_GPG_KEY="$LINUX_GPG_KEY" EXAMPLEAPP_GPG_PASSPHRASE="$LINUX_GPG_PASSPHRASE"
-            if [ -f "$committed" ]; then
-              export EXAMPLEAPP_GPG_EXPECTED_KEY="$committed"
-            elif [ "$GITHUB_REF_TYPE" = tag ]; then
-              echo "::warning title=No committed signing key::$committed does not exist, so LINUX_GPG_KEY is not checked against it. Commit the key's public half (docs/release.md)."
-            fi
+            export EXAMPLEAPP_GPG_EXPECTED_KEY=packaging/linux/signing-key.asc
           elif [ "$GITHUB_REF_TYPE" = tag ]; then
             echo "::error title=Linux signing key missing::LINUX_GPG_KEY is not set; refusing to release unsigned Linux packages"
             exit 1
@@ -400,7 +402,8 @@ jobs:
 
   # GitHub releases are immutable: a file missing at publish time can never be added. So every
   # expected download is checked here, on a dry run too, before anything is published. When you add
-  # or drop a format, change this list (and jreleaser.yml's globs).
+  # or drop a format, change this list, jreleaser.yml's globs and the attestation's subject-path (a
+  # test keeps those two equal).
   check-assets:
     name: Release-asset check
     needs: [preflight, sign-linux]
@@ -459,14 +462,15 @@ jobs:
           if [ "$GITHUB_REF_TYPE" = tag ]; then
             bash scripts/release-notes.sh "$VERSION" out/release-notes.md
           else
-            bash scripts/release-notes.sh "${VERSION%-SNAPSHOT}" out/release-notes.md --allow-missing
+            bash scripts/release-notes.sh "$VERSION" out/release-notes.md --allow-missing
           fi
           cat out/release-notes.md >> "$GITHUB_STEP_SUMMARY"
 
+  # On a tag, publishes. On a dry run, attests (which is how that step is tested before a tag; the
+  # statements name the branch, not a tag) and runs JReleaser with --dry-run, which publishes nothing.
   publish:
     name: Publish
     needs: [preflight, check-assets]
-    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # The only job that publishes: the release, and the provenance attestations (OIDC + attestations).
@@ -498,24 +502,46 @@ jobs:
           java-version: '25'
 
       - name: Release notes
-        run: bash scripts/release-notes.sh "$VERSION" out/release-notes.md
+        shell: bash
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            bash scripts/release-notes.sh "$VERSION" out/release-notes.md
+          else
+            bash scripts/release-notes.sh "$VERSION" out/release-notes.md --allow-missing
+          fi
 
       # A signed statement that each download was built by this workflow from this commit:
-      #   gh attestation verify <file> --repo adriandeleon/ExampleApp
+      #   gh attestation verify <file> --repo adriandeleon/ExampleApp --source-ref refs/tags/vX.Y.Z
+      # The patterns are exactly what jreleaser.yml attaches (the two distributions' artifacts and
+      # `files.globs`); ReleaseSupplyChainTest keeps the two lists equal. Before JReleaser, so a
+      # release never publishes a download without one.
       - name: Attest build provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: 'artifacts/*'
+          subject-path: |
+            artifacts/ExampleApp-*-macos-arm64.dmg
+            artifacts/ExampleApp-*-windows-x64.msi
+            artifacts/*-macos-x64.dmg
+            artifacts/*.deb
+            artifacts/*.rpm
+            artifacts/*.AppImage
+            artifacts/*.tar.gz
+            artifacts/*.jar
+            artifacts/*.asc
 
-      # Without PACKAGES_TOKEN the Homebrew and winget packagers are excluded outright (one clear line)
-      # rather than left to fail; adding the secret turns them on with no other change.
-      - name: Decide which packagers can run
+      # A dry run renders everything, the cask and the winget manifest included, and publishes
+      # nothing. On a tag without PACKAGES_TOKEN the Homebrew and winget packagers are excluded
+      # outright (one clear line) rather than left to fail; adding the secret turns them on.
+      - name: Decide what JReleaser runs
         id: packagers
         shell: bash
         env:
           PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
         run: |
-          if [ -n "$PACKAGES_TOKEN" ]; then
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            echo "args=full-release --dry-run" >> "$GITHUB_OUTPUT"
+            echo "::notice::Dry run: JReleaser publishes nothing."
+          elif [ -n "$PACKAGES_TOKEN" ]; then
             echo "args=full-release" >> "$GITHUB_OUTPUT"
           else
             echo "args=full-release --exclude-packager brew --exclude-packager winget" >> "$GITHUB_OUTPUT"
@@ -531,9 +557,10 @@ jobs:
         env:
           JRELEASER_PROJECT_VERSION: ${{ env.VERSION }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # The tap and the winget fork are other repositories: a PAT with repo scope.
-          JRELEASER_BREW_GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
-          JRELEASER_WINGET_GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+          # The tap and the winget fork are other repositories: a PAT with repo scope. A dry run
+          # without it only reads them, which the workflow's own token can do.
+          JRELEASER_BREW_GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+          JRELEASER_WINGET_GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Upload JReleaser output
         if: always()
@@ -543,6 +570,7 @@ jobs:
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
+            out/jreleaser/package/
           retention-days: 7
           if-no-files-found: ignore
 
@@ -556,7 +584,7 @@ jobs:
   bump:
     name: Reopen master for development
     needs: [preflight, publish]
-    if: github.ref_type == 'tag' && !contains(github.ref_name, '-')
+    if: github.event_name == 'push' && github.ref_type == 'tag' && !contains(github.ref_name, '-')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
