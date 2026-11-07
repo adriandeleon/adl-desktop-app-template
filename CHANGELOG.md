@@ -51,6 +51,8 @@ one-line summary written for users.
   window appears about a third sooner.
 - **Settings Sync can create its repository.** Settings → Sync → Create on GitHub… makes a private
   repository with your GitHub CLI (`gh`) and connects to it.
+- **A `pauta-audit` skill for coding agents.** Ask for "audit against Pauta" and it checks every rule of the
+  app's Pauta edition, writing `docs/pauta-audit.md` with evidence for each rule, failed MUSTs first.
 
 ### Changed
 

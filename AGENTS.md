@@ -6,6 +6,8 @@ The edition's one source is `pauta.version` in `pom.xml`; About, `--version` and
 it through `AppInfo`, and this line, the README's Pauta badge and its "Built to" line (and the template box
 until `rename.sh` removes it) name the same number (`EditionTest` checks). Moving to a newer edition means reading that edition's CHANGELOG for new
 or stronger MUSTs, meeting them, then changing every place together.
+To check the app against its edition, run the `pauta-audit` skill ([`.claude/skills/pauta-audit/`](.claude/skills/pauta-audit/SKILL.md)):
+it writes `docs/pauta-audit.md`, one row per rule with evidence, failed MUSTs first. `/pauta-audit KBD` audits one prefix.
 This file is operational rules, not a changelog: how the app is built lives in [`docs/`](docs/README.md).
 When documentation and code disagree, **the code wins**, and the documentation is fixed in the same change.
 User-facing feature documentation goes to the separate website repository (`exampleapp-website`), never here.
