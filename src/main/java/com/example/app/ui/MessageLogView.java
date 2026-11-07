@@ -62,7 +62,11 @@ public final class MessageLogView {
         list.setPrefHeight(LIST_HEIGHT);
         list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         list.setPlaceholder(new Label(Messages.tr("messagelog.empty")));
-        list.setCellFactory(v -> new EntryCell());
+        // Each row's right-click menu holds its commands; the Menu key and Shift+F10 reach it too.
+        CommandMenu rowMenu =
+                new CommandMenu(services, java.util.Arrays.asList("messageLog.copy", null, "messageLog.clear"));
+        list.setCellFactory(v -> CommandMenu.onRow(new EntryCell(), () -> rowMenu));
+        RowContextMenu.install(list);
         list.setOnKeyPressed(e -> {
             if (e.isShortcutDown() && e.getCode() == KeyCode.C) {
                 services.commands().run("messageLog.copy");

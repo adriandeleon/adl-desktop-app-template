@@ -34,6 +34,13 @@ public final class DebugLogWindow {
         this.services = services;
         text.setEditable(false);
         text.getStyleClass().add("debug-log-text");
+        // A read-only console: its right-click menu is the Debug Log's commands.
+        CommandMenu.onConsole(
+                text,
+                new CommandMenu(
+                        services,
+                        java.util.Arrays.asList(
+                                "debugLog.copy", "debugLog.export", null, "debugLog.refresh", "debugLog.clear")));
 
         // Every button runs a command (KBD-01), so the palette and a key binding reach the same work.
         Button refresh = button("debuglog.refresh", "debugLog.refresh");

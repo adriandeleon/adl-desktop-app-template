@@ -35,6 +35,8 @@ one-line summary written for users.
 - **Every button is a command.** Copy and Clear in the Message Log, the Debug Log's buttons and About's
   Copy details run from the Command Palette and can be bound to keys. The palette lists every command,
   itself included, and Help follows the family's order.
+- **Right-click menus.** Message Log rows and the Debug Log have menus of their commands; the Menu key
+  and Shift+F10 open the selected row's, and a click anywhere else closes it.
 - **Faster start-up from an AOT cache.** Installed builds carry a JDK 25 ahead-of-time cache; the first
   window appears about a third sooner.
 - **Settings Sync can create its repository.** Settings → Sync → Create on GitHub… makes a private

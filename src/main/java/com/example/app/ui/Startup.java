@@ -69,6 +69,8 @@ public final class Startup {
         MainWindow window = new MainWindow(stage, services, !cli.noSession());
         DebugLog.onUncaught(error -> services.echoText(
                 Messages.tr("status.uncaughtError", String.valueOf(error)), MessageLog.Severity.ERROR));
+        // A press anywhere outside a right-click menu closes it, in every window (MENU-06/07).
+        ContextMenuDismissal.install();
         window.show();
         LOG.info(AppInfo.NAME + " " + AppInfo.VERSION + " started, config " + AppInfo.tildeHome(dir.toString()));
 
