@@ -30,6 +30,22 @@ class AppInfoTest {
     }
 
     @Test
+    void theEnvironmentNamesThePautaEditionRightAfterTheCommit() {
+        String env = AppInfo.environment(Path.of("/tmp/x"));
+        assertTrue(env.startsWith(AppInfo.versionText() + "\n"));
+        String[] lines = env.split("\n");
+        assertTrue(lines[1].startsWith("Commit "));
+        assertEquals("Pauta: " + AppInfo.PAUTA_EDITION, lines[2]);
+    }
+
+    @Test
+    void thePautaLinkIsTheEditionsOwnPageNeverLatest() {
+        assertEquals("https://pauta-project.dev/" + AppInfo.PAUTA_EDITION + "/", AppInfo.pautaUrl());
+        assertFalse(AppInfo.pautaUrl().contains("latest"));
+        assertFalse(AppInfo.PAUTA_EDITION.startsWith("${"));
+    }
+
+    @Test
     void macCheckFollowsTheOsName() {
         assertEquals(System.getProperty("os.name").toLowerCase().startsWith("mac"), AppInfo.isMac());
     }

@@ -34,6 +34,12 @@ public final class AppInfo {
     public static final String BUILD_TIME = load("build.time", "");
     public static final String COMMIT = load("build.commit", "unknown");
 
+    /**
+     * The Pauta edition this app implements: {@code pauta.version} in {@code pom.xml}, filtered into
+     * {@code build-info.properties} like the version. About links to it and the environment block names it.
+     */
+    public static final String PAUTA_EDITION = load("pauta.version", "unknown");
+
     private AppInfo() {}
 
     /** Falls back when the resource was not filtered (classes run straight from an IDE build). */
@@ -55,13 +61,28 @@ public final class AppInfo {
     }
 
     /**
-     * The environment block: version and build, commit, Java, JavaFX, OS and config folder, with the
+     * The edition's own page, which never changes: {@code https://pauta-project.dev/<edition>/}, never
+     * {@code latest/}, which moves on to newer editions.
+     */
+    public static String pautaUrl() {
+        return "https://pauta-project.dev/" + PAUTA_EDITION + "/";
+    }
+
+    /**
+     * What {@code --version} prints and the environment block opens with: version and build, commit
+     * and the Pauta edition.
+     */
+    public static String versionText() {
+        String build = BUILD_TIME.isEmpty() ? "" : " (Built " + BUILD_TIME + ")";
+        return NAME + " " + VERSION + build + "\n" + "Commit " + COMMIT + "\n" + "Pauta: " + PAUTA_EDITION;
+    }
+
+    /**
+     * The environment block: {@link #versionText}, then Java, JavaFX, OS and config folder, with the
      * home folder shown as {@code ~}. Plain English on purpose: it goes into bug reports.
      */
     public static String environment(Path configDir) {
-        String build = BUILD_TIME.isEmpty() ? "" : " (Built " + BUILD_TIME + ")";
-        return NAME + " " + VERSION + build + "\n"
-                + "Commit " + COMMIT + "\n"
+        return versionText() + "\n"
                 + "Java: " + System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ")\n"
                 + "JavaFX: " + System.getProperty("javafx.runtime.version", "not started") + "\n"
                 + "OS: " + System.getProperty("os.name") + " " + System.getProperty("os.version") + " ("

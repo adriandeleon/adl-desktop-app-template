@@ -28,6 +28,10 @@
              filtered into a resource directly. -->
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm 'UTC'</maven.build.timestamp.format>
         <build.timestamp>${maven.build.timestamp}</build.timestamp>
+        <!-- The Pauta edition this app implements (ABOUT-08): the one source for About, the
+             environment block and the version flag. The README's badge and "Built to" line name the same
+             number (EditionTest checks). -->
+        <pauta.version>2.0.0</pauta.version>
 
         <!-- A floor too: JavaFX 27 brings the Headless glass platform the FX tests run on. -->
         <javafx.version>27.0.1</javafx.version>

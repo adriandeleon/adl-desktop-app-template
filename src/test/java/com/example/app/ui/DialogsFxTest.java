@@ -10,6 +10,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 
+import com.example.app.AppInfo;
 import com.example.app.report.Redactor;
 import com.example.app.update.ReleaseInfo;
 import com.example.app.update.UpdateService;
@@ -93,6 +94,8 @@ class DialogsFxTest {
             if (!((Hyperlink) n).getText().equals("Check now")) ((Hyperlink) n).fire();
         }));
         assertTrue(host.opened.stream().anyMatch(u -> u.endsWith("settings.json")));
+        // ABOUT-05/06: "Built to Pauta <edition>" opens the edition's own page.
+        assertTrue(host.opened.contains("https://pauta-project.dev/" + AppInfo.PAUTA_EDITION + "/"));
         run(() -> about.dialog().close());
     }
 

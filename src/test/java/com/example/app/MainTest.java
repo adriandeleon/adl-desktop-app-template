@@ -33,7 +33,8 @@ class MainTest {
         assertTrue(out.toString(StandardCharsets.UTF_8).contains("--config-dir"));
         out.reset();
         assertEquals(0, run("--version"));
-        assertTrue(out.toString(StandardCharsets.UTF_8).startsWith(AppInfo.NAME + " " + AppInfo.VERSION));
+        // ABOUT-02: --version prints the text the About environment block opens with.
+        assertEquals(AppInfo.versionText(), out.toString(StandardCharsets.UTF_8).strip());
     }
 
     @Test

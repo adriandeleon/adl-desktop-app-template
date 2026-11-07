@@ -1,9 +1,10 @@
 # ExampleApp: rules for coding agents
 
 ExampleApp is a JavaFX desktop app: JDK 25+, JavaFX 27+, Maven, one JPMS module (`com.example.app`).
-It follows [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [1.1.0](https://github.com/adriandeleon/adl-desktop-apps-guidelines/blob/v1.1.0/CHANGELOG.md).
-The edition is named in this line, the README's Pauta badge and its "Built to" line (and in the template
-box until `rename.sh` removes it). Moving to a newer edition means reading that edition's CHANGELOG for new
+It follows [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [2.0.0](https://pauta-project.dev/2.0.0/).
+The edition's one source is `pauta.version` in `pom.xml`; About, `--version` and the environment block read
+it through `AppInfo`, and this line, the README's Pauta badge and its "Built to" line (and the template box
+until `rename.sh` removes it) name the same number (`EditionTest` checks). Moving to a newer edition means reading that edition's CHANGELOG for new
 or stronger MUSTs, meeting them, then changing every place together.
 This file is operational rules, not a changelog: how the app is built lives in [`docs/`](docs/README.md).
 

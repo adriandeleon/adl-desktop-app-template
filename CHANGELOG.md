@@ -26,6 +26,8 @@ one-line summary written for users.
 - **Menus in the title bar.** Where the system allows it, the window draws its own title bar with the
   menus and the title in it (Settings → Appearance turns it off; macOS keeps the screen menu bar).
 - **Menus show each command's key binding,** in the active keymap, Emacs sequences included.
+- **About names the Pauta edition the app is built to.** A *Built to Pauta 2.0.0* link opens that
+  edition's rules, and *Copy details* and `--version` carry a `Pauta:` line.
 - **Faster start-up from an AOT cache.** Installed builds carry a JDK 25 ahead-of-time cache; the first
   window appears about a third sooner.
 - **Settings Sync can create its repository.** Settings → Sync → Create on GitHub… makes a private

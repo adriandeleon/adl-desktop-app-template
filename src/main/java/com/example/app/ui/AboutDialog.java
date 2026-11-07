@@ -58,6 +58,7 @@ public final class AboutDialog {
                 link(Messages.tr("about.license"), AppInfo.LICENSE_URL),
                 link(Messages.tr("about.homepage"), AppInfo.HOMEPAGE),
                 link(Messages.tr("about.releases"), AppInfo.RELEASES_PAGE),
+                link(Messages.tr("about.pauta", AppInfo.PAUTA_EDITION), AppInfo.pautaUrl()),
                 link(
                         Messages.tr("about.settingsFile", settingsFile),
                         services.store().file().toUri().toString()));
