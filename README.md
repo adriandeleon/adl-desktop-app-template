@@ -50,6 +50,9 @@ Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), 
 
 ## Highlights
 
+- **The same app on Windows, macOS and Linux.** One codebase gives you the same window, commands,
+  settings and keymaps on every system, with `Ctrl` or `Cmd` where each expects it and a native
+  installer for each.
 - **Keyboard first.** A Command Palette (`Ctrl/Cmd+Shift+P`, or `M-x` in the Emacs keymap) finds and
   runs every command. CUA and Emacs keymaps, with your own bindings on top.
 - **Settings that apply as you change them.** A searchable Settings window, a palette command for
