@@ -2,21 +2,36 @@
 
 ExampleApp is a JavaFX desktop app: JDK 25+, JavaFX 27+, Maven, one JPMS module (`com.example.app`).
 It follows [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [4.1.0](https://pauta-project.dev/4.1.0/).
+This file is operational rules, not a changelog: how the app is built lives in [`docs/`](docs/README.md).
+When documentation and code disagree, **the code wins**, and the documentation is fixed in the same change.
+User-facing feature documentation goes to the separate website repository (`exampleapp-website`), never here.
+
+## Pauta
+
+This app is built to Pauta 4.1.0. Its rules: https://pauta-project.dev/4.1.0/llms.txt
+(every rule in one file: https://pauta-project.dev/4.1.0/llms-full.txt).
+
+- Before building a feature, read the rules on its page and copy from the code each rule's Reference names.
+- Cite a rule by its ID and edition: "KBD-07 (Pauta 4.1.0)".
+- Read the numbered edition, never latest/. Moving to a newer edition is its own change: pauta.version in
+  pom.xml, this file and the README change together.
+
 The edition's one source is `pauta.version` in `pom.xml`; About, `--version` and the environment block read
-it through `AppInfo`, and this line, the README's Pauta badge and its "Built to" line (and the template box
-until `rename.sh` removes it) name the same number (`EditionTest` checks).
+it through `AppInfo`, and the first lines of this file, the README's Pauta badge and its "Built to" line (and
+the template box until `rename.sh` removes it) name the same number (`EditionTest` checks).
 Every rule the app does not meet is an exception in `src/main/resources/com/example/app/pauta.json`:
 `not-applicable` with a reason, `deviation` (SHOULDs only) with a decision record in `docs/decisions/`, or
 `pending` with an issue. `PautaConformance` computes Complete, Core or Partial from it; About and the Pauta
 window show it, and `PautaConformanceTest` holds the file to `src/test/resources/pauta-rules.json` (the
 edition's `rules.json`) and the README's badge and line to the computed conformance. Meeting a rule removes
-its entry in the same change. Moving to a newer edition is one change: replace `pauta-rules.json`, audit
-again, update `pauta.json`, then `pauta.version`, the README and this file.
+its entry in the same change. Moving to a newer edition: replace `pauta-rules.json`, audit again, update
+`pauta.json`, then `pauta.version`, the README and this file.
+
 To check the app against its edition, run the `pauta-audit` skill ([`.claude/skills/pauta-audit/`](.claude/skills/pauta-audit/SKILL.md)):
-it writes `docs/pauta-audit.md`, one row per rule with evidence, failed MUSTs first. `/pauta-audit KBD` audits one prefix.
-This file is operational rules, not a changelog: how the app is built lives in [`docs/`](docs/README.md).
-When documentation and code disagree, **the code wins**, and the documentation is fixed in the same change.
-User-facing feature documentation goes to the separate website repository (`exampleapp-website`), never here.
+it writes `docs/pauta-audit.json` (to the edition's `audit.schema.json`) and `docs/pauta-audit.md`, a status
+and evidence for each rule, failed MUSTs first. `/pauta-audit KBD` audits one prefix. The skill is Pauta's,
+not this app's: each edition from 4.3.1 on serves it at `https://pauta-project.dev/<edition>/skills/pauta-audit/SKILL.md`.
+Update it by replacing it with that copy, never by editing it here.
 
 ## Essential commands
 

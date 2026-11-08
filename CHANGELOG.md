@@ -56,7 +56,12 @@ one-line summary written for users.
 - **Settings Sync can create its repository.** Settings → Sync → Create on GitHub… makes a private
   repository with your GitHub CLI (`gh`) and connects to it.
 - **A `pauta-audit` skill for coding agents.** Ask for "audit against Pauta" and it checks every rule of the
-  app's Pauta edition, writing `docs/pauta-audit.md` with evidence for each rule, failed MUSTs first.
+  app's Pauta edition, writing `docs/pauta-audit.json` and `docs/pauta-audit.md` with a status (pass, fail,
+  manual, pending, deviation, not-applicable, app-only or limited) and evidence for each rule, failed MUSTs
+  first. The skill is the copy Pauta 4.3.1 serves, word for word.
+- **`AGENTS.md` points coding agents at the app's own Pauta edition.** A Pauta section gives the edition's
+  `llms.txt` and `llms-full.txt`, says to cite rules as "KBD-07 (Pauta 4.1.0)" and to read the numbered
+  edition, never `latest/`.
 
 ### Changed
 
