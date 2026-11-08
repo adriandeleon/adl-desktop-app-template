@@ -485,6 +485,9 @@ public final class MainWindow {
         }
         if (ticked.isEmpty()) return;
         Background.run(() -> {
+            // A save still on its way to disk would land after the import and undo it: wait for it first,
+            // as Export does. Off the FX thread (PERF-01).
+            services.store().flush();
             try {
                 int count = ConfigImport.apply(scan, dir, ticked);
                 ConfigStore.Loaded loaded = services.store().read(); // the file work, here

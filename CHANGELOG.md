@@ -74,6 +74,8 @@ one-line summary written for users.
 
 ### Fixed
 
+- **Import Configuration is no longer undone by a save in flight.** A setting changed just before an
+  import could be written after it and put the old values back; the import now waits for it.
 - **Closing the window quits the way File → Quit does,** closing Settings, the Debug Log and any dialog
   first and saving the window's size and place.
 - **The session log keeps its newest lines.** When it reaches 8 MB it starts over with a note and the

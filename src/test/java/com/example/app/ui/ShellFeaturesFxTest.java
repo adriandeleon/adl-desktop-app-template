@@ -21,8 +21,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import static com.example.app.ui.FxTestSupport.call;
@@ -204,17 +202,29 @@ class ShellFeaturesFxTest {
     }
 
     @Test
-    @DisabledOnOs(OS.WINDOWS)
     void aCreatedRepositoryIsConnectedAndSynced(@TempDir Path other) throws Exception {
-        // An address on this machine with nothing listening: the first sync fails fast, offline.
-        Path gh = Files.writeString(other.resolve("gh"), """
-                #!/bin/sh
-                case "$1 $2" in
-                  "repo create") echo "https://127.0.0.1/me/exampleapp-sync" ;;
-                esac
-                exit 0
-                """);
-        Files.setPosixFilePermissions(gh, PosixFilePermissions.fromString("rwxr-xr-x"));
+        // An address on this machine with nothing listening: the first sync fails fast, offline. The fake
+        // gh is a shell script, or on Windows a batch file.
+        Path gh;
+        if (System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).startsWith("windows")) {
+            gh = Files.writeString(
+                    other.resolve("gh.cmd"),
+                    String.join(
+                            "\r\n",
+                            "@echo off",
+                            "if \"%~1 %~2\"==\"repo create\" echo.https://127.0.0.1/me/exampleapp-sync",
+                            "exit /b 0",
+                            ""));
+        } else {
+            gh = Files.writeString(other.resolve("gh"), """
+                    #!/bin/sh
+                    case "$1 $2" in
+                      "repo create") echo "https://127.0.0.1/me/exampleapp-sync" ;;
+                    esac
+                    exit 0
+                    """);
+            Files.setPosixFilePermissions(gh, PosixFilePermissions.fromString("rwxr-xr-x"));
+        }
         AppServices second = new AppServices(
                 ConfigStore.open(other.resolve("config")),
                 host,

@@ -25,7 +25,8 @@
 - **A test writes only inside its temp folders.** The suite sets `exampleapp.configDir` to
   `target/test-config` so nothing defaults to the real home folder.
 - **No real `gh`.** `exampleapp.gh` points "Create on GitHub" at a command that does not exist;
-  `GitHubCliTest` and `ShellFeaturesFxTest` pass a fake `gh` script explicitly (skipped on Windows).
+  `GitHubCliTest` and `ShellFeaturesFxTest` pass a fake `gh` explicitly: a shell script, or a batch
+  file on Windows, so the sync package's floor holds there too.
 - **No network.** `exampleapp.updateCheck=off` stops the automatic check, and `exampleapp.updateUrl`
   points manual checks at a closed local port. `UpdateServiceTest` serves releases from the JDK's own
   HTTP server; `SyncTest` syncs through a local bare Git repository (skipped when git is missing).
