@@ -94,12 +94,21 @@ public final class AppInfo {
     }
 
     /**
-     * What {@code --version} prints and the environment block opens with: version and build, commit
-     * and the Pauta edition.
+     * The app's Pauta conformance page, {@code <website>/docs/v-<version>/pauta/} (PAUTA-13): the edition,
+     * the conformance and every exception, for this version.
+     */
+    public static String pautaDocsUrl() {
+        return docsUrl() + "/pauta/";
+    }
+
+    /**
+     * What {@code --version} prints and the environment block opens with: version and build, commit,
+     * the Pauta edition and the conformance (ABOUT-05, ABOUT-09).
      */
     public static String versionText() {
         String build = BUILD_TIME.isEmpty() ? "" : " (Built " + BUILD_TIME + ")";
-        return NAME + " " + VERSION + build + "\n" + "Commit " + COMMIT + "\n" + "Pauta: " + PAUTA_EDITION;
+        return NAME + " " + VERSION + build + "\n" + "Commit " + COMMIT + "\n" + "Pauta: " + PAUTA_EDITION + "\n"
+                + PautaConformance.environmentLine(PautaConformance.exceptions());
     }
 
     /**

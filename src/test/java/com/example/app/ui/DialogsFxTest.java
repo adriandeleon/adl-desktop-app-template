@@ -2,6 +2,7 @@ package com.example.app.ui;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javafx.scene.Node;
@@ -9,11 +10,18 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import com.example.app.AppInfo;
+import com.example.app.PautaConformance;
+import com.example.app.PautaConformance.Conformance;
+import com.example.app.PautaConformance.Entry;
+import com.example.app.PautaConformance.Kind;
 import com.example.app.report.Redactor;
 import com.example.app.update.ReleaseInfo;
 import com.example.app.update.UpdateService;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** About, Report a Problem and the Debug Log window. */
+/** About, the Pauta window, Report a Problem and the Debug Log window. */
 @Tag("fx")
 class DialogsFxTest {
 
@@ -128,12 +136,122 @@ class DialogsFxTest {
         run(() -> about.copyButton().fire());
         assertEquals("Copied", call(() -> about.copyButton().getText()));
         run(() -> about.dialog().getDialogPane().lookupAll(".hyperlink").forEach(n -> {
-            if (!((Hyperlink) n).getText().equals("Check now")) ((Hyperlink) n).fire();
+            String link = ((Hyperlink) n).getText();
+            if (!link.equals("Check now") && !link.startsWith("Pauta conformance")) ((Hyperlink) n).fire();
         }));
         assertTrue(host.opened.stream().anyMatch(u -> u.endsWith("settings.json")));
-        // ABOUT-05/06: "Built to Pauta <edition>" opens the edition's own page.
+        // ABOUT-05/06: the edition's link ("Built to", or at Partial "Working toward") opens its own page.
         assertTrue(host.opened.contains("https://pauta-project.dev/" + AppInfo.PAUTA_EDITION + "/"));
         run(() -> about.dialog().close());
+    }
+
+    private static Entry entry(String rule, String level, Kind kind, @Nullable String link) {
+        return new Entry(
+                rule, level, "https://pauta-project.dev/4.1.0/x/#" + rule.toLowerCase(), kind, rule + " reason.", link);
+    }
+
+    private static @Nullable Stage pautaStage() {
+        for (Window window : Window.getWindows()) {
+            if (window instanceof Stage stage && "Pauta Conformance".equals(stage.getTitle())) return stage;
+        }
+        return null;
+    }
+
+    @Test
+    void aboutNamesTheConformanceAndItsLinkOpensThePautaWindow() throws Exception {
+        assertEquals("about.pautaWorkingToward", AboutDialog.editionKey(Conformance.PARTIAL));
+        assertEquals("about.pauta", AboutDialog.editionKey(Conformance.CORE));
+        assertEquals("about.pauta", AboutDialog.editionKey(Conformance.COMPLETE));
+
+        AboutDialog about = call(() -> new AboutDialog(services, app.window().stage()));
+        run(about::show);
+        Conformance conformance = PautaConformance.conformance();
+        String all = call(() -> text(about.dialog().getDialogPane()));
+        String edition = (conformance == Conformance.PARTIAL ? "Working toward Pauta " : "Built to Pauta ")
+                + AppInfo.PAUTA_EDITION;
+        assertTrue(all.contains(edition + "|"), all);
+        assertTrue(all.contains("Pauta conformance: " + conformance.english() + "|"), all);
+        assertTrue(all.contains(PautaConformance.environmentLine(PautaConformance.exceptions())), "environment line");
+
+        run(() -> about.dialog().getDialogPane().lookupAll(".hyperlink").forEach(n -> {
+            if (((Hyperlink) n).getText().startsWith("Pauta conformance")) ((Hyperlink) n).fire();
+        }));
+        Stage pauta = call(DialogsFxTest::pautaStage);
+        assertNotNull(pauta, "the conformance link opens the Pauta window");
+        run(pauta::close);
+        run(() -> about.dialog().close());
+    }
+
+    @Test
+    void thePautaWindowListsEveryExceptionPendingFirst() throws Exception {
+        List<Entry> list = List.of(
+                entry("TEST-01", "MUST", Kind.NOT_APPLICABLE, null),
+                entry("TEST-02", "SHOULD", Kind.PENDING, "https://github.com/a/b/issues/5"),
+                entry(
+                        "TEST-03",
+                        "SHOULD",
+                        Kind.DEVIATION,
+                        "https://github.com/a/b/blob/master/docs/decisions/0003-x.md"),
+                entry("TEST-04", "MUST", Kind.PENDING, "https://github.com/a/b/issues/7"));
+        PautaWindow window = call(() -> new PautaWindow(services, app.window().stage(), list));
+        run(window::show);
+        String all = call(() -> text(window.dialog().getDialogPane()));
+        assertTrue(all.contains("Pauta " + AppInfo.PAUTA_EDITION + "|Partial|"), all);
+        assertTrue(all.contains("ExampleApp does not meet every MUST yet: 1 is pending.|"), all);
+        assertTrue(all.contains("2 pending · 1 deviation · 1 not applicable|"), all);
+
+        String rows = call(() -> text(window.list()));
+        assertTrue(rows.startsWith("Pending|MUST|SHOULD|Deviation|SHOULD|Not applicable|MUST|"), rows);
+        assertTrue(rows.contains("TEST-04|#7|TEST-02|#5|TEST-03|Decision 0003|TEST-01|"), rows);
+
+        run(() -> window.list().lookupAll(".hyperlink").forEach(n -> ((Hyperlink) n).fire()));
+        assertTrue(host.opened.contains("https://pauta-project.dev/4.1.0/x/#test-04"));
+        assertTrue(host.opened.contains("https://github.com/a/b/issues/7"));
+        run(() -> window.dialog().getDialogPane().lookupAll(".hyperlink").forEach(n -> {
+            String link = ((Hyperlink) n).getText();
+            if (link.equals("Pauta " + AppInfo.PAUTA_EDITION + " rules") || link.equals("Conformance in the docs"))
+                ((Hyperlink) n).fire();
+        }));
+        assertTrue(host.opened.contains(AppInfo.pautaUrl()), "PWIN-04: the edition's own page");
+        assertTrue(host.opened.contains(AppInfo.pautaDocsUrl()), "PWIN-07: the docs page");
+
+        run(() -> window.copyButton().fire());
+        assertEquals("Copied", call(() -> window.copyButton().getText()));
+        assertTrue(window.dialog().isShowing(), "Copy as text leaves the window open");
+        run(() -> window.dialog().close());
+
+        String markdown = PautaWindow.markdown(list);
+        assertTrue(markdown.startsWith("# Pauta " + AppInfo.PAUTA_EDITION + ": Partial\n"), markdown);
+        assertTrue(
+                markdown.contains("\n## Pending\n\n- [TEST-04](https://pauta-project.dev/4.1.0/x/#test-04) MUST: "
+                        + "TEST-04 reason. [#7](https://github.com/a/b/issues/7)\n"),
+                markdown);
+        assertTrue(
+                markdown.contains("- [TEST-03](https://pauta-project.dev/4.1.0/x/#test-03) SHOULD: TEST-03 reason. "
+                        + "[Decision 0003](https://github.com/a/b/blob/master/docs/decisions/0003-x.md)\n"),
+                markdown);
+        assertTrue(markdown.contains("\n## Not applicable\n\n- [TEST-01]"), markdown);
+    }
+
+    @Test
+    void withNoExceptionsThePautaWindowSaysSoInOneLine() throws Exception {
+        PautaWindow window = call(() -> new PautaWindow(services, null, List.of()));
+        run(window::show);
+        String none = "No exceptions: ExampleApp meets every MUST and SHOULD of Pauta " + AppInfo.PAUTA_EDITION + ".";
+        assertEquals(none + "|", call(() -> text(window.list())));
+        assertTrue(call(() -> text(window.dialog().getDialogPane())).contains("|Complete|"));
+        run(() -> window.copyButton().fire());
+        assertEquals("Copied", call(() -> window.copyButton().getText()));
+        run(() -> window.dialog().close());
+        assertTrue(PautaWindow.markdown(List.of()).contains(none));
+        assertEquals("", PautaWindow.counts(List.of()));
+        assertEquals(
+                "ExampleApp meets every MUST of this edition; 2 SHOULDs are pending.",
+                PautaWindow.meaning(
+                        Conformance.CORE,
+                        List.of(
+                                entry("TEST-05", "SHOULD", Kind.PENDING, "l"),
+                                entry("TEST-06", "SHOULD", Kind.PENDING, "l"))));
     }
 
     @Test

@@ -17,13 +17,16 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 
 import com.example.app.AppInfo;
+import com.example.app.PautaConformance;
+import com.example.app.PautaConformance.Conformance;
 import com.example.app.i18n.Messages;
 import com.example.app.update.ReleaseInfo;
 import org.jspecify.annotations.Nullable;
 
 /**
- * About, as in the family's About template: identity, update status, copyright, links, the
- * environment block with Copy details, and one Close button that Enter and Esc both press.
+ * About, as in the family's About template: identity, update status, copyright, links (the Pauta
+ * edition and the conformance among them), the environment block with Copy details, and one Close
+ * button that Enter and Esc both press.
  */
 public final class AboutDialog {
 
@@ -51,12 +54,15 @@ public final class AboutDialog {
         copyright.getStyleClass().add("muted");
 
         String settingsFile = AppInfo.tildeHome(services.store().file().toString());
+        // ABOUT-09: the conformance comes from the helper, never higher than it says.
+        Conformance conformance = PautaConformance.conformance();
         VBox links = new VBox(
                 2,
                 link(Messages.tr("about.license"), "help.license"),
                 link(Messages.tr("about.homepage"), "help.homepage"),
                 link(Messages.tr("about.releases"), "help.releases"),
-                link(Messages.tr("about.pauta", AppInfo.PAUTA_EDITION), "help.pauta"),
+                link(Messages.tr(editionKey(conformance), AppInfo.PAUTA_EDITION), "help.pautaRules"),
+                link(Messages.tr("about.pautaConformance", PautaWindow.conformanceName(conformance)), "help.pauta"),
                 link(Messages.tr("about.settingsFile", settingsFile), "config.openSettingsFile"));
 
         Label environment = new Label(AppInfo.environment(services.store().dir()));
@@ -93,6 +99,14 @@ public final class AboutDialog {
             // no icon: the name stands alone
         }
         return new Label();
+    }
+
+    /**
+     * The edition's link: "Built to Pauta 4.1.0", or at Partial "Working toward Pauta 4.1.0", since the
+     * app does not meet that edition yet (ABOUT-07, ABOUT-09).
+     */
+    static String editionKey(Conformance conformance) {
+        return conformance == Conformance.PARTIAL ? "about.pautaWorkingToward" : "about.pauta";
     }
 
     /** A link that runs a command (KBD-01): the palette and a key binding reach the same page. */

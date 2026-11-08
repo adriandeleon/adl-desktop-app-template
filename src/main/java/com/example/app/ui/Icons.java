@@ -66,6 +66,9 @@ public final class Icons {
     /** The Message Log: a speech bubble. */
     public static final String MESSAGES = "M2.5 3h11v7.5H7.2L4.5 13v-2.5h-2zM5 5.8h6M5 7.9h4";
 
+    /** The Pauta window: a ruled page with a tick, the rules and how the app meets them. */
+    public static final String CONFORMANCE = "M3.5 2.5h9v11h-9zM5.3 6.2l1.1 1.1 2.1-2.3M5.5 9.5h5M5.5 11.5h3.5";
+
     /**
      * The glyph of each command that has one. A command with no fitting glyph is left out and draws
      * none: a near miss teaches the wrong meaning.
@@ -80,6 +83,7 @@ public final class Icons {
             Map.entry("config.export", EXPORT),
             Map.entry("config.import", IMPORT),
             Map.entry("help.about", INFO),
+            Map.entry("help.pauta", CONFORMANCE),
             Map.entry("help.debugLog", LOG),
             Map.entry("view.messageLog", MESSAGES));
 

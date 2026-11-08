@@ -36,6 +36,15 @@ class AppInfoTest {
         String[] lines = env.split("\n");
         assertTrue(lines[1].startsWith("Commit "));
         assertEquals("Pauta: " + AppInfo.PAUTA_EDITION, lines[2]);
+        // ABOUT-09: the conformance, from the helper, right after the edition.
+        assertEquals(PautaConformance.environmentLine(PautaConformance.exceptions()), lines[3]);
+        assertTrue(lines[3].startsWith(
+                "Pauta conformance: " + PautaConformance.conformance().english() + " ("));
+    }
+
+    @Test
+    void theConformancePageIsInThisVersionsDocs() {
+        assertEquals(AppInfo.docsUrl() + "/pauta/", AppInfo.pautaDocsUrl());
     }
 
     @Test

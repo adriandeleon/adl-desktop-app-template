@@ -245,6 +245,10 @@ class StyleContrastTest {
         expected.put(".about-update-current", "-state-green");
         expected.put(".about-update-failed", "-state-red");
         expected.put(".text-field.invalid", "-state-red-emphasis");
+        expected.put(".pauta-conformance.complete", "-state-green");
+        expected.put(".pauta-conformance.core", "-state-accent");
+        expected.put(".pauta-conformance.partial", "-state-amber");
+        expected.put(".pauta-rule", "-state-accent");
         expected.forEach((selector, token) -> {
             String body = body(app, selector);
             assertTrue(body.contains(token + ";"), selector + " should use " + token + ": " + body);

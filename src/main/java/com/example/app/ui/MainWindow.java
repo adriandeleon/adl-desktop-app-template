@@ -24,6 +24,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import com.example.app.AppInfo;
+import com.example.app.PautaConformance;
 import com.example.app.command.Command;
 import com.example.app.command.KeyStroke;
 import com.example.app.command.Keymap;
@@ -422,6 +423,17 @@ public final class MainWindow {
 
     void openAbout() {
         new AboutDialog(services, stage).show();
+    }
+
+    /** The Pauta window: the edition, the conformance and every exception in {@code pauta.json}. */
+    void openPauta() {
+        new PautaWindow(services, stage).show();
+    }
+
+    /** The Pauta window's Copy as text: the conformance and the exceptions, as Markdown. */
+    void copyPauta() {
+        Clipboards.copy(PautaWindow.markdown(PautaConformance.exceptions()));
+        services.echo("status.pautaCopied");
     }
 
     void openDebugLog() {

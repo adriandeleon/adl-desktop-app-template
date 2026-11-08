@@ -5,7 +5,7 @@ class with a unit test; the toolkit code around it stays thin.**
 
 | Package | What | Key classes |
 |---|---|---|
-| `com.example.app` | Entry point and identity | `Main` (CLI, hand-off, then `Application.launch`), `App`, `AppInfo` |
+| `com.example.app` | Entry point and identity | `Main` (CLI, hand-off, then `Application.launch`), `App`, `AppInfo`, `PautaConformance` (the exceptions in `pauta.json` and the conformance computed from them) |
 | `cli` | The command line, pure | `CommandLine` |
 | `config` | Versioned `settings.json`, export/import | `Settings`, `ConfigStore`, `Migrations`, `ConfigDir`, `ConfigExporter`, `ConfigImport` |
 | `command` | Commands and key bindings, pure | `CommandRegistry`, `Command`, `KeyStroke`, `Keymap`, `Keybindings`, `FuzzyMatch` |
@@ -44,7 +44,7 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
 - `KeyDispatcher`: key presses to commands through the active bindings, with `C-x`-style prefixes
   and a which-key hint in the status bar.
 - `SettingsWindow` + `SettingsSearch`: pages, search, live apply.
-- `AboutDialog`, `ReportProblemWindow`, `DebugLogWindow`, `MessageLogView`: the family templates.
+- `AboutDialog`, `PautaWindow`, `ReportProblemWindow`, `DebugLogWindow`, `MessageLogView`: the family templates.
 
 ## How things flow
 

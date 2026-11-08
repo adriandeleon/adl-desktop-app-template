@@ -12,8 +12,9 @@ them separately.
 
 ## Decision
 
-ExampleApp starts from `adriandeleon/adl-desktop-app-template`, which already meets every MUST with a
-small, tested implementation of each, and is renamed with `scripts/rename.sh`.
+ExampleApp starts from `adriandeleon/adl-desktop-app-template`, which meets most of Pauta's MUSTs with a
+small, tested implementation of each and records the rest as exceptions in `pauta.json`, and is renamed
+with `scripts/rename.sh`.
 
 ## Consequences
 

@@ -1,0 +1,904 @@
+{
+  "exceptions": [
+    {
+      "rule": "ABOUT-01",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/templates/about/#about-01",
+      "kind": "pending",
+      "reason": "On macOS, the application menu's About item does not open About yet.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
+    },
+    {
+      "rule": "CLI-05",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/command-line/#cli-05",
+      "kind": "pending",
+      "reason": "Problem reports are redacted, but no test checks the report the command line writes.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
+    },
+    {
+      "rule": "CLI-07",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/command-line/#cli-07",
+      "kind": "pending",
+      "reason": "On macOS, files opened from the Finder are not passed to the app yet.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
+    },
+    {
+      "rule": "DOCS-01",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/documentation/#docs-01",
+      "kind": "pending",
+      "reason": "There is no user guide yet: it belongs on the app's own website.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "DOCS-02",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/documentation/#docs-02",
+      "kind": "pending",
+      "reason": "The user guide's pages under /docs/ do not exist yet.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "DOCS-05",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/documentation/#docs-05",
+      "kind": "pending",
+      "reason": "The website has no What's new page made from the changelog yet.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "DOCS-19",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/documentation/#docs-19",
+      "kind": "pending",
+      "reason": "The README links to a user guide that does not exist yet, and its screenshot is a placeholder.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "MENU-14",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/menus/#menu-14",
+      "kind": "pending",
+      "reason": "Some menu rows have no icon yet.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/22"
+    },
+    {
+      "rule": "MENU-15",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/menus/#menu-15",
+      "kind": "pending",
+      "reason": "Key chords in menus are not drawn in the key color, and no test checks them in right-click menus.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/22"
+    },
+    {
+      "rule": "MENU-16",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/menus/#menu-16",
+      "kind": "pending",
+      "reason": "Right-click menus do not pin their text sizes, so they can draw at a different size from the menu bar.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/22"
+    },
+    {
+      "rule": "PAUTA-13",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/conformance/#pauta-13",
+      "kind": "pending",
+      "reason": "The user guide has no page listing this app's Pauta conformance and exceptions yet.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "PERF-01",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/performance/#perf-01",
+      "kind": "pending",
+      "reason": "Starting and quitting read and write the settings file on the window's thread, and finding in the Debug Log searches there too.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
+    },
+    {
+      "rule": "PERF-03",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/performance/#perf-03",
+      "kind": "pending",
+      "reason": "A configuration import that finishes late can still apply an out-of-date result.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
+    },
+    {
+      "rule": "PERF-08",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/performance/#perf-08",
+      "kind": "pending",
+      "reason": "Finding in the Debug Log searches the whole log again after each pause in typing.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
+    },
+    {
+      "rule": "PERF-15",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/performance/#perf-15",
+      "kind": "pending",
+      "reason": "Settings Sync's first automatic sync starts before the window has drawn.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
+    },
+    {
+      "rule": "REL-19",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/release/#rel-19",
+      "kind": "pending",
+      "reason": "The repository does not yet require the format and test checks to pass before a change is merged.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "REPO-01",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/repository/#repo-01",
+      "kind": "pending",
+      "reason": "The README shows placeholder screenshots until the app has real ones.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "SET-09",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/settings/#set-09",
+      "kind": "pending",
+      "reason": "The files Settings Sync keeps carry no version number, so a later format change could not upgrade them.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
+    },
+    {
+      "rule": "SET-11",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/settings/#set-11",
+      "kind": "pending",
+      "reason": "Out-of-range values in the settings file, such as a window size, are used as they are instead of being corrected.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
+    },
+    {
+      "rule": "SET-15",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/settings/#set-15",
+      "kind": "pending",
+      "reason": "A sync repository address with an access token in it is accepted instead of refused.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
+    },
+    {
+      "rule": "CLI-04",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/command-line/#cli-04",
+      "kind": "pending",
+      "reason": "With --no-session the window still comes back at its last size.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
+    },
+    {
+      "rule": "CLI-06",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/command-line/#cli-06",
+      "kind": "pending",
+      "reason": "Files named on the command line are accepted but not opened.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
+    },
+    {
+      "rule": "CLI-08",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/command-line/#cli-08",
+      "kind": "pending",
+      "reason": "Two copies of the app running at once do not tell each other about it.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
+    },
+    {
+      "rule": "CLI-10",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/command-line/#cli-10",
+      "kind": "pending",
+      "reason": "Tools such as git are looked for in a fixed list of folders instead of your login shell's path.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
+    },
+    {
+      "rule": "DIAG-07",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/diagnostics/#diag-07",
+      "kind": "pending",
+      "reason": "There is no page that checks the outside tools the app uses, such as git and gh.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
+    },
+    {
+      "rule": "DOCS-03",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/documentation/#docs-03",
+      "kind": "pending",
+      "reason": "The website does not serve each version's user guide at its own address yet.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "DOCS-04",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/documentation/#docs-04",
+      "kind": "pending",
+      "reason": "The user guide's command and settings pages are not generated from the app yet.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "DOCS-15",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/documentation/#docs-15",
+      "kind": "pending",
+      "reason": "No test catches a code comment that was pasted over another.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/19"
+    },
+    {
+      "rule": "DOCS-18",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/documentation/#docs-18",
+      "kind": "pending",
+      "reason": "The screenshots are drawn by hand instead of captured from the running app.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "FIND-04",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/find-bar/#find-04",
+      "kind": "pending",
+      "reason": "Find in the Debug Log has no key in the keymaps, and F3 and C-s do not work.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
+    },
+    {
+      "rule": "FIND-05",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/find-bar/#find-05",
+      "kind": "pending",
+      "reason": "Find does not start again from where you were when you change the search, and does not highlight every match.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
+    },
+    {
+      "rule": "FIND-09",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/find-bar/#find-09",
+      "kind": "pending",
+      "reason": "The find field does not use your keymap's text-editing keys.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
+    },
+    {
+      "rule": "ICON-06",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/icons-and-color/#icon-06",
+      "kind": "pending",
+      "reason": "Key chords are not drawn in a color of their own.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
+    },
+    {
+      "rule": "INTL-07",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/i18n/#intl-07",
+      "kind": "pending",
+      "reason": "No test finds a text the code asks for that the catalogs lack.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/17"
+    },
+    {
+      "rule": "INTL-10",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/i18n/#intl-10",
+      "kind": "pending",
+      "reason": "No test checks that numbers such as ports and counts are written without digit grouping in every language.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/17"
+    },
+    {
+      "rule": "KBD-04",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/keyboard/#kbd-04",
+      "kind": "pending",
+      "reason": "A grayed menu row does not say why it is unavailable.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
+    },
+    {
+      "rule": "KBD-06",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/keyboard/#kbd-06",
+      "kind": "pending",
+      "reason": "The Command Palette does not find a command by its id.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
+    },
+    {
+      "rule": "KBD-10",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/keyboard/#kbd-10",
+      "kind": "pending",
+      "reason": "There are no IntelliJ, VS Code or Sublime keymaps.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
+    },
+    {
+      "rule": "KBD-15",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/keyboard/#kbd-15",
+      "kind": "pending",
+      "reason": "Some status bar items can only be used with the mouse.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
+    },
+    {
+      "rule": "KBD-16",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/keyboard/#kbd-16",
+      "kind": "pending",
+      "reason": "No test tabs through each kind of control to check the focus ring.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
+    },
+    {
+      "rule": "MENU-03",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/menus/#menu-03",
+      "kind": "pending",
+      "reason": "No test checks that a menu row's availability follows a change made after the menu was built.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/22"
+    },
+    {
+      "rule": "MENU-12",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/menus/#menu-12",
+      "kind": "pending",
+      "reason": "Rows that clear a log or reset a binding are not marked as destructive.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/22"
+    },
+    {
+      "rule": "MLOG-05",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/message-log/#mlog-05",
+      "kind": "pending",
+      "reason": "Some messages are filed as warnings or errors by a looser test than the guide's.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
+    },
+    {
+      "rule": "PAL-05",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/command-palette/#pal-05",
+      "kind": "pending",
+      "reason": "No test covers an unavailable command at the top of the Command Palette's list.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
+    },
+    {
+      "rule": "PAL-08",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/command-palette/#pal-08",
+      "kind": "pending",
+      "reason": "The Command Palette has no key that opens a command's help.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
+    },
+    {
+      "rule": "PAL-09",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/command-palette/#pal-09",
+      "kind": "pending",
+      "reason": "The Command Palette's key legend does not follow a keymap change while it is open.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
+    },
+    {
+      "rule": "PAUTA-14",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/conformance/#pauta-14",
+      "kind": "pending",
+      "reason": "The conformance page is not generated from the app's own list of exceptions yet.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
+    },
+    {
+      "rule": "PERF-09",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/performance/#perf-09",
+      "kind": "pending",
+      "reason": "The Command Palette builds new text pieces for every row as you type.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
+    },
+    {
+      "rule": "PERF-10",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/performance/#perf-10",
+      "kind": "pending",
+      "reason": "The Command Palette draws each letter of a row as a separate piece.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
+    },
+    {
+      "rule": "PERF-16",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/performance/#perf-16",
+      "kind": "pending",
+      "reason": "The settings file is not read ahead while the window is still starting.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
+    },
+    {
+      "rule": "PERF-17",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/performance/#perf-17",
+      "kind": "pending",
+      "reason": "The stylesheets are not converted to their faster binary form for release builds.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
+    },
+    {
+      "rule": "PERF-19",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/performance/#perf-19",
+      "kind": "pending",
+      "reason": "There is no script that measures how long the app takes to start.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
+    },
+    {
+      "rule": "PERF-20",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/performance/#perf-20",
+      "kind": "pending",
+      "reason": "There is no switch that records what keeps the window busy.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
+    },
+    {
+      "rule": "PLAT-14",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/platform/#plat-14",
+      "kind": "pending",
+      "reason": "The files Settings Sync keeps in the config folder have no version number.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
+    },
+    {
+      "rule": "QOPEN-02",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/quick-open/#qopen-02",
+      "kind": "pending",
+      "reason": "Pickers have no title naming what you are choosing.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
+    },
+    {
+      "rule": "QOPEN-03",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/quick-open/#qopen-03",
+      "kind": "pending",
+      "reason": "A picker's list cannot be reloaded while it is open.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
+    },
+    {
+      "rule": "QOPEN-04",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/quick-open/#qopen-04",
+      "kind": "pending",
+      "reason": "The theme, keymap and language pickers do not open on the current choice.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
+    },
+    {
+      "rule": "QOPEN-06",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/quick-open/#qopen-06",
+      "kind": "pending",
+      "reason": "Pickers use fixed keys instead of your keymap's, and lack Ctrl+Home and Ctrl+End.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
+    },
+    {
+      "rule": "QUAL-07",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/quality/#qual-07",
+      "kind": "pending",
+      "reason": "One test waits a fixed time instead of waiting for what it needs.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/19"
+    },
+    {
+      "rule": "QUAL-08",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/quality/#qual-08",
+      "kind": "pending",
+      "reason": "The test that runs every command does not check that nothing was written to your home folder.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/19"
+    },
+    {
+      "rule": "QUAL-13",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/quality/#qual-13",
+      "kind": "pending",
+      "reason": "No test sets every control in Settings and reads them back after a restart.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/19"
+    },
+    {
+      "rule": "REL-17",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/release/#rel-17",
+      "kind": "pending",
+      "reason": "The Windows installer is not signed yet.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/14"
+    },
+    {
+      "rule": "REL-25",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/release/#rel-25",
+      "kind": "pending",
+      "reason": "The release's publish step downloads its build tools every time instead of caching them.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/14"
+    },
+    {
+      "rule": "SET-08",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/settings/#set-08",
+      "kind": "pending",
+      "reason": "The window's size and position are kept in the settings file instead of a file of their own.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
+    },
+    {
+      "rule": "SET-17",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/settings/#set-17",
+      "kind": "pending",
+      "reason": "Settings Sync carries only key bindings, not your other preferences.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
+    },
+    {
+      "rule": "SET-18",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/settings/#set-18",
+      "kind": "pending",
+      "reason": "Settings Sync does not remember which GitHub account each copy uses.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
+    },
+    {
+      "rule": "SET-19",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/settings/#set-19",
+      "kind": "pending",
+      "reason": "What Settings Sync carries is fixed in the code instead of decided in one place you can test.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
+    },
+    {
+      "rule": "SET-20",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/settings/#set-20",
+      "kind": "pending",
+      "reason": "Settings Sync replaces your key bindings without keeping a copy of the old ones first.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
+    },
+    {
+      "rule": "SYNC-02",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/settings-sync/#sync-02",
+      "kind": "pending",
+      "reason": "A sync repository address with an access token in it is not refused.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
+    },
+    {
+      "rule": "TBAR-07",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-07",
+      "kind": "pending",
+      "reason": "The start page's Command Palette button does not look pressed while the palette is open.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
+    },
+    {
+      "rule": "WELC-02",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/welcome/#welc-02",
+      "kind": "pending",
+      "reason": "The empty window's ways in, other than the Command Palette, do not show their keys.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
+    },
+    {
+      "rule": "WIN-06",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/window-shell/#win-06",
+      "kind": "pending",
+      "reason": "The start page has no recent items and no way to customize it.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
+    },
+    {
+      "rule": "WIN-08",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/window-shell/#win-08",
+      "kind": "pending",
+      "reason": "No test checks that --no-session leaves the last session alone.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
+    },
+    {
+      "rule": "WIN-09",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/window-shell/#win-09",
+      "kind": "pending",
+      "reason": "There are no commands to zoom the window in and out.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
+    },
+    {
+      "rule": "ICON-21",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/icons-and-color/#icon-21",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no buttons that show only an icon."
+    },
+    {
+      "rule": "KBD-17",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/keyboard/#kbd-17",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no buttons that show only an icon."
+    },
+    {
+      "rule": "PAUTA-03",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/conformance/#pauta-03",
+      "kind": "not-applicable",
+      "reason": "ExampleApp is a template: it is never released as an app, so it has no first release."
+    },
+    {
+      "rule": "SET-14",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/settings/#set-14",
+      "kind": "not-applicable",
+      "reason": "ExampleApp never asks for a password or token: Settings Sync uses the credentials git already has."
+    },
+    {
+      "rule": "TABS-01",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-01",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-02",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-02",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-03",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-03",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-04",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-04",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-05",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-05",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-06",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-06",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-13",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-13",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TABS-14",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-14",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TBAR-01",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-01",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no buttons that show only an icon."
+    },
+    {
+      "rule": "TBAR-02",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-02",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no toolbar."
+    },
+    {
+      "rule": "TBAR-03",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-03",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no toolbar."
+    },
+    {
+      "rule": "TBAR-08",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-08",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no toolbar."
+    },
+    {
+      "rule": "TBAR-10",
+      "level": "MUST",
+      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-10",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no toolbar."
+    },
+    {
+      "rule": "CONF-09",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/confirm-dialog/#conf-09",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no action that works on many things at once."
+    },
+    {
+      "rule": "CONF-11",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/confirm-dialog/#conf-11",
+      "kind": "not-applicable",
+      "reason": "ExampleApp offers no riskier way to finish an action that failed."
+    },
+    {
+      "rule": "FIND-11",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/find-bar/#find-11",
+      "kind": "not-applicable",
+      "reason": "ExampleApp's only find bar is over the read-only Debug Log, so it has no replace."
+    },
+    {
+      "rule": "FIND-12",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/find-bar/#find-12",
+      "kind": "not-applicable",
+      "reason": "ExampleApp's only find bar does not search with regular expressions, so nothing can run too long."
+    },
+    {
+      "rule": "ICON-13",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/icons-and-color/#icon-13",
+      "kind": "not-applicable",
+      "reason": "ExampleApp uses no colors beyond its theme's own."
+    },
+    {
+      "rule": "ICON-23",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/icons-and-color/#icon-23",
+      "kind": "not-applicable",
+      "reason": "ExampleApp shows no files, so it has no file icons."
+    },
+    {
+      "rule": "MENU-04",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/menus/#menu-04",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no Simple mode, so it has one set of menus."
+    },
+    {
+      "rule": "QOPEN-12",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/templates/quick-open/#qopen-12",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has one kind of picker, the Command Palette's."
+    },
+    {
+      "rule": "TABS-07",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-07",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-08",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-08",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-09",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-09",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-10",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-10",
+      "kind": "not-applicable",
+      "reason": "ExampleApp opens no files or projects, so its title is its name alone."
+    },
+    {
+      "rule": "TABS-11",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-11",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-12",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-12",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tabs: it shows one view in one window."
+    },
+    {
+      "rule": "TABS-15",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-15",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TABS-16",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-16",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TABS-17",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-17",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TABS-18",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-18",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TABS-19",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-19",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TABS-20",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-20",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TABS-21",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-21",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TABS-22",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-22",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TABS-23",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-23",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool panels."
+    },
+    {
+      "rule": "TBAR-04",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-04",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no toolbar."
+    },
+    {
+      "rule": "TBAR-05",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-05",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no toolbar."
+    },
+    {
+      "rule": "TBAR-12",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-12",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool windows."
+    },
+    {
+      "rule": "TBAR-13",
+      "level": "SHOULD",
+      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-13",
+      "kind": "not-applicable",
+      "reason": "ExampleApp has no tool windows."
+    }
+  ]
+}

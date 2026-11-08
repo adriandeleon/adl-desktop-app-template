@@ -76,6 +76,7 @@ final class AppMenus {
                                 "help.debugLog",
                                 "help.reportProblem",
                                 null,
+                                "help.pauta",
                                 "help.about"));
         services.onKeybindingsChanged(this::refresh);
         refresh();

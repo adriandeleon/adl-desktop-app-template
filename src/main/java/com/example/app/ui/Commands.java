@@ -90,7 +90,11 @@ final class Commands {
         r.register("help.homepage", () -> services.host().openUrl(AppInfo.HOMEPAGE));
         r.register("help.releases", () -> services.host().openUrl(AppInfo.RELEASES_PAGE));
         r.register("help.license", () -> services.host().openUrl(AppInfo.LICENSE_URL));
-        r.register("help.pauta", () -> services.host().openUrl(AppInfo.pautaUrl()));
+        // The Pauta window (PWIN-01) and its links; the edition's own page is About's first Pauta link.
+        r.register("help.pauta", window::openPauta);
+        r.register("help.pautaRules", () -> services.host().openUrl(AppInfo.pautaUrl()));
+        r.register("help.pautaDocs", () -> services.host().openUrl(AppInfo.pautaDocsUrl()));
+        r.register("help.copyPauta", window::copyPauta);
         r.register(
                 "config.openSettingsFile",
                 () -> services.host().openUrl(services.store().file().toUri().toString()));
