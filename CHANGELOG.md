@@ -74,6 +74,8 @@ one-line summary written for users.
 
 ### Fixed
 
+- **The status bar shows the newest message.** A message from background work that came first could
+  arrive after a newer one and stay on screen as the latest; messages now keep the order they were said in.
 - **Import Configuration is no longer undone by a save in flight.** A setting changed just before an
   import could be written after it and put the old values back; the import now waits for it.
 - **Closing the window quits the way File → Quit does,** closing Settings, the Debug Log and any dialog

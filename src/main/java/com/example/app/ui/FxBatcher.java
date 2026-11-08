@@ -41,6 +41,15 @@ final class FxBatcher<T> {
         else TIMER.schedule(() -> Platform.runLater(this::drain), wait, TimeUnit.NANOSECONDS);
     }
 
+    /**
+     * Drains now, on the FX thread: what other threads queued earlier lands before what the FX thread
+     * adds next, so the order stays the order things happened in. A drain already scheduled finds the
+     * queue empty.
+     */
+    void flush() {
+        drain();
+    }
+
     private void drain() {
         lastDrain = System.nanoTime();
         scheduled.set(false); // before polling: an item offered from now on schedules the next drain

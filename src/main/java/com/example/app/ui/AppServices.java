@@ -108,6 +108,7 @@ public final class AppServices {
     /** Shows text in the status bar and the Message Log. Safe from any thread. */
     public void echoText(String text, MessageLog.Severity severity) {
         if (Platform.isFxApplicationThread()) {
+            offThread.flush(); // an earlier message from another thread stays earlier
             messages.add(text, severity, LocalTime.now());
         } else {
             offThread.offer(new MessageLog.Entry(LocalTime.now(), text, severity));
