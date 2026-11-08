@@ -26,8 +26,12 @@ one-line summary written for users.
 - **Menus in the title bar.** Where the system allows it, the window draws its own title bar with the
   menus and the title in it (Settings → Appearance turns it off; macOS keeps the screen menu bar).
 - **Menus show each command's key binding,** in the active keymap, Emacs sequences included.
-- **About names the Pauta edition the app is built to.** A *Built to Pauta 2.0.0* link opens that
-  edition's rules, and *Copy details* and `--version` carry a `Pauta:` line.
+- **About names the Pauta edition and how fully the app conforms to it.** The edition's link opens its
+  rules (*Working toward Pauta 4.1.0* while the conformance is Partial), a *Pauta conformance* link opens
+  the Pauta window, and *Copy details* and `--version` carry `Pauta:` and `Pauta conformance:` lines.
+- **A Pauta window lists every rule the app does not meet.** Help → Pauta Conformance, or the Command
+  Palette: the edition, the conformance (Complete, Core or Partial), and each exception with its reason
+  and its issue, pending first. *Copy as text* copies the list as Markdown.
 - **Import and Reset ask before they overwrite.** Importing a configuration and resetting a key binding
   you set now name what is replaced, and Escape cancels.
 - **Help → Documentation and What's New.** Documentation opens this version's user guide on the

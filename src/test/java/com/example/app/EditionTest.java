@@ -14,7 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The Pauta edition has one source, {@code pauta.version} in {@code pom.xml} (ABOUT-08): the build
  * filters it into {@link AppInfo}, and the README's badge and "Built to" line and {@code AGENTS.md}
- * name the same number, so moving to a new edition changes them together or fails here.
+ * name the same number, so moving to a new edition changes them together or fails here. The
+ * conformance they name, and {@code pauta.json} against the edition's rules, are {@code
+ * PautaConformanceTest}'s.
  */
 class EditionTest {
 
@@ -39,8 +41,8 @@ class EditionTest {
         String edition = pomEdition();
         String page = "https://pauta-project.dev/" + edition + "/";
         String readme = read("README.md");
-        assertTrue(readme.contains("badge/Pauta-" + edition + "-"), "README badge");
-        assertTrue(readme.contains("Built to [Pauta"), "README \"Built to\" line");
+        // The badge and the "Built to" line also name the conformance: PautaConformanceTest holds them.
+        assertTrue(readme.contains("badge/Pauta-" + edition + "%20"), "README badge");
         assertTrue(readme.contains("edition [" + edition + "](" + page + ")"), "README names " + edition);
         assertTrue(read("AGENTS.md").contains("edition [" + edition + "](" + page + ")"), "AGENTS.md");
         Matcher other = Pattern.compile("Pauta[- ](\\d+\\.\\d+\\.\\d+)").matcher(readme);

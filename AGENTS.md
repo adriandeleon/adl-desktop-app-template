@@ -1,11 +1,17 @@
 # ExampleApp: rules for coding agents
 
 ExampleApp is a JavaFX desktop app: JDK 25+, JavaFX 27+, Maven, one JPMS module (`com.example.app`).
-It follows [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [2.0.0](https://pauta-project.dev/2.0.0/).
+It follows [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [4.1.0](https://pauta-project.dev/4.1.0/).
 The edition's one source is `pauta.version` in `pom.xml`; About, `--version` and the environment block read
 it through `AppInfo`, and this line, the README's Pauta badge and its "Built to" line (and the template box
-until `rename.sh` removes it) name the same number (`EditionTest` checks). Moving to a newer edition means reading that edition's CHANGELOG for new
-or stronger MUSTs, meeting them, then changing every place together.
+until `rename.sh` removes it) name the same number (`EditionTest` checks).
+Every rule the app does not meet is an exception in `src/main/resources/com/example/app/pauta.json`:
+`not-applicable` with a reason, `deviation` (SHOULDs only) with a decision record in `docs/decisions/`, or
+`pending` with an issue. `PautaConformance` computes Complete, Core or Partial from it; About and the Pauta
+window show it, and `PautaConformanceTest` holds the file to `src/test/resources/pauta-rules.json` (the
+edition's `rules.json`) and the README's badge and line to the computed conformance. Meeting a rule removes
+its entry in the same change. Moving to a newer edition is one change: replace `pauta-rules.json`, audit
+again, update `pauta.json`, then `pauta.version`, the README and this file.
 To check the app against its edition, run the `pauta-audit` skill ([`.claude/skills/pauta-audit/`](.claude/skills/pauta-audit/SKILL.md)):
 it writes `docs/pauta-audit.md`, one row per rule with evidence, failed MUSTs first. `/pauta-audit KBD` audits one prefix.
 This file is operational rules, not a changelog: how the app is built lives in [`docs/`](docs/README.md).
