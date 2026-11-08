@@ -68,14 +68,16 @@ class KeybindingsTest {
 
     @Test
     void aSecondCommandOnTheSameKeysIsAConflict() {
-        Keybindings bindings = new Keybindings(Keymap.load("cua"), Map.of("help.debugLog", "Shortcut+Q"), false);
+        Keybindings bindings = new Keybindings(Keymap.load("cua", false), Map.of("help.debugLog", "Shortcut+Q"), false);
         assertEquals(Map.of("app.quit", "help.debugLog"), bindings.conflicts());
         assertEquals("", bindings.label("app.quit"));
         assertEquals("help.debugLog", bindings.commandFor(KeyStroke.parseSequence("Ctrl+Q")));
         // The same every run: no hash order decides it.
         for (int i = 0; i < 20; i++) {
             Keybindings again = new Keybindings(
-                    Keymap.load("cua"), Map.of("help.debugLog", "Shortcut+Q", "help.about", "Shortcut+Q"), false);
+                    Keymap.load("cua", false),
+                    Map.of("help.debugLog", "Shortcut+Q", "help.about", "Shortcut+Q"),
+                    false);
             assertEquals(Map.of("help.debugLog", "help.about", "app.quit", "help.about"), again.conflicts());
         }
     }
