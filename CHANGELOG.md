@@ -65,6 +65,10 @@ one-line summary written for users.
 
 ### Changed
 
+- **The `pauta-audit` skill is Pauta 5.0.0's.** It now decides how to audit and how to write the report for any
+  edition, says which `rules.json` fields each edition has, asks which edition to use when the app names none, and
+  treats a command id or key that a rule's statement names as required. The app is still built to Pauta 4.1.0;
+  the skill audits it against that edition.
 - **An available update stands out in About.** "Update available" is now amber, a color nothing else in About
   uses, instead of the accent every link wears (Pauta ABOUT-10).
 - **The README points to the user guide on the website,** and the contributor docs say who they are
