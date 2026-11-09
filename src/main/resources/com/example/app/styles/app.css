@@ -247,8 +247,9 @@
     -fx-font-size: 13px;
     -fx-text-fill: -color-fg-muted;
 }
+/* Amber, a color nothing else in About uses: in the links' accent it read as one more link (Pauta ABOUT-10). */
 .about-update-available {
-    -fx-text-fill: -state-accent;
+    -fx-text-fill: -state-amber;
     -fx-font-weight: bold;
     -fx-padding: 0;
 }

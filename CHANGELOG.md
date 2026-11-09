@@ -65,6 +65,8 @@ one-line summary written for users.
 
 ### Changed
 
+- **An available update stands out in About.** "Update available" is now amber, a color nothing else in About
+  uses, instead of the accent every link wears (Pauta ABOUT-10).
 - **The README points to the user guide on the website,** and the contributor docs say who they are
   for, that the code wins when they disagree with it, and that docs change in the same pull request.
 - **Links to Pauta point to its new home, [pauta-project.dev](https://pauta-project.dev/).**
