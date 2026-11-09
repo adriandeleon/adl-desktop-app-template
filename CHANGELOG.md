@@ -83,6 +83,9 @@ one-line summary written for users.
 
 ### Fixed
 
+- **Closing the app cancels a startup update check that is still waiting.** The check waits five seconds
+  after the window paints; an app closed in that time still started it, and in the tests its thread could
+  show up inside a later test (`WindowLifecycleFxTest`'s "threads left running: [update-check]").
 - **`scripts/rename.sh` leaves the `pauta-audit` skill as Pauta serves it.** It used to rewrite the
   skill's example path to the new package, so a renamed app's copy no longer matched its edition's word for
   word; CI's rename check skips the skill too.

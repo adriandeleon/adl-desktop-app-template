@@ -50,6 +50,8 @@ public final class UpdateCoordinator {
     private final AtomicLong generation = new AtomicLong();
 
     private final Duration startupDelay;
+    /** The startup check's wait, while it waits: {@link #cancel} stops it, so a closed app checks nothing. */
+    private @Nullable PauseTransition pending;
 
     UpdateCoordinator(AppServices services, Function<String, UpdateService.Outcome> check) {
         this(services, check, STARTUP_DELAY);
@@ -97,7 +99,11 @@ public final class UpdateCoordinator {
         if (!UpdateCheck.isDue(lastChecked(), System.currentTimeMillis())) return false;
         scheduled = true;
         PauseTransition delay = new PauseTransition(javafx.util.Duration.millis(startupDelay.toMillis()));
-        delay.setOnFinished(e -> checkNow(false));
+        delay.setOnFinished(e -> {
+            pending = null;
+            checkNow(false);
+        });
+        pending = delay;
         delay.play();
         return true;
     }
@@ -116,8 +122,11 @@ public final class UpdateCoordinator {
         });
     }
 
-    /** Drops the check in flight, if any: its answer is never applied. */
+    /** Drops the check in flight, if any: its answer is never applied. A startup check still waiting never runs. */
     public void cancel() {
+        PauseTransition waiting = pending;
+        pending = null;
+        if (waiting != null) waiting.stop();
         generation.incrementAndGet();
         if (state == State.CHECKING) {
             state = State.NEVER;
