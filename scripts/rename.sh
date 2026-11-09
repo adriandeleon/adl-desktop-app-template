@@ -58,7 +58,8 @@ rename_path packaging/macos/ExampleApp.entitlements "packaging/macos/$name.entit
 rename_path src/jreleaser/distributions/exampleapp-windows "src/jreleaser/distributions/$lower-windows"
 rename_path src/jreleaser/distributions/exampleapp "src/jreleaser/distributions/$lower"
 
-# 3. Replace the placeholders in every text file, most specific first.
+# 3. Replace the placeholders in every text file, most specific first. The pauta-audit skill is
+#    Pauta's own copy and stays word for word: its example paths are not this app's.
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     files() { git ls-files -co --exclude-standard -z; }
 else
@@ -67,6 +68,7 @@ fi
 files | while IFS= read -r -d '' file; do
     [ -f "$file" ] || continue
     [ "$file" = scripts/rename.sh ] || [ "$file" = ./scripts/rename.sh ] && continue
+    case "$file" in .claude/skills/pauta-audit/*|./.claude/skills/pauta-audit/*) continue ;; esac
     grep -Iq . "$file" 2>/dev/null || continue   # skip binaries (fonts, icons)
     NAME="$name" LOWER="$lower" UPPER="$upper" PKG="$package" PKGPATH="$path" UUID="$uuid" perl -0pi -e '
         s/com\.example\.app/$ENV{PKG}/g;

@@ -135,7 +135,7 @@ jobs:
           git ls-files -z | xargs -0 -I{} install -D {} "$copy/{}"
           cd "$copy"
           bash scripts/rename.sh Acme io.acme.app
-          if grep -rIl --exclude-dir=.git --exclude-dir=target -e 'ExampleApp' -e 'exampleapp' -e 'EXAMPLEAPP' -e 'com\.example\.app' -e 'com/example/app' .; then
+          if grep -rIl --exclude-dir=.git --exclude-dir=target --exclude-dir=pauta-audit -e 'ExampleApp' -e 'exampleapp' -e 'EXAMPLEAPP' -e 'com\.example\.app' -e 'com/example/app' .; then
             echo "::error::placeholders left after rename.sh (files above)"
             exit 1
           fi

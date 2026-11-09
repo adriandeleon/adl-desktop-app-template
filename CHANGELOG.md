@@ -11,7 +11,7 @@ one-line summary written for users.
 ### Added
 
 - **A Command Palette that finds and runs every command.** `Ctrl/Cmd+Shift+P`, or `M-x` in the Emacs
-  keymap; unavailable commands are listed greyed with the reason.
+  keymap; unavailable commands are listed grayed with the reason.
 - **CUA and Emacs keymaps, with your own bindings on top.** Edit any binding in Settings → Keymap.
 - **Settings that apply as you change them.** A searchable Settings window with a palette command for
   every setting; the config folder can be exported and imported.
@@ -83,6 +83,9 @@ one-line summary written for users.
 
 ### Fixed
 
+- **`scripts/rename.sh` leaves the `pauta-audit` skill as Pauta serves it.** It used to rewrite the
+  skill's example path to the new package, so a renamed app's copy no longer matched its edition's word for
+  word; CI's rename check skips the skill too.
 - **The status bar shows the newest message.** A message from background work that came first could
   arrive after a newer one and stay on screen as the latest; messages now keep the order they were said in.
 - **Import Configuration is no longer undone by a save in flight.** A setting changed just before an
