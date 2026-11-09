@@ -64,14 +64,17 @@ Discover show. Add a `<release>` to it for every version.
 ## Icons
 
 `branding/exampleapp.svg` is the single source. After changing it, run `scripts/make-icons.sh`
-(ImageMagick 7 and a JDK) and commit what it writes:
+(rsvg-convert, ImageMagick 7 and a JDK) and commit what it writes:
 
 - `packaging/icons/exampleapp.png` (512 px, Linux), `.ico` (16 to 256 px, Windows), `.icns` (128 to
   1024 px, macOS, written by `scripts/Icns.java`)
 - `src/main/resources/com/example/app/icons/app-{16,32,64,128,256}.png`, the window icons
 
-ImageMagick's built-in SVG renderer draws flat shapes faithfully; it ignores some gradients, so keep
-the icon flat or check the PNGs.
+rsvg-convert (librsvg) draws the SVG; ImageMagick only scales the result and writes the `.ico`.
+ImageMagick's own SVG renderer, which `magick` uses unless it was built with the rsvg delegate, draws
+no strokes and no gradient fills, so a family icon would come out as a bare tile. The script stops if
+the middle of the rendered icon is one flat color. Install rsvg-convert with `librsvg2-bin` (Debian,
+Ubuntu), `librsvg2-tools` (Fedora) or `brew install librsvg` (macOS).
 
 ## Release builds
 
