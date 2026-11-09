@@ -6,7 +6,7 @@
   area: `app.settings`, `view.toggleStatusBar`, `help.reportProblem`.
 - A command that cannot run says why: register it with an `unavailable` supplier returning
   `tr("palette.disabled.<reason>")` ("Unavailable — what is missing. What to do first."). It stays
-  listed, greyed, and its key binding echoes the reason.
+  listed, grayed, and its key binding echoes the reason.
 - Key bindings live in `src/main/resources/com/example/app/keymaps/<id>.json`. `Shortcut` is Cmd on
   macOS and Ctrl elsewhere; Emacs notation (`C-x C-c`, `M-x`) works in any keymap.
 

@@ -75,7 +75,7 @@ Run Maven from the repository root, **on JDK 25** (Palantir Java Format breaks o
       and a command's glyph comes from `Icons.forCommand`.
 - [ ] Failures reach the status bar (`services.echo`, key ending in `Failed`/`Error`) or the Debug Log
       (`java.util.logging`). Never a stack-trace dialog, never silence.
-- [ ] Tests: a pure helper plus a unit test first; an FX test (`@Tag("fx")`) when toolkit behaviour is
+- [ ] Tests: a pure helper plus a unit test first; an FX test (`@Tag("fx")`) when toolkit behavior is
       the point. No sleeps; no writes outside temp folders; no network.
 - [ ] `CHANGELOG.md` under `## [Unreleased]`, an entry opening with a bold one-line summary for users.
 - [ ] Coverage stays at or above 0.90 lines and methods; ratchet floors up, never down.
