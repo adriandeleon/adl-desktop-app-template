@@ -119,6 +119,22 @@ class StartupDeferralFxTest {
                 s.lastUpdateCheck = System.currentTimeMillis();
             }));
             assertFalse(call(off::scheduleStartupCheck));
+
+            // Cancelled while it waits (the app closing): it never runs.
+            AtomicInteger late = new AtomicInteger();
+            UpdateCoordinator closing = new UpdateCoordinator(
+                    services,
+                    version -> {
+                        late.incrementAndGet();
+                        return new UpdateService.Outcome(null, null);
+                    },
+                    Duration.ofMillis(100));
+            run(() -> services.store().update(s -> s.lastUpdateCheck = 0));
+            assertTrue(call(closing::scheduleStartupCheck));
+            run(closing::cancel);
+            Thread.sleep(400);
+            run(() -> {});
+            assertEquals(0, late.get(), "a cancelled startup check ran");
         } finally {
             if (saved != null) System.setProperty(UpdateCoordinator.PROPERTY, saved);
         }

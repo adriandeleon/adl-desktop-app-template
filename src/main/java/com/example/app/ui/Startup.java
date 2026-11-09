@@ -50,6 +50,7 @@ public final class Startup {
             implements AutoCloseable {
         @Override
         public void close() {
+            services.updates().cancel(); // a startup check still waiting would run after the app closed
             services.sync().stop();
             services.store().flush();
             if (instance != null) instance.close();
