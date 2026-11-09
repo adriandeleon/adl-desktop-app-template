@@ -241,7 +241,7 @@ class StyleContrastTest {
         expected.put(".pill.green", "-state-green");
         expected.put(".pill.amber", "-state-amber");
         expected.put(".pill.red", "-state-red");
-        expected.put(".about-update-available", "-state-accent");
+        expected.put(".about-update-available", "-state-amber");
         expected.put(".about-update-current", "-state-green");
         expected.put(".about-update-failed", "-state-red");
         expected.put(".text-field.invalid", "-state-red-emphasis");
@@ -261,6 +261,16 @@ class StyleContrastTest {
                             .matcher(rule.body())
                             .find(),
                     rule.selectors() + " paints a state with a role, not its -state-* token: " + rule.body());
+        }
+    }
+
+    /** ABOUT-10: an available update is the one amber line in About, so it doesn't read as one more link. */
+    @Test
+    void anAvailableUpdateIsTheOnlyAmberInAbout() throws Exception {
+        for (Rule rule : rules(read("app.css"))) {
+            if (rule.selectors().contains(".about-") && !rule.selectors().contains(".about-update-available")) {
+                assertFalse(rule.body().contains("-state-amber"), rule.selectors() + " uses the update's amber");
+            }
         }
     }
 
