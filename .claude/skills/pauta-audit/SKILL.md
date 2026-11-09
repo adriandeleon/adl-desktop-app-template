@@ -18,8 +18,12 @@ Audit this app against the Pauta edition it says it implements, one result per r
 `https://pauta-project.dev/<edition>/`. Editora (`../Editora`) is its reference implementation.
 
 This skill is part of Pauta: every edition from 4.3.1 serves its own copy at
-`https://pauta-project.dev/<edition>/skills/pauta-audit/SKILL.md`. Where this copy and the audited edition's
-`llms.txt` disagree on how to judge a rule, the edition's `llms.txt` wins.
+`https://pauta-project.dev/<edition>/skills/pauta-audit/SKILL.md`. Use the copy of the edition you audit against;
+for an edition before 4.3.1, which serves none, use the newest edition's.
+
+**This skill decides how to audit and how to write the report; the edition supplies only its rules.** An older
+edition's `llms.txt` describes the procedure in short and sometimes differently (2.0.x reports "not applicable",
+with a space, and has no `limited`): where it disagrees with this skill, follow this skill.
 
 ## Arguments
 
@@ -38,8 +42,9 @@ In this order, and stop at the first that names one:
 1. The `pauta.version` property in `pom.xml`: `grep -n '<pauta.version>' pom.xml`.
 2. The README's "Built to Pauta X.Y.Z" (or "Working toward") line: `grep -n -i 'pauta' README.md`.
 
-If neither names an edition, **ask the user which edition to audit against**, and offer the latest from
-https://pauta-project.dev/versions.json. If the two disagree, use `pom.xml` and report the mismatch in `problems`
+If neither names an edition, **ask the user which edition to audit against**, and offer the newest from
+https://pauta-project.dev/versions.json. With no one to ask, audit against the newest, set `appEdition` to `null`,
+and say so in `problems`. If the two disagree, use `pom.xml` and report the mismatch in `problems`
 (the README line is stale).
 
 ## 2. Load the edition's rules
@@ -53,7 +58,7 @@ for f in rules.json llms.txt audit.schema.json; do
 done
 ```
 
-`audit.schema.json` exists from 4.3.1 on; for an older edition, use the latest edition's.
+`audit.schema.json` exists from 4.3.1 on; for an older edition, use the newest edition's.
 
 **Offline:** a checkout of the guidelines at `../adl-desktop-apps-guidelines` holds every published edition on its
 `versions` branch. Read them from there without building anything:
@@ -67,13 +72,25 @@ edition didn't have as upgrade work in its evidence: the `changelog/` page says 
 stronger.
 
 `rules.json` holds the edition's `levels`, `checks` and `statuses` (what each one means), `pages[]` and `rules[]`,
-each rule with `id`, `level` (MUST, SHOULD, MAY), `page`, `section`, `appliesTo`, `url`, `text`, `why`,
-`check.kind` (`code`, `test` or `by hand`), `check.text` and `reference`; and `retired[]`, the IDs no longer in use.
+each rule with `id`, `level` (MUST, SHOULD, MAY), `page`, `pageTitle`, `section`, `appliesTo`, `url`, `text`, `why`,
+`check.kind` (`code`, `test` or `by hand`), `check.text`, `check.command` (on some code checks) and `reference`; and
+`retired[]`, the IDs no longer in use. An older edition has less:
+
+| Editions | `rules.json` |
+|---|---|
+| 1.x | None (below). |
+| 2.0.0 to 4.2.0 | `levels`, `checks` and `rules[]`, each rule without `appliesTo` or `check.command`: judge a limit from the rule's text and its page's **Applies to** line. No `audit.schema.json`, no page `.md`. |
+| 4.3.0 | Adds `retired[]`. |
+| 4.3.1 to 4.5.0 | Adds `statuses`, `audit`, `pages[]` and each rule's `appliesTo`; the edition serves `audit.schema.json`, each page as `.md` and this skill. |
+| After 4.5.0 | Adds `check.command` on some code checks. |
+
+Whatever the edition, the report uses this skill's statuses and format.
 The rules in scope:
 
 ```bash
 jq -r --arg p "KBD" '.rules[]
-  | select((.id | ascii_upcase | startswith(($p | ascii_upcase) + "-")) or .page == $p or (.page | split("/") | last) == $p)
+  | select((.id | ascii_upcase | startswith(($p | ascii_upcase) + "-")) or .page == $p or (.page | split("/") | last) == $p
+           or (.pageTitle | ascii_downcase) == ($p | ascii_downcase))
   | [.id, .level, .check.kind, (.appliesTo // ""), .check.text] | @tsv' target/pauta/$EDITION/rules.json
 ```
 
@@ -90,7 +107,13 @@ rule is then `fail`.
 
 ## 4. Judge each rule
 
-Read the whole rule (`text`, `why`, `check`, `appliesTo`) before judging it. Then, in this order:
+Read the whole rule (`text`, `why`, `check`, `appliesTo`) before judging it.
+
+**Names.** A command id, catalog key, file, property or style class that the rule's own `text` names is required:
+every app spells it that way, and the same thing under another name fails the rule (say so in the evidence). A name
+that only `check` or `reference` gives is how Editora spells it, and this app's equivalent meets it.
+
+Then, in this order:
 
 1. **Limited.** A rule is limited when its own text names the apps it covers ("An app with user documents…", "An app
    with a tray icon…"), when it has an `appliesTo` (its page or section opens with an **Applies to** line), or when
@@ -99,8 +122,13 @@ Read the whole rule (`text`, `why`, `check`, `appliesTo`) before judging it. The
    lacks ("no tray: no `SystemTray` or `TrayIcon` in `src/`"). A limited rule needs no exception; a `pauta.json`
    entry for one is a problem (PAUTA-05).
 2. **Met?** Check it as its kind says:
-   - **`code`.** Read or search the source as `check.text` says (it names files, classes, properties or style
-     classes as Editora spells them; find this app's equivalent). It is met only if everything the check names is
+   - **`code`.** When the rule has a `check.command`, run it with `sh -c` from the repository root (POSIX sh: Linux,
+     macOS, Git Bash or WSL). Exit 0: the check passes; still read the rest of the rule and cite the `file:line`
+     that meets it. Any other exit: the check fails, and what it printed is the evidence. A command only reads, and
+     fails outside an app's root; take it from `rules.json` with `jq -r '.rules[] | select(.id == "OS-02") |
+     .check.command'`, never through `@tsv`, which doubles its backslashes. Otherwise read or search the source as
+     `check.text` says (a name only the check gives is Editora's spelling: find this app's
+     equivalent; a name the rule's `text` gives is required, as above). It is met only if everything the check names is
      there. Evidence is the `file:line` that satisfies it; for an unmet rule, the closest place it should be and what
      is missing.
    - **`test`.** The check names a test as Editora calls it. Find that test or this app's equivalent in `src/test/`,
@@ -159,7 +187,8 @@ Replace any earlier report: it is a snapshot, regenerated rather than edited by 
 }
 ```
 
-One result per rule in scope, in the edition's rule order. Check it against the schema if a validator is at hand.
+One result per rule in scope, in the edition's rule order. For an edition before 4.3.1, `$schema` is the newest
+edition's `audit.schema.json`. Check the report against it if a validator is at hand.
 
 **`docs/pauta-audit.md`** is the same report for people:
 
