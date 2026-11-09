@@ -4,8 +4,7 @@
 
     The family tile (Ink navy, radius 108 on a 480 square), a periwinkle secondary colour and one
     teal focal element. Four rounded tiles, one lit: it still reads at 16 px, where an app icon has
-    to work hardest. No text and no gradients, so ImageMagick's built-in SVG renderer draws it as a
-    browser does.
+    to work hardest. Strokes and gradients are fine: scripts/make-icons.sh draws it with rsvg-convert.
   -->
   <rect x="16" y="16" width="480" height="480" rx="108" fill="#1B1E2A"/>
 
