@@ -1,5 +1,7 @@
 package com.example.app.ui;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -23,6 +25,7 @@ public final class OverlayHost {
     private @Nullable Node card;
     private @Nullable Node returnFocus;
     private @Nullable Runnable onHide;
+    private final ReadOnlyBooleanWrapper showing = new ReadOnlyBooleanWrapper();
 
     public OverlayHost(Node content) {
         root = new StackPane(content);
@@ -45,6 +48,11 @@ public final class OverlayHost {
         return card != null;
     }
 
+    /** Whether an overlay is up: what a toolbar button watches to look pressed while its own is (TBAR-07). */
+    public ReadOnlyBooleanProperty showingProperty() {
+        return showing.getReadOnlyProperty();
+    }
+
     /** Shows {@code node} over the scrim, replacing any overlay already open. */
     public void show(Node node, Pos position, Insets margin, @Nullable Runnable onHide) {
         hide();
@@ -55,6 +63,7 @@ public final class OverlayHost {
         StackPane.setAlignment(node, position);
         StackPane.setMargin(node, margin);
         root.getChildren().addAll(scrim, node);
+        showing.set(true);
     }
 
     /** Closes the overlay and gives focus back to where it was. */
@@ -63,6 +72,7 @@ public final class OverlayHost {
         if (open == null) return;
         card = null;
         root.getChildren().removeAll(scrim, open);
+        showing.set(false);
         Runnable after = onHide;
         onHide = null;
         if (after != null) after.run();

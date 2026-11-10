@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 public final class Settings {
 
     /** Bump with every change to the shape of this file, and add the matching {@link Migrations} step. */
-    public static final int SCHEMA_VERSION = 3;
+    public static final int SCHEMA_VERSION = 4;
 
     public int schemaVersion = SCHEMA_VERSION;
 
@@ -36,6 +36,9 @@ public final class Settings {
 
     /** When the update check last ran, epoch milliseconds; 0 for never. */
     public long lastUpdateCheck;
+
+    /** The main toolbar under the menus (TBAR-18, Pauta 5.0.0). */
+    public boolean showToolbar = true;
 
     public boolean showStatusBar = true;
 
@@ -63,6 +66,7 @@ public final class Settings {
         c.keybindings = new TreeMap<>(keybindings);
         c.checkForUpdates = checkForUpdates;
         c.lastUpdateCheck = lastUpdateCheck;
+        c.showToolbar = showToolbar;
         c.showStatusBar = showStatusBar;
         c.titleBarMenus = titleBarMenus;
         c.window.x = window.x;

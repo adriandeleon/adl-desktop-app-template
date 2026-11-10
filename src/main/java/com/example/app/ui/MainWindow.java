@@ -38,7 +38,7 @@ import com.example.app.sync.SyncEngine;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The main window: menus, a placeholder for the app's own content, the status bar, and the root
+ * The main window: menus, the toolbar, a placeholder for the app's own content, the status bar, and the root
  * {@code StackPane} that carries the in-scene overlays. Every menu item, button and key binding runs a
  * command by id ({@link Commands}).
  */
@@ -49,6 +49,15 @@ public final class MainWindow {
     private final OverlayHost overlays;
     private final BorderPane layout = new BorderPane();
     private final AppMenus menus;
+    private final OverlayToggles toggles;
+    private final AppToolbar toolbar;
+    /**
+     * The top of the window: the title bar (or the menu row) over the toolbar, one band on one ground
+     * with no rule between them, and one rule under the whole band (TBAR-06).
+     */
+    private final VBox band = new VBox();
+
+    private final Label welcomeHint = new Label();
     private final @Nullable HeaderBar headerBar;
     private final StatusBar statusBar;
     /** Built on first open, not before the first frame (PERF-14). */
@@ -77,14 +86,18 @@ public final class MainWindow {
         this.overlays = new OverlayHost(layout);
         this.statusBar = new StatusBar(services);
         Commands.register(this, services);
+        this.toggles = new OverlayToggles(overlays, services.commands());
 
         this.menus = new AppMenus(services, systemMenu);
+        this.toolbar = new AppToolbar(services, toggles);
         // The stage style is fixed before the window first shows, so this is decided once per window.
         this.headerBar = usesHeaderBar(systemMenu, services.settings().titleBarMenus, extendedSupported)
                 ? buildHeaderBar()
                 : null;
         if (headerBar != null && !stage.isShowing()) stage.initStyle(StageStyle.EXTENDED);
-        layout.setTop(headerBar != null ? headerBar : menus.bar());
+        band.getStyleClass().add("chrome-band");
+        band.getChildren().setAll(headerBar != null ? headerBar : menus.bar(), toolbar.node());
+        layout.setTop(band);
         if (headerBar != null) stage.fullScreenProperty().addListener((o, was, full) -> placeHeaderBar(full));
         layout.setCenter(placeholder());
         layout.setBottom(statusBar);
@@ -115,7 +128,7 @@ public final class MainWindow {
         });
 
         services.store().addListener(this::apply);
-        services.onKeybindingsChanged(() -> layout.setCenter(placeholder()));
+        services.onKeybindingsChanged(this::refreshWelcomeHint);
         apply(services.settings());
     }
 
@@ -123,9 +136,11 @@ public final class MainWindow {
         stage.show();
     }
 
-    /** Applies the settings that live in this window: the theme and the status bar. */
+    /** Applies the settings that live in this window: the theme, the toolbar and the status bar. */
     private void apply(Settings settings) {
         if (settings.theme != Themes.choice()) Themes.apply(settings.theme);
+        toolbar.node().setVisible(settings.showToolbar);
+        toolbar.node().setManaged(settings.showToolbar);
         statusBar.setVisible(settings.showStatusBar);
         statusBar.setManaged(settings.showStatusBar);
     }
@@ -136,8 +151,7 @@ public final class MainWindow {
         title.getStyleClass().add("welcome-title");
         Label tagline = new Label(AppInfo.TAGLINE);
         tagline.getStyleClass().add("muted");
-        String chord = services.keybindings().label("palette.show");
-        Label hint = new Label(Messages.tr("welcome.hint", chord.isEmpty() ? "—" : chord));
+        refreshWelcomeHint();
         HBox actions = new HBox(8);
         actions.setAlignment(Pos.CENTER);
         for (String id : List.of("palette.show", "app.settings", "help.documentation", "help.whatsNew")) {
@@ -145,12 +159,19 @@ public final class MainWindow {
             if (command == null) continue;
             Button button = new Button(command.title());
             button.setOnAction(e -> services.commands().run(id));
+            toggles.track(button, id); // the palette's button looks pressed while the palette is up (TBAR-07)
             actions.getChildren().add(button);
         }
-        VBox box = new VBox(12, title, tagline, hint, actions);
+        VBox box = new VBox(12, title, tagline, welcomeHint, actions);
         box.setAlignment(Pos.CENTER);
         box.getStyleClass().add("welcome");
         return box;
+    }
+
+    /** The welcome hint names the palette's chord in the active keymap, so it follows a keymap change. */
+    private void refreshWelcomeHint() {
+        String chord = services.keybindings().label("palette.show");
+        welcomeHint.setText(Messages.tr("welcome.hint", chord.isEmpty() ? "—" : chord));
     }
 
     /** Whether this window draws its own title bar: the pure rule in {@link Chrome#usesHeaderBar}. */
@@ -181,9 +202,9 @@ public final class MainWindow {
         if (header == null) return;
         if (fullScreen) {
             header.setLeft(null);
-            layout.setTop(menus.bar());
+            band.getChildren().set(0, menus.bar());
         } else {
-            layout.setTop(header);
+            band.getChildren().set(0, header);
             header.setLeft(menus.bar());
         }
         HeaderBar.setSystemButtonHeight(stage, fullScreen ? 0 : HeaderBar.USE_DEFAULT_SIZE);
@@ -572,6 +593,19 @@ public final class MainWindow {
 
     MenuBar menuBar() {
         return menus.bar();
+    }
+
+    AppToolbar toolbar() {
+        return toolbar;
+    }
+
+    /** The top band: the title bar or menu row, then the toolbar. */
+    VBox band() {
+        return band;
+    }
+
+    OverlayToggles toggles() {
+        return toggles;
     }
 
     AppMenus menus() {

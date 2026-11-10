@@ -313,9 +313,20 @@
 }
 
 /* ---- title bar and menus ---- */
-.header-bar {
+/* One chrome band (TBAR-06): the title bar or menu row and the toolbar share -color-bg-subtle with no rule
+   between them; the one rule is under the whole band. The theme draws a 1px rule under .menu-bar and
+   .tool-bar as a second background layer; each collapses to its fill alone. */
+.chrome-band {
     -fx-background-color: -color-bg-subtle;
     -fx-border-color: transparent transparent -color-border-muted transparent;
+}
+.menu-bar,
+.tool-bar {
+    -fx-background-color: -color-bg-subtle;
+    -fx-background-insets: 0;
+}
+.header-bar {
+    -fx-background-color: -color-bg-subtle;
     -fx-min-height: 34px;
 }
 .header-bar .menu-bar {
@@ -329,6 +340,49 @@
 .menu-item-chord {
     -fx-text-fill: -color-fg-muted;
     -fx-font-size: 11px;
+}
+
+/* ---- toolbar (Toolbars and tooltips) ----
+   Two containers in one row (AppToolbar): the cluster, a ToolBar that overflows into its chevron, and the
+   pinned tail, which never does. Both paint the band's ground, so the seam between them is invisible.
+   The insets are asymmetric as in Editora: nothing sits above the bar but the menus. */
+.tool-bar {
+    -fx-padding: 5 1 2 6;
+    -fx-spacing: 5;
+}
+.toolbar-tail {
+    -fx-padding: 5 6 2 0;
+    -fx-spacing: 5;
+}
+/* An icon button: 28px, padding 3 x 5, radius 4, no border; the glyph muted, full strength under the
+   pointer. The stroke is thinned so a 20px toolbar glyph draws the same weight as an 18px menu glyph. */
+.toolbar-button {
+    -fx-padding: 3 5 3 5;
+    -fx-background-radius: 4;
+    -fx-min-height: 28px;
+    -fx-pref-height: 28px;
+    -fx-max-height: 28px;
+}
+.toolbar-button .icon-line {
+    -fx-stroke-width: 1.17;
+}
+.toolbar-button:hover .icon-line {
+    -fx-stroke: -color-fg-default;
+}
+/* Groups are separated by spacing, not rules (TBAR-04): the Separator's padding is the gap, its line goes. */
+.tool-bar .separator:vertical > .line {
+    -fx-border-color: transparent;
+}
+/* A button whose overlay is up looks pressed (TBAR-07): an accent-subtle fill, the glyph in the accent. */
+.button:open {
+    -fx-background-color: -color-accent-subtle;
+}
+.button:open .icon-line {
+    -fx-stroke: -color-accent-fg;
+}
+/* Tooltips share the menus' card radius. */
+.tooltip {
+    -fx-background-radius: 8px, 7px;
 }
 
 /* ---- Keyboard focus ----

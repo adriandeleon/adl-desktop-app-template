@@ -72,7 +72,8 @@ Run Maven from the repository root, **on JDK 25** (Palantir Java Format breaks o
 - [ ] CSS colors: a state (error, warning, verified, accent) is a `-state-*` token from the `.root` block
       at the top of `app.css`, everything else a `-color-*` role; never a hex outside `.root`
       (`StyleContrastTest` checks, contrast included). A glyph is `Icons.line` or `Icons.of`, never both,
-      and a command's glyph comes from `Icons.forCommand`.
+      and a command's glyph comes from `Icons.forCommand`. An icon-only button is built by `Icons.button`
+      or `Icons.toolbarButton` (or named by `Icons.name`): tooltip and accessible text are one string.
 - [ ] Failures reach the status bar (`services.echo`, key ending in `Failed`/`Error`) or the Debug Log
       (`java.util.logging`). Never a stack-trace dialog, never silence.
 - [ ] Tests: a pure helper plus a unit test first; an FX test (`@Tag("fx")`) when toolkit behavior is

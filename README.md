@@ -57,7 +57,8 @@ Working toward [Pauta (the adl desktop apps guidelines)](https://pauta-project.d
   settings and keymaps on every system, with `Ctrl` or `Cmd` where each expects it and a native
   installer for each.
 - **Keyboard first.** A Command Palette (`Ctrl/Cmd+Shift+P`, or `M-x` in the Emacs keymap) finds and
-  runs every command. CUA and Emacs keymaps, with your own bindings on top.
+  runs every command. CUA and Emacs keymaps, with your own bindings on top. A toolbar puts the everyday
+  ones a click away, each button naming its key.
 - **Settings that apply as you change them.** A searchable Settings window, a palette command for
   every setting, and a versioned config folder that older versions never overwrite.
 - **Light and dark**, following your system: Caret & Ink, the Pauta family palette, with the Inter

@@ -34,9 +34,16 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
   file choosers, exit), the one seam the tests replace.
 - `AppMenus`: the menu bar, every row a command with its key binding drawn beside it (Emacs
   sequences too). No accelerators: see the class comment for why.
-- `MainWindow`: the title bar (a JavaFX `HeaderBar` holding the menus and the title, where the platform
-  supports extended windows and the menus are in the window; a plain menu row otherwise, and the screen
-  menu bar on macOS), the content placeholder, `StatusBar`, and an `OverlayHost` (the root
+- `AppToolbar`: the main toolbar, every button a command that a menu also lists. Two containers in
+  one row: the icon cluster (a `ToolBar`, in groups, overflowing into its chevron) and the pinned tail
+  (Settings). Buttons are built by `Icons.toolbarButton`, named by `Icons.withChord` of the title and
+  the chord, and look pressed (`:open`) while their overlay is up (`OverlayToggles`). The class comment
+  maps each Toolbars and tooltips rule to the code that meets it. **Put your app's commands in
+  `CLUSTER`.**
+- `MainWindow`: the top band (the title bar, a JavaFX `HeaderBar` holding the menus and the title, where
+  the platform supports extended windows and the menus are in the window; a plain menu row otherwise,
+  and the screen menu bar on macOS; then the toolbar), the content placeholder, `StatusBar`, and an
+  `OverlayHost` (the root
   `StackPane`) that carries the in-scene overlays. **Put your app's content in `placeholder()`.**
 - `Commands`: every command, in one place. Menus, buttons, the palette and keys all run them by id.
 - `Picker`: the one list chooser; the Command Palette is a `Picker` over commands, and the theme,
@@ -51,7 +58,7 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
 - **A command**: `CommandRegistry.run(id)` → the action. Its title and description come from
   `command.<id>` / `command.<id>.desc`. An unavailable command explains itself in the palette.
 - **A setting**: a control or a command calls `store.update(s -> …)`, which saves `settings.json`
-  atomically and notifies every listener: `MainWindow` re-applies theme and status bar, the Settings
+  atomically and notifies every listener: `MainWindow` re-applies theme, toolbar and status bar, the Settings
   window reloads its controls, `AppServices` rebuilds the key bindings.
 - **A message**: `services.echo("status.key", args)` → `MessageLog` → the status bar's echo line.
   Severity comes from the key's name. Logging goes to `DebugLog` (memory + session file).

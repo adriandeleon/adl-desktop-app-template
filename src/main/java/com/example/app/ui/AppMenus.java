@@ -57,9 +57,18 @@ final class AppMenus {
         bar.setUseSystemMenuBar(systemMenu);
         bar.getMenus()
                 .setAll(
-                        menu("menu.file", "app.settings", null, "config.export", "config.import", null, "app.quit"),
+                        menu(
+                                "menu.file",
+                                "app.settings",
+                                null,
+                                "config.export",
+                                "config.import",
+                                "sync.now",
+                                null,
+                                "app.quit"),
                         menu(
                                 "menu.view",
+                                "view.toggleToolbar",
                                 "view.toggleStatusBar",
                                 null,
                                 "settings.theme",

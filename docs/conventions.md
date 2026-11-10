@@ -66,6 +66,9 @@ Do not suppress a report.
 - Glyphs come in two families (`Icons`): `Icons.line` (stroked, `icon-line`) and `Icons.of` (filled,
   `toolbar-icon`), one class per node. A command's glyph comes from `Icons.forCommand(id)` /
   `Icons.commandGlyph(id)`, so one action wears one glyph everywhere.
+- An icon-only button is built by `Icons.button`, or `Icons.toolbarButton` on a toolbar (out of the Tab
+  order), and renamed with `Icons.name`: its tooltip and accessible text are one string (TBAR-01). A
+  command's button is named `Icons.withChord(title, chord)` and named again on a keymap change (TBAR-03).
 - On/off rows use `SettingSwitch` (keyboard-operable), not a bare `ToggleSwitch`.
 - Platform differences live behind one check (`AppInfo.isMac()`, `Host`), never scattered.
 

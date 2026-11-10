@@ -35,9 +35,11 @@ class MigrationsTest {
     void anAdditiveVersionMigratesByIdentity() {
         ObjectNode v2 =
                 JsonNodeFactory.instance.objectNode().put("schemaVersion", 2).put("keymap", "emacs");
-        ObjectNode v3 = Migrations.migrate(v2);
-        assertEquals(3, Migrations.versionOf(v3));
-        assertEquals("emacs", v3.get("keymap").asText());
+        // 2 to 3 (titleBarMenus) and 3 to 4 (showToolbar) only add fields: the tree comes through as it was.
+        ObjectNode current = Migrations.migrate(v2);
+        assertEquals(Settings.SCHEMA_VERSION, Migrations.versionOf(current));
+        assertEquals(4, Settings.SCHEMA_VERSION);
+        assertEquals("emacs", current.get("keymap").asText());
     }
 
     @Test
