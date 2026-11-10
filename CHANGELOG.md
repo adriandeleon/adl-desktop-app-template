@@ -62,6 +62,11 @@ one-line summary written for users.
 - **`AGENTS.md` points coding agents at the app's own Pauta edition.** A Pauta section gives the edition's
   `llms.txt` and `llms-full.txt`, says to cite rules as "KBD-07 (Pauta 4.1.0)" and to read the numbered
   edition, never `latest/`.
+- **A toolbar under the menus.** The Command Palette, Theme, Keymap, Sync Now and the Message Log are one
+  click away, with Settings at the right end. Each button's tooltip names its command and its key in your
+  keymap; a button looks pressed while what it opened is showing, and Sync Now waits until sync is set up.
+  View → Toggle Toolbar, its right-click menu or Settings → General hides it, and the choice is kept.
+  Sync Now is in the File menu too.
 
 ### Changed
 

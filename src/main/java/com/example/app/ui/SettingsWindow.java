@@ -69,7 +69,11 @@ public final class SettingsWindow {
     /** Each page's commands, for its sidebar row's right-click menu; {@code null} is a separator. */
     static final Map<Page, List<@Nullable String>> PAGE_COMMANDS = Map.of(
             Page.GENERAL,
-                    java.util.Arrays.asList("settings.language", "settings.toggleUpdateCheck", "view.toggleStatusBar"),
+                    java.util.Arrays.asList(
+                            "settings.language",
+                            "settings.toggleUpdateCheck",
+                            "view.toggleToolbar",
+                            "view.toggleStatusBar"),
             Page.APPEARANCE, java.util.Arrays.asList("settings.theme", "view.toggleTitleBarMenus"),
             Page.KEYMAP, java.util.Arrays.asList("settings.keymap", "settings.bindKey"),
             Page.SYNC,
@@ -110,6 +114,7 @@ public final class SettingsWindow {
 
     private final ComboBox<String> language = new ComboBox<>();
     private final SettingSwitch updates = new SettingSwitch(Messages.tr("settings.updates.title"));
+    private final SettingSwitch toolbar = new SettingSwitch(Messages.tr("settings.toolbar.title"));
     private final SettingSwitch statusBar = new SettingSwitch(Messages.tr("settings.statusBar.title"));
     private final ComboBox<ThemeChoice> theme = new ComboBox<>();
     private final SettingSwitch titleBar = new SettingSwitch(Messages.tr("settings.titleBar.title"));
@@ -217,12 +222,15 @@ public final class SettingsWindow {
         row(card, Page.GENERAL, "settings.language", language, "locale translation");
         updates.setOnAction(e -> services.store().update(s -> s.checkForUpdates = updates.isSelected()));
         row(card, Page.GENERAL, "settings.updates", updates, "release version network");
+        toolbar.setOnAction(e -> services.store().update(s -> s.showToolbar = toolbar.isSelected()));
+        row(card, Page.GENERAL, "settings.toolbar", toolbar, "buttons icons");
         statusBar.setOnAction(e -> services.store().update(s -> s.showStatusBar = statusBar.isSelected()));
         row(card, Page.GENERAL, "settings.statusBar", statusBar, "echo messages");
         loaders.add(() -> {
             Settings s = services.settings();
             language.setValue(s.language);
             updates.setSelected(s.checkForUpdates);
+            toolbar.setSelected(s.showToolbar);
             statusBar.setSelected(s.showStatusBar);
         });
     }
@@ -722,6 +730,10 @@ public final class SettingsWindow {
 
     SettingSwitch titleBarSwitch() {
         return titleBar;
+    }
+
+    SettingSwitch toolbarSwitch() {
+        return toolbar;
     }
 
     SettingSwitch statusBarSwitch() {

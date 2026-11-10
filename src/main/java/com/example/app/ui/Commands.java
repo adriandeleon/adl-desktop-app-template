@@ -26,6 +26,10 @@ final class Commands {
             services.store().update(s -> s.titleBarMenus = !s.titleBarMenus);
             services.echo("status.titleBarRestart");
         });
+        r.register("view.toggleToolbar", () -> {
+            services.store().update(s -> s.showToolbar = !s.showToolbar);
+            services.echo(services.settings().showToolbar ? "status.toolbarOn" : "status.toolbarOff");
+        });
         r.register("view.toggleStatusBar", () -> {
             services.store().update(s -> s.showStatusBar = !s.showStatusBar);
             services.echo(services.settings().showStatusBar ? "status.statusBarOn" : "status.statusBarOff");

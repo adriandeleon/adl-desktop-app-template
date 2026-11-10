@@ -553,14 +553,6 @@
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
     },
     {
-      "rule": "TBAR-07",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-07",
-      "kind": "pending",
-      "reason": "The start page's Command Palette button does not look pressed while the palette is open.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
-    },
-    {
       "rule": "WELC-02",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/4.1.0/templates/welcome/#welc-02",
@@ -591,20 +583,6 @@
       "kind": "pending",
       "reason": "There are no commands to zoom the window in and out.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
-    },
-    {
-      "rule": "ICON-21",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/icons-and-color/#icon-21",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no buttons that show only an icon."
-    },
-    {
-      "rule": "KBD-17",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/keyboard/#kbd-17",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no buttons that show only an icon."
     },
     {
       "rule": "PAUTA-03",
@@ -675,41 +653,6 @@
       "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-14",
       "kind": "not-applicable",
       "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TBAR-01",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-01",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no buttons that show only an icon."
-    },
-    {
-      "rule": "TBAR-02",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-02",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no toolbar."
-    },
-    {
-      "rule": "TBAR-03",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-03",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no toolbar."
-    },
-    {
-      "rule": "TBAR-08",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-08",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no toolbar."
-    },
-    {
-      "rule": "TBAR-10",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-10",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no toolbar."
     },
     {
       "rule": "CONF-09",
@@ -871,20 +814,6 @@
       "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-23",
       "kind": "not-applicable",
       "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TBAR-04",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-04",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no toolbar."
-    },
-    {
-      "rule": "TBAR-05",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-05",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no toolbar."
     },
     {
       "rule": "TBAR-12",

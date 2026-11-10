@@ -3,9 +3,13 @@ package com.example.app.ui;
 import java.util.Map;
 
 import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Control;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.FillRule;
 import javafx.scene.shape.SVGPath;
+import javafx.util.Duration;
 
 import org.jspecify.annotations.Nullable;
 
@@ -25,6 +29,10 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>One action wears one glyph wherever it is drawn: a sidebar, a menu row or a toolbar asks
  * {@link #forCommand} (or {@link #commandGlyph}) by command id instead of naming a path itself.
+ *
+ * <p>An icon-only button is built here too ({@link #button}, {@link #toolbarButton}), so its tooltip and
+ * its accessible text are always one string (TBAR-01, ICON-21, KBD-17): a screen reader says what a
+ * sighted user reads. A hand-built icon button goes through {@link #name}.
  */
 public final class Icons {
 
@@ -66,6 +74,13 @@ public final class Icons {
     /** The Message Log: a speech bubble. */
     public static final String MESSAGES = "M2.5 3h11v7.5H7.2L4.5 13v-2.5h-2zM5 5.8h6M5 7.9h4";
 
+    /** The Command Palette: a prompt in a box. */
+    public static final String PALETTE = "M1.75 2.75H14.25V13.25H1.75ZM4.5 6.25L6.5 8L4.5 9.75M8.5 9.75H11.5";
+
+    /** Toggle Toolbar: a window whose top row is a bar of buttons. */
+    public static final String TOOLBAR =
+            "M1.75 2.75H14.25V13.25H1.75ZM1.75 6.25H14.25M4.25 4.5h.2M6.75 4.5h.2M9.25 4.5h.2";
+
     /** The Pauta window: a ruled page with a tick, the rules and how the app meets them. */
     public static final String CONFORMANCE = "M3.5 2.5h9v11h-9zM5.3 6.2l1.1 1.1 2.1-2.3M5.5 9.5h5M5.5 11.5h3.5";
 
@@ -74,6 +89,7 @@ public final class Icons {
      * none: a near miss teaches the wrong meaning.
      */
     private static final Map<String, String> BY_COMMAND = Map.ofEntries(
+            Map.entry("palette.show", PALETTE),
             Map.entry("app.settings", SLIDERS),
             Map.entry("settings.theme", CONTRAST),
             Map.entry("settings.keymap", KEYBOARD),
@@ -85,10 +101,17 @@ public final class Icons {
             Map.entry("help.about", INFO),
             Map.entry("help.pauta", CONFORMANCE),
             Map.entry("help.debugLog", LOG),
-            Map.entry("view.messageLog", MESSAGES));
+            Map.entry("view.messageLog", MESSAGES),
+            Map.entry("view.toggleToolbar", TOOLBAR));
 
     /** The on-screen size of a glyph, in pixels. */
     private static final double SIZE = 18;
+
+    /** A glyph on a toolbar button: inside the 28 px button with its 3 px padding (TBAR spec). */
+    static final double TOOLBAR_SIZE = 20;
+
+    /** How long the pointer rests before a tooltip shows: one delay for every tooltip (TBAR-14, Pauta 5.0.0). */
+    static final Duration TOOLTIP_DELAY = Duration.millis(400);
 
     private Icons() {}
 
@@ -110,15 +133,69 @@ public final class Icons {
 
     /** A line glyph: a 16-unit outline, stroked, never filled (see {@code .icon-line}). */
     public static Node line(String path) {
-        return box(path, LINE, SIZE / 16);
+        return box(path, LINE, SIZE, SIZE / 16);
+    }
+
+    /** A line glyph at the toolbar's size. */
+    static Node toolbarLine(String path) {
+        return box(path, LINE, TOOLBAR_SIZE, TOOLBAR_SIZE / 16);
     }
 
     /** A filled glyph: a 24-unit solid shape (see {@code .toolbar-icon}). */
     public static Node of(String path) {
-        return box(path, FILLED, SIZE / 24);
+        return box(path, FILLED, SIZE, SIZE / 24);
     }
 
-    private static Node box(String path, String family, double scale) {
+    /**
+     * An icon-only button: the glyph, the name as both its tooltip and its accessible text (TBAR-01), and
+     * the action. It stays in the Tab order; a toolbar's buttons use {@link #toolbarButton}.
+     */
+    public static Button button(Node icon, String name, Runnable action, String... styleClasses) {
+        Button button = new Button();
+        button.setGraphic(icon);
+        button.getStyleClass().addAll(styleClasses);
+        name(button, name);
+        button.setOnAction(e -> action.run());
+        return button;
+    }
+
+    /**
+     * A toolbar button: {@link #button}, flat, 28 px, and out of the Tab order (TBAR-02): the command, its
+     * menu row and the palette reach the action, and Tab is for the content.
+     */
+    public static Button toolbarButton(Node icon, String name, Runnable action) {
+        Button button = button(icon, name, action, "button-icon", "flat", "toolbar-button");
+        button.setFocusTraversable(false);
+        return button;
+    }
+
+    /**
+     * Names a control: its tooltip and its accessible text set from one string (TBAR-01). Call it again
+     * when the name changes (a keymap switch changes the chord in it); the tooltip is reused.
+     */
+    public static void name(Control control, String name) {
+        control.setAccessibleText(name);
+        Tooltip tooltip = control.getTooltip();
+        if (tooltip == null) {
+            tooltip = new Tooltip();
+            tooltip.setShowDelay(TOOLTIP_DELAY);
+            control.setTooltip(tooltip);
+        }
+        tooltip.setText(name);
+    }
+
+    /**
+     * A command button's name (TBAR-03): its title and its chord in the active keymap, "Command Palette
+     * (Ctrl+Shift+P)", or the title alone when unbound. A trailing ellipsis goes: it promises a dialog
+     * in a menu row, and a tooltip is not a menu row.
+     */
+    public static String withChord(String title, String chord) {
+        String name = title.endsWith("…") ? title.substring(0, title.length() - 1) : title;
+        name = name.endsWith("...") ? name.substring(0, name.length() - 3) : name;
+        return chord.isEmpty() ? name : name + " (" + chord + ")";
+    }
+
+    private static Node box(String path, String family, double size, double scale) {
         SVGPath svg = new SVGPath();
         svg.setContent(path);
         svg.setFillRule(FillRule.EVEN_ODD);
@@ -127,8 +204,8 @@ public final class Icons {
         svg.setScaleY(scale);
         StackPane box = new StackPane(svg);
         box.getStyleClass().add("icon-box");
-        box.setMinSize(SIZE, SIZE);
-        box.setPrefSize(SIZE, SIZE);
+        box.setMinSize(size, size);
+        box.setPrefSize(size, size);
         return box;
     }
 }
