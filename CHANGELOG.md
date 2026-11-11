@@ -76,6 +76,12 @@ one-line summary written for users.
   opens each; drag a button to another side, open two on one side, float, maximize or resize one from the
   keyboard, and they come back as you left them. Every action is in the Window menu and the Command
   Palette. View → Toggle Tab Bar hides the tab strip.
+- **Simple mode, for a quieter window.** One switch shortens every menu to its essentials and leaves the
+  toolbar with the Command Palette, the Simple mode toggle and Settings; every command stays in the palette.
+  The toggle sits just before Settings and looks pressed while the mode is on, so the way out is where the
+  way in was. Turn it on or off from that button, View → Toggle Simple Mode, the toolbar's right-click menu,
+  Settings → General or the Command Palette; the choice is kept, and the toolbar keeps its height, so
+  nothing under it moves.
 
 ### Changed
 

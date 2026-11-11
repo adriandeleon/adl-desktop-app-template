@@ -15,6 +15,7 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 
 import com.example.app.command.Command;
 import org.jspecify.annotations.Nullable;
@@ -39,12 +40,20 @@ import org.jspecify.annotations.Nullable;
  *   <li>TBAR-05: {@link #setGroupVisible} and every other visibility change end in one pass over the
  *       separators ({@link #separatorsShown}), so no gap stands on its own.
  *   <li>TBAR-06: the bar sits on the menu bar's ground with no rule between them ({@code .chrome-band}).
- *   <li>TBAR-07: a button whose overlay is up wears {@code :open} ({@link OverlayToggles}).
+ *   <li>TBAR-07: a button whose overlay is up wears {@code :open} ({@link OverlayToggles}), and so does the
+ *       Simple mode toggle while the mode is on ({@link #setSimple}).
  *   <li>TBAR-10: one right-click menu, reused, closed by a press anywhere ({@link CommandMenu},
  *       {@link ContextMenuDismissal}).
+ *   <li>TBAR-16 (Pauta 5.0.0): the tail is the Simple mode toggle, then Settings, after a 40 px gap, the
+ *       same whether the mode is on or off.
  *   <li>TBAR-17 (Pauta 5.0.0): a button is disabled while its command can't run; {@link #refresh} reads
  *       that from the command and runs on the events that change it, never on a timer.
+ *   <li>TBAR-19 (Pauta 5.0.0): the row keeps its height when a control hides ({@link #steadyHeight}), so
+ *       the tabs under it never move when Simple mode hides groups.
  * </ul>
+ *
+ * <p><b>Simple mode</b> hides the groups {@link #SIMPLE_HIDES} names and leaves the palette, the toggle
+ * and Settings; it hides, it never removes, so turning it off brings back the bar as it was.
  *
  * <p>An app replaces {@link #CLUSTER} and {@link #TAIL} with its own commands; each one needs a glyph in
  * {@link Icons} and a row in {@link AppMenus} ({@code AppToolbarFxTest} checks both).
@@ -55,12 +64,21 @@ final class AppToolbar {
     static final List<@Nullable String> CLUSTER = Collections.unmodifiableList(Arrays.<@Nullable String>asList(
             "palette.show", null, "settings.theme", "settings.keymap", null, "sync.now", "view.messageLog"));
 
-    /** The pinned tail: Settings closes the bar at its right end. */
-    static final List<String> TAIL = List.of("app.settings");
+    /** The Simple mode toggle: the way into the mode and, lit, the way back out. */
+    static final String SIMPLE_TOGGLE = "view.toggleSimpleMode";
+
+    /** The pinned tail: the Simple mode toggle, then Settings closing the bar at its right end (TBAR-16). */
+    static final List<String> TAIL = List.of(SIMPLE_TOGGLE, "app.settings");
+
+    /** The blank before the tail's pair, Pauta's tail gap (TBAR-16); a gap, never a separator. */
+    static final double TAIL_GAP = 40;
+
+    /** The groups Simple mode hides, each named by one of its commands: Theme and Keymap, Sync and the log. */
+    static final List<String> SIMPLE_HIDES = List.of("settings.theme", "sync.now");
 
     /** The bar's right-click menu: its commands (MENU-05), one menu reused (TBAR-10). */
     static final List<@Nullable String> MENU =
-            Collections.unmodifiableList(Arrays.<@Nullable String>asList("view.toggleToolbar"));
+            Collections.unmodifiableList(Arrays.<@Nullable String>asList("view.toggleToolbar", SIMPLE_TOGGLE));
 
     private final AppServices services;
     private final ToolBar bar = new ToolBar();
@@ -78,13 +96,29 @@ final class AppToolbar {
                 bar.getItems().add(button(id, toggles));
             }
         }
+        Region gap = new Region();
+        gap.setMinWidth(TAIL_GAP);
+        gap.setPrefWidth(TAIL_GAP);
+        gap.getStyleClass().add("toolbar-gap");
+        tail.getChildren().add(gap);
         for (String id : TAIL) tail.getChildren().add(button(id, toggles));
         tail.getStyleClass().add("toolbar-tail");
         tail.setAlignment(Pos.CENTER_RIGHT);
-        tail.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+        tail.setMinWidth(Region.USE_PREF_SIZE);
         bar.setMinWidth(0);
         HBox.setHgrow(bar, Priority.ALWAYS);
-        row = new HBox(bar, tail);
+        row = new HBox(bar, tail) {
+            // TBAR-19: never shorter than the bar with every control shown, whatever is hidden now.
+            @Override
+            protected double computeMinHeight(double width) {
+                return Math.max(super.computeMinHeight(width), steadyHeight());
+            }
+
+            @Override
+            protected double computePrefHeight(double width) {
+                return Math.max(super.computePrefHeight(width), steadyHeight());
+            }
+        };
         row.getStyleClass().add("toolbar-row");
         row.setAlignment(Pos.CENTER_LEFT);
 
@@ -102,7 +136,9 @@ final class AppToolbar {
         Node glyph = Icons.toolbarLine(path == null ? "" : path);
         Button button = Icons.toolbarButton(glyph, id, () -> services.commands().run(id));
         button.setId("toolbar-" + id);
-        toggles.track(button, id);
+        // The Simple mode toggle is lit by the mode, not by an overlay (setSimple), so an overlay opening or
+        // closing never clears it.
+        if (!SIMPLE_TOGGLE.equals(id)) toggles.track(button, id);
         buttons.put(id, button);
         return button;
     }
@@ -164,6 +200,34 @@ final class AppToolbar {
             items.get(i).setManaged(visible);
         }
         collapseSeparators();
+    }
+
+    /**
+     * Simple mode on or off: hides or shows the groups in {@link #SIMPLE_HIDES} (their gaps tidied, TBAR-05)
+     * and lights the toggle while the mode is on (TBAR-07). The toggle and Settings stay where they are
+     * (TBAR-16), and the row keeps its height (TBAR-19).
+     */
+    void setSimple(boolean on) {
+        Button toggle = buttons.get(SIMPLE_TOGGLE);
+        if (toggle != null) toggle.pseudoClassStateChanged(OverlayToggles.OPEN, on);
+        for (String id : SIMPLE_HIDES) setGroupVisible(id, !on);
+    }
+
+    /**
+     * The row's height with every control shown (TBAR-19): the tallest item in the cluster or the tail,
+     * hidden ones included, inside each container's insets. A hidden item still has a preferred height, so
+     * the row never shrinks when Simple mode (or a missing tool) hides the tallest one.
+     */
+    double steadyHeight() {
+        return Math.max(tallest(bar.getItems(), bar), tallest(tail.getChildren(), tail));
+    }
+
+    private static double tallest(List<Node> items, Region container) {
+        double tallest = 0;
+        for (Node item : items) {
+            if (!(item instanceof Separator)) tallest = Math.max(tallest, item.prefHeight(-1));
+        }
+        return Math.ceil(tallest + container.snappedTopInset() + container.snappedBottomInset());
     }
 
     /** One pass over the separators: none leads, none trails, none follows another (TBAR-05). */

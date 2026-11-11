@@ -59,7 +59,8 @@ Working toward [Pauta (the adl desktop apps guidelines)](https://pauta-project.d
   installer for each.
 - **Keyboard first.** A Command Palette (`Ctrl/Cmd+Shift+P`, or `M-x` in the Emacs keymap) finds and
   runs every command. CUA and Emacs keymaps, with your own bindings on top. A toolbar puts the everyday
-  ones a click away, each button naming its key.
+  ones a click away, each button naming its key, and Simple mode trims the menus and the toolbar to the
+  essentials.
 - **Tabs and tool windows.** Documents in tabs you can pin, reorder, switch between and reopen, and tool
   windows docked on three sides that you can move, float, maximize and resize, every action a command.
 - **Settings that apply as you change them.** A searchable Settings window, a palette command for

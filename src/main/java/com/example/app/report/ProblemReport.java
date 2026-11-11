@@ -28,6 +28,7 @@ public final class ProblemReport {
                 + ", keymap=" + settings.keymap
                 + ", updateCheck=" + settings.checkForUpdates
                 + ", toolbar=" + settings.showToolbar
+                + ", simpleMode=" + settings.simpleMode
                 + ", statusBar=" + settings.showStatusBar
                 + ", sync=" + (settings.sync.repoUrl.isBlank() ? "off" : "on")
                 + "\n\nDebug Log:\n" + (log.isBlank() ? "(empty)" : log.strip());

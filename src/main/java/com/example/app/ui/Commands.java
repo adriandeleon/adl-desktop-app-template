@@ -30,6 +30,11 @@ final class Commands {
             services.store().update(s -> s.showToolbar = !s.showToolbar);
             services.echo(services.settings().showToolbar ? "status.toolbarOn" : "status.toolbarOff");
         });
+        // Simple mode: a setting with its own command, the toolbar's toggle and a View menu row in both menus.
+        r.register("view.toggleSimpleMode", () -> {
+            services.store().update(s -> s.simpleMode = !s.simpleMode);
+            services.echo(services.settings().simpleMode ? "status.simpleModeOn" : "status.simpleModeOff");
+        });
         r.register("view.toggleStatusBar", () -> {
             services.store().update(s -> s.showStatusBar = !s.showStatusBar);
             services.echo(services.settings().showStatusBar ? "status.statusBarOn" : "status.statusBarOff");

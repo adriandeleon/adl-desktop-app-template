@@ -33,13 +33,16 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
   effective `Keybindings`, `MessageLog`, `UpdateCoordinator`, `SyncController`, and the `Host` (browser,
   file choosers, exit), the one seam the tests replace.
 - `AppMenus`: the menu bar, every row a command with its key binding drawn beside it (Emacs
-  sequences too). No accelerators: see the class comment for why.
+  sequences too). No accelerators: see the class comment for why. Two tables, the full one and Simple
+  mode's shorter one (`menus(simple)`); `setSimple` rebuilds the bar only when the mode changes (MENU-04).
 - `AppToolbar`: the main toolbar, every button a command that a menu also lists. Two containers in
   one row: the icon cluster (a `ToolBar`, in groups, overflowing into its chevron) and the pinned tail
-  (Settings). Buttons are built by `Icons.toolbarButton`, named by `Icons.withChord` of the title and
-  the chord, and look pressed (`:open`) while their overlay is up (`OverlayToggles`). The class comment
+  (the Simple mode toggle, then Settings). Buttons are built by `Icons.toolbarButton`, named by
+  `Icons.withChord` of the title and the chord, and look pressed (`:open`) while their overlay is up
+  (`OverlayToggles`) or, for the Simple mode toggle, while the mode is on. Simple mode hides the groups
+  `SIMPLE_HIDES` names, the gaps they leave go with them, and the row keeps its height. The class comment
   maps each Toolbars and tooltips rule to the code that meets it. **Put your app's commands in
-  `CLUSTER`.**
+  `CLUSTER`, and the groups a newcomer can do without in `SIMPLE_HIDES`.**
 - `MainWindow`: the top band (the title bar, a JavaFX `HeaderBar` holding the menus and the title, where
   the platform supports extended windows and the menus are in the window; a plain menu row otherwise,
   and the screen menu bar on macOS; then the toolbar), the tool windows round the document tabs,
@@ -72,7 +75,7 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
 - **A command**: `CommandRegistry.run(id)` → the action. Its title and description come from
   `command.<id>` / `command.<id>.desc`. An unavailable command explains itself in the palette.
 - **A setting**: a control or a command calls `store.update(s -> …)`, which saves `settings.json`
-  atomically and notifies every listener: `MainWindow` re-applies theme, toolbar, tab bar and status bar, the Settings
+  atomically and notifies every listener: `MainWindow` re-applies theme, toolbar, tab bar, status bar and Simple mode, the Settings
   window reloads its controls, `AppServices` rebuilds the key bindings.
 - **A message**: `services.echo("status.key", args)` → `MessageLog` → the status bar's echo line.
   Severity comes from the key's name. Logging goes to `DebugLog` (memory + session file).

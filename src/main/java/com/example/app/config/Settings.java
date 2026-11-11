@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
 public final class Settings {
 
     /** Bump with every change to the shape of this file, and add the matching {@link Migrations} step. */
-    public static final int SCHEMA_VERSION = 5;
+    public static final int SCHEMA_VERSION = 6;
 
     public int schemaVersion = SCHEMA_VERSION;
 
@@ -53,6 +53,12 @@ public final class Settings {
      */
     public boolean titleBarMenus = true;
 
+    /**
+     * Simple mode (MENU-04, TBAR-16): a shorter menu bar and fewer toolbar groups. It hides, it never
+     * changes another preference, so turning it off brings back the window as it was.
+     */
+    public boolean simpleMode;
+
     /** Machine-local: never synced. */
     public Window window = new Window();
 
@@ -75,6 +81,7 @@ public final class Settings {
         c.showStatusBar = showStatusBar;
         c.showTabBar = showTabBar;
         c.titleBarMenus = titleBarMenus;
+        c.simpleMode = simpleMode;
         c.window.x = window.x;
         c.window.y = window.y;
         c.window.width = window.width;

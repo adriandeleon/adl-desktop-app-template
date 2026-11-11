@@ -46,84 +46,155 @@ final class AppMenus {
             @Nullable Label title,
             @Nullable Label chord) {}
 
+    /** One menu: its title key and its command ids, {@code null} for a separator. */
+    record Spec(String key, List<@Nullable String> ids) {}
+
     private final AppServices services;
     private final boolean systemMenu;
     private final MenuBar bar = new MenuBar();
     private final List<List<Row>> groups = new ArrayList<>();
+    /** Whether the bar shows the Simple mode table (MENU-04). */
+    private boolean simple;
 
     AppMenus(AppServices services, boolean systemMenu) {
         this.services = services;
         this.systemMenu = systemMenu;
         bar.setUseSystemMenuBar(systemMenu);
-        bar.getMenus()
-                .setAll(
-                        menu(
-                                "menu.file",
-                                "app.settings",
-                                null,
-                                "config.export",
-                                "config.import",
-                                "sync.now",
-                                null,
-                                "app.quit"),
-                        menu(
-                                "menu.view",
-                                "view.toggleToolbar",
-                                "view.toggleTabBar",
-                                "view.toggleStatusBar",
-                                null,
-                                "settings.theme",
-                                "settings.keymap",
-                                "settings.language"),
-                        // The tabs and the tool windows: every one of their commands has a row (TABS-01).
-                        menu(
-                                "menu.window",
-                                "help.welcome",
-                                "switcher.show",
-                                "buffer.next",
-                                "buffer.previous",
-                                null,
-                                "buffer.close",
-                                "buffer.closeOthers",
-                                "buffer.closeLeft",
-                                "buffer.closeRight",
-                                "buffer.closeUnmodified",
-                                "buffer.closeAll",
-                                null,
-                                "buffer.togglePin",
-                                "buffer.reopenClosed",
-                                null,
-                                "tool.documents",
-                                "tool.outline",
-                                "tool.output",
-                                "output.runSample",
-                                null,
-                                "toolWindow.openInSplit",
-                                "view.floatToolWindow",
-                                "view.maximizeToolWindow",
-                                "view.resizeHorizontalToolWindowGreater",
-                                "view.resizeHorizontalToolWindowLess",
-                                "view.resizeBottomToolWindow",
-                                "view.resizeBottomToolWindowLess",
-                                "view.closeFocusedToolWindow",
-                                null,
-                                "toolWindow.hide",
-                                "view.restoreStripeButtons"),
-                        // Pauta's Help order (DOCS-07); an app without a feature drops its row.
-                        menu(
-                                "menu.help",
-                                "palette.show",
-                                "help.documentation",
-                                null,
-                                "help.checkForUpdates",
-                                "view.messageLog",
-                                "help.debugLog",
-                                "help.reportProblem",
-                                null,
-                                "help.pauta",
-                                "help.about"));
+        build();
         services.onKeybindingsChanged(this::refresh);
         refresh();
+    }
+
+    /**
+     * The menu bar for a mode (MENU-04): every row in the full table, or the shorter Simple mode one. Both
+     * keep the Simple mode toggle in the same place, the end of View, so the mode is never a one-way door.
+     */
+    static List<Spec> menus(boolean simple) {
+        return simple ? SIMPLE : FULL;
+    }
+
+    private static final List<Spec> FULL = List.of(
+            spec("menu.file", "app.settings", null, "config.export", "config.import", "sync.now", null, "app.quit"),
+            spec(
+                    "menu.view",
+                    "view.toggleToolbar",
+                    "view.toggleTabBar",
+                    "view.toggleStatusBar",
+                    null,
+                    "settings.theme",
+                    "settings.keymap",
+                    "settings.language",
+                    null,
+                    "view.toggleSimpleMode"),
+            // The tabs and the tool windows: every one of their commands has a row (TABS-01).
+            spec(
+                    "menu.window",
+                    "help.welcome",
+                    "switcher.show",
+                    "buffer.next",
+                    "buffer.previous",
+                    null,
+                    "buffer.close",
+                    "buffer.closeOthers",
+                    "buffer.closeLeft",
+                    "buffer.closeRight",
+                    "buffer.closeUnmodified",
+                    "buffer.closeAll",
+                    null,
+                    "buffer.togglePin",
+                    "buffer.reopenClosed",
+                    null,
+                    "tool.documents",
+                    "tool.outline",
+                    "tool.output",
+                    "output.runSample",
+                    null,
+                    "toolWindow.openInSplit",
+                    "view.floatToolWindow",
+                    "view.maximizeToolWindow",
+                    "view.resizeHorizontalToolWindowGreater",
+                    "view.resizeHorizontalToolWindowLess",
+                    "view.resizeBottomToolWindow",
+                    "view.resizeBottomToolWindowLess",
+                    "view.closeFocusedToolWindow",
+                    null,
+                    "toolWindow.hide",
+                    "view.restoreStripeButtons"),
+            // Pauta's Help order (DOCS-07); an app without a feature drops its row.
+            spec(
+                    "menu.help",
+                    "palette.show",
+                    "help.documentation",
+                    null,
+                    "help.checkForUpdates",
+                    "view.messageLog",
+                    "help.debugLog",
+                    "help.reportProblem",
+                    null,
+                    "help.pauta",
+                    "help.about"));
+
+    /**
+     * Simple mode's menus: the same four, each cut to what a person new to the app reaches for. Every
+     * button the toolbar keeps in Simple mode has its row here too (TBAR-08), and every command is still
+     * in the palette.
+     */
+    private static final List<Spec> SIMPLE = List.of(
+            spec("menu.file", "app.settings", null, "app.quit"),
+            spec(
+                    "menu.view",
+                    "view.toggleToolbar",
+                    "view.toggleTabBar",
+                    "view.toggleStatusBar",
+                    null,
+                    "view.toggleSimpleMode"),
+            spec(
+                    "menu.window",
+                    "help.welcome",
+                    "switcher.show",
+                    null,
+                    "buffer.close",
+                    "buffer.reopenClosed",
+                    null,
+                    "tool.documents",
+                    "tool.outline",
+                    "tool.output"),
+            spec("menu.help", "palette.show", "help.documentation", null, "help.about"));
+
+    private static Spec spec(String key, @Nullable String... ids) {
+        return new Spec(key, java.util.Collections.unmodifiableList(java.util.Arrays.<@Nullable String>asList(ids)));
+    }
+
+    /** Every command id either table names, separators left out: the tests that check each row read this. */
+    static List<String> allCommandIds() {
+        return java.util.stream.Stream.concat(FULL.stream(), SIMPLE.stream())
+                .flatMap(spec -> spec.ids().stream())
+                .filter(java.util.Objects::nonNull)
+                .map(String::valueOf)
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * Switches to the full or the Simple mode table (MENU-04). The menus are built again only when the mode
+     * changes: a settings save that leaves it as it was keeps every menu, open or not, as it is.
+     */
+    void setSimple(boolean on) {
+        if (on == simple) return;
+        simple = on;
+        build();
+        refresh();
+    }
+
+    boolean isSimple() {
+        return simple;
+    }
+
+    private void build() {
+        groups.clear();
+        List<Menu> built = new ArrayList<>();
+        for (Spec spec : menus(simple)) built.add(menu(spec.key(), spec.ids()));
+        bar.getMenus().setAll(built);
     }
 
     MenuBar bar() {
@@ -135,7 +206,7 @@ final class AppMenus {
     }
 
     /** A menu of commands; {@code null} is a separator. Unavailable commands are greyed on opening. */
-    private Menu menu(String key, @Nullable String... ids) {
+    private Menu menu(String key, List<@Nullable String> ids) {
         Menu menu = new Menu(Messages.tr(key));
         List<Row> rows = new ArrayList<>();
         for (String id : ids) {

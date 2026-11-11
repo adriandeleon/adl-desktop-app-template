@@ -175,11 +175,14 @@ public final class MainWindow {
         stage.show();
     }
 
-    /** Applies the settings that live in this window: the theme, the toolbar and the status bar. */
+    /** Applies the settings that live in this window: the theme, the bars and Simple mode. */
     private void apply(Settings settings) {
         if (settings.theme != Themes.choice()) Themes.apply(settings.theme);
         toolbar.node().setVisible(settings.showToolbar);
         toolbar.node().setManaged(settings.showToolbar);
+        // Simple mode: fewer toolbar groups, the toggle lit, and the shorter menu, rebuilt only on a change.
+        toolbar.setSimple(settings.simpleMode);
+        menus.setSimple(settings.simpleMode);
         statusBar.setVisible(settings.showStatusBar);
         statusBar.setManaged(settings.showStatusBar);
         tabs.setTabBarShown(settings.showTabBar);
