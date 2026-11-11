@@ -1,9 +1,9 @@
 {
   "$schema": "https://pauta-project.dev/6.0.0/audit.schema.json",
   "app": "ExampleApp",
-  "commit": "d10f316",
+  "commit": "9234e53",
   "edition": "6.0.0",
-  "date": "2026-11-10",
+  "date": "2026-11-11",
   "scope": [],
   "rules": "https://pauta-project.dev/6.0.0/rules.json",
   "results": [
@@ -11,7 +11,7 @@
       "id": "OS-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "No command, menu row or settings row is added inside an OS check: AppMenus builds the same ids on every OS (AppMenus.java:76-181; systemMenu only picks the row type, :254), Commands.java registers view.toggleTitleBarMenus everywhere with a reason (Commands.java:38-44, Chrome.java:28-32); the Settings row stays and is disabled with its reason (SettingsWindow.java:279-285). macOS app-menu items (MacAppMenu.java:47-63) are the 'application menu' row. No Settings default reads Os."
+      "evidence": "No command, menu row or settings row is added inside an OS check: the batch registers help.doctor, window.focusNext/PreviousRegion, view.zoomIn/Out/Reset and view.welcome unconditionally (src/main/java/com/example/app/ui/Commands.java:26-50,246), the Text size and Doctor rows on every OS (src/main/java/com/example/app/ui/SettingsWindow.java:285,604), HIGH_CONTRAST is a ThemeChoice everywhere (src/main/java/com/example/app/config/ThemeChoice.java:18); textZoom's default is fixed (src/main/java/com/example/app/config/Settings.java:86); the macOS system menu rows stay, disabled (src/main/java/com/example/app/ui/AppMenus.java:310-315)."
     },
     {
       "id": "OS-02",
@@ -29,19 +29,19 @@
       "id": "OS-04",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Every OS test is a row of 'Where the OS's way wins': Keymap.java:32 and AppServices.java:63 (macOS keymap variant), KeyDispatcher.java:50,67 (chord notation), MainWindow.java:90 -> AppMenus.java:62 (system menu bar) and Chrome.java:35-38 (title-bar menus unavailable under it), MacAppMenu.java:48 (application menu), Browser.java:17-22 (OS opener), Executables.java:26-31 (binary lookup, nothing visible)."
+      "evidence": "OS-02 command exits 0. New OS tests: Os.isMac() handed to the pickers and switcher (src/main/java/com/example/app/ui/MainWindow.java:376,444,496,510,526) picks Cmd for Ctrl+Home/End (src/main/java/com/example/app/ui/PickerKeys.java:47), the macOS form of a chord; Os.isWindows() in src/main/java/com/example/app/sync/ShellPath.java:30 and Executables.java:27 changes only a child process's PATH; the system-menu row that can only be disabled (AppMenus.java:310-315) is the macOS menu bar row. Windows.SPI.HighContrast (src/main/java/com/example/app/ui/Themes.java:77-82) follows an OS setting, not an OS test."
     },
     {
       "id": "PAUTA-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "check.command exits 0: pom.xml:34 <pauta.version>6.0.0</pauta.version>; src/main/resources/com/example/app/pauta.json exists."
+      "evidence": "check.command exits 0: pom.xml defines pauta.version; src/main/resources/com/example/app/pauta.json exists (template, 9 app-only entries)."
     },
     {
       "id": "PAUTA-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "PautaConformance.of (PautaConformance.java:206-214) takes only the exceptions; Partial/Core/Complete; deviation/app-only/n-a ignored; About (AboutDialog.java:56) and the Pauta window (PautaWindow.java:54) call it; README held by PautaConformanceTest.java:349-381; unit cases PautaConformanceTest.java:58-87."
+      "evidence": "Unchanged by the batch: src/main/java/com/example/app/PautaConformance.java of() takes only the exceptions; with only app-only entries it returns Complete; About and the Pauta window call it; README held by src/test/java/com/example/app/PautaConformanceTest.java."
     },
     {
       "id": "PAUTA-03",
@@ -53,7 +53,7 @@
       "id": "PAUTA-04",
       "level": "MUST",
       "status": "pass",
-      "evidence": "judged last, from the other results: no MUST or SHOULD fails, and no entry is for a rule that passes or is limited; the by-hand rules are manual, not recorded"
+      "evidence": "judged last: no MUST or SHOULD fails, and every entry is app-only and for an unmet rule; the by-hand rules are manual, not recorded"
     },
     {
       "id": "PAUTA-05",
@@ -71,7 +71,7 @@
       "id": "PAUTA-07",
       "level": "MUST",
       "status": "pass",
-      "evidence": "every pending entry links an open issue of adriandeleon/adl-desktop-app-template (#14-#16, #18-#24) whose body names the rule at 6.0.0"
+      "evidence": "No pending entry in src/main/resources/com/example/app/pauta.json: nothing to read, the rule is met."
     },
     {
       "id": "PAUTA-08",
@@ -125,7 +125,7 @@
       "id": "PAUTA-15",
       "level": "MUST",
       "status": "pass",
-      "evidence": "README.md:15 badge 'Pauta-6.0.0 · Core' (blue) and README.md:48 'Built to ... 6.0.0 ..., Pauta conformance: Core', both linking https://exampleapp-project.dev/docs/pauta/; computed Core (only SHOULDs pending); PautaConformanceTest.java:349-381."
+      "evidence": "README.md:15 badge 'Pauta-6.0.0 · Complete' and README.md:46 'Built to ... 6.0.0 ..., Pauta conformance: Complete', both linking https://exampleapp-project.dev/docs/pauta/; pauta.json has no pending entry, so the helper computes Complete; held by PautaConformanceTest. (The computed Complete overstates: see PAUTA-04.)"
     },
     {
       "id": "PAUTA-17",
@@ -311,13 +311,13 @@
       "id": "DOCS-07",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "AppMenus.java:124-136 Help rows: Command Palette, Documentation, Check for Updates, Message Log, Debug Log, Report a Problem, Pauta Conformance, About, in order; Simple mode AppMenus.java:162 Palette, Documentation, About. (No keyboard-reference row: DOCS-08; the Welcome Page row sits in the Window menu, AppMenus.java:93: WELC-03's.)"
+      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:141-153 Help: Command Palette, Documentation, Keyboard Shortcuts, Welcome Page, Check for Updates, Message Log, Debug Log, Report a Problem, Pauta Conformance, About; Simple mode AppMenus.java:180: Palette, Documentation, Welcome Page, About."
     },
     {
       "id": "DOCS-08",
       "level": "SHOULD",
       "status": "manual",
-      "evidence": "Open Help -> Keyboard Shortcuts, search for a command and find its key: AppMenus.java:145,181 help.keyboardShortcuts opens Settings -> Keymap, the keybinding editor (Commands.java:100) ; not recorded"
+      "evidence": "Open Help → Keyboard Shortcuts (help.keyboardShortcuts, src/main/java/com/example/app/ui/AppMenus.java:144), search for a command and find its key in Settings → Keymap; not recorded"
     },
     {
       "id": "DOCS-10",
@@ -407,13 +407,13 @@
       "id": "QUAL-07",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "grep -rn 'Thread.sleep' src/test finds only text inside src/test/resources/pauta-rules.json, no test code."
+      "evidence": "grep -rn 'Thread.sleep' src/test finds only text in src/test/resources/pauta-rules.json; FxTestSupport.waitUntil spins on onSpinWait (src/test/java/com/example/app/ui/FxTestSupport.java:78-85)."
     },
     {
       "id": "QUAL-08",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "FxTestSupport.java:89 starts each window with --config-dir <temp dir>; pom.xml:273 points exampleapp.configDir at target/test-config; exports go where FakeHost.saveAnswer points (FakeHost.java:14,30), a @TempDir in tests."
+      "evidence": "Test windows start with --config-dir <TempDir> (src/test/java/com/example/app/ui/FxTestSupport.java:88-93); the new session.json, backups/ and sync/account.txt land in that folder; the new tests use @TempDir (SessionAndWelcomeFxTest.java:28, SettingsRoundTripFxTest.java:31, AccountPinTest.java:42, StyleCompilerTest.java:21, DoctorTest.java:20)."
     },
     {
       "id": "QUAL-09",
@@ -436,8 +436,8 @@
     {
       "id": "QUAL-13",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: No test sets every control in Settings and reads them back after a restart."
+      "status": "pass",
+      "evidence": "src/test/java/com/example/app/ui/SettingsRoundTripFxTest.java:41-79 changes every ComboBox, SettingSwitch and TextField on every Settings page (Text size included), restarts on the same folder and asserts every value back; Settings has no other control kinds (no Spinner, Slider or CheckBox in SettingsWindow.java)."
     },
     {
       "id": "QUAL-15",
@@ -449,7 +449,7 @@
       "id": "PERF-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/SamplePanels.java:149 the Outline scans the text off the FX thread (LatestOnly over Background); start-up reads are prepared off it (ui/Startup.java prepare), git and gh are found on first use (sync/Git.java), the Debug Log writes from its own thread (ui/DebugLog.java append), and About's and the Pauta window's images load in the background"
+      "evidence": "New grep candidates all run off the FX thread: session read in ConfigStore.read (Startup.prepare, or Background at MainWindow.java:801-807), session write on the settings-writer (ConfigStore.java:252-262), AccountPin and SyncController.backUp on the settings-sync thread (SyncController.java:139-143), Doctor via Background (DoctorWindow.java:46-51), ShellPath's shell -l only from git/gh calls on worker threads, marks file in Background (Startup.java:181-193), FxSampler's sleep on its own thread. Handlers added on the FX thread (Picker keys, idWords, TextInputKeys, refreshWelcome) do no I/O or parsing."
     },
     {
       "id": "PERF-02",
@@ -467,7 +467,7 @@
       "id": "PERF-04",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Every thread is named and daemon: read-ahead (Startup.java:103), settings-writer (ConfigStore.java:66-67), debug-log-writer (DebugLog.java:218-219), fx-batcher (FxBatcher.java:23-24), update-check (UpdateCoordinator.java:117), settings-sync and github-create (SyncController.java:140,184), single-instance (SingleInstance.java:86-87 setDaemon(true)); Background uses virtual threads (Background.java:16-17)."
+      "evidence": "The one new thread is named and daemon: Thread.ofPlatform().daemon().name(\"fx-sampler\") (src/main/java/com/example/app/ui/FxSampler.java:68); no new Executors.new or new Thread."
     },
     {
       "id": "PERF-05",
@@ -502,14 +502,14 @@
     {
       "id": "PERF-09",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The Command Palette builds new text pieces for every row as you type."
+      "status": "pass",
+      "evidence": "Palette cells keep their TextFlow, Text runs, chip, HBox and Tooltip and relabel them (src/main/java/com/example/app/ui/Picker.java:337-404); runs are reused, a new Text only when a title needs more runs than the cell had."
     },
     {
       "id": "PERF-10",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The Command Palette draws each letter of a row as a separate piece."
+      "status": "pass",
+      "evidence": "Titles are drawn as runs, one Text per change of style (src/main/java/com/example/app/ui/Picker.java:382-403), not a node per letter; applyCss only in RowContextMenu on one control (RowContextMenu.java:40,73). The runs' match/plain class is reset per update (Picker.java:398) on at most 8 visible cells' small Text nodes, not a subtree."
     },
     {
       "id": "PERF-11",
@@ -550,8 +550,8 @@
     {
       "id": "PERF-17",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The stylesheets are not converted to their faster binary form for release builds."
+      "status": "pass",
+      "evidence": "The dist profile runs StyleCompiler at process-classes over target/classes/com/example/app/styles (pom.xml:686-694), Stylesheet.convertToBinary writes a .bss beside each .css (src/main/java/com/example/app/ui/StyleCompiler.java:36), so the jar jpackage takes carries them; Themes.sheet prefers the .bss (src/main/java/com/example/app/ui/Themes.java:243-247); StyleCompilerTest.java:21."
     },
     {
       "id": "PERF-18",
@@ -562,14 +562,14 @@
     {
       "id": "PERF-19",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: There is no script that measures how long the app takes to start."
+      "status": "pass",
+      "evidence": "scripts/measure-startup.sh runs N cold launches (5 by default) of the packaged launcher in fresh config folders and prints the median per phase; marks recorded in main (src/main/java/com/example/app/Main.java:33) and first paint (src/main/java/com/example/app/ui/Startup.java:166), plus prepared and window (Startup.java:127,149)."
     },
     {
       "id": "PERF-20",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: There is no switch that records what keeps the window busy."
+      "status": "pass",
+      "evidence": "-Dexampleapp.fxSampler=<ms> or EXAMPLEAPP_FX_SAMPLER turns on a daemon sampler that logs the FX thread's stack on a stall (src/main/java/com/example/app/ui/FxSampler.java:21-24,57-107), started at Startup.java:151; FxSamplerTest."
     },
     {
       "id": "PERF-21",
@@ -593,19 +593,19 @@
       "id": "KBD-02",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Commands.java:95-347: every id is dotted with its area first (file-less app: palette.show, view.toggleToolbar, buffer.closeOthers, tool.documents, toolWindow.hide, help.reportProblem)."
+      "evidence": "All 94 registered ids are dotted with the area first; new ones help.doctor, window.focusNextRegion, window.focusPreviousRegion, view.zoomIn/Out/Reset, view.welcome (src/main/java/com/example/app/ui/Commands.java:26-50,246)."
     },
     {
       "id": "KBD-03",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/command/Command.java:19-25 reads command.<id> and command.<id>.desc; all 52 registered ids have both keys in all six catalogs (checked by grep); held by src/test/java/com/example/app/ui/CommandSweepFxTest.java:27 (everyCommandIsLocalizedAndRuns)."
+      "evidence": "Every registered id (94, incl. the 7 new) has command.<id> and command.<id>.desc in all six catalogs, whose key sets are identical (516 keys each); src/main/java/com/example/app/command/Command.java reads both."
     },
     {
       "id": "KBD-04",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: A grayed menu row does not say why it is unavailable."
+      "status": "pass",
+      "evidence": "Menu rows of a command that can't run stay, grayed (app.css:374-377), with the reason as tooltip and accessible help, and choosing one echoes it (src/main/java/com/example/app/ui/AppMenus.java:310-337; CommandMenu.java:72-74); the palette lists disabled rows with a reason (MainWindow.java paletteItems); RightClickMenusFxTest.anUnavailableRowStaysAndSaysWhy. macOS system-menu rows can only be disabled (AppMenus.java:312-314)."
     },
     {
       "id": "KBD-05",
@@ -616,26 +616,26 @@
     {
       "id": "KBD-06",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The Command Palette matches a command's description and not its id."
+      "status": "pass",
+      "evidence": "Picker.rank matches the title fuzzily and the id's words (Picker.idWords, src/main/java/com/example/app/ui/Picker.java:54) or keywords, never the description; a query the title contains gets +1,000,000 (Picker.java:229-235); rows draw the keymap's chord chip; PickerFxTest asserts description not matched and id-word hits."
     },
     {
       "id": "KBD-07",
       "level": "MUST",
       "status": "pass",
-      "evidence": "The palette, pickers and switcher show their card in OverlayHost's root StackPane (OverlayHost.java:30,65-75; Picker.java:113; Switcher.java:81), which is the scene root (MainWindow.java:101,167); no javafx.stage.Popup in src/main/java."
+      "evidence": "The palette and pickers show their card through OverlayHost in the root StackPane (src/main/java/com/example/app/ui/Picker.java:136; OverlayHost.java:74-84); no javafx.stage.Popup in src/main; the Doctor is a Dialog window, not a picker."
     },
     {
       "id": "KBD-09",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/resources/com/example/app/keymaps/: emacs.json, cua.json and cua.mac.json present (not a terminal app)."
+      "evidence": "src/main/resources/com/example/app/keymaps/ has emacs.json, cua.json and cua.mac.json (not a terminal app)."
     },
     {
       "id": "KBD-10",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: There are no IntelliJ, VS Code or Sublime keymaps."
+      "status": "pass",
+      "evidence": "check.command exits 0: intellij, vscode and sublime .json and .mac.json are in src/main/resources/com/example/app/keymaps/, and Keymap.PRESETS lists them (src/main/java/com/example/app/command/Keymap.java:26)."
     },
     {
       "id": "KBD-21",
@@ -695,7 +695,7 @@
       "id": "ACC-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/test/java/com/example/app/ui/NamedControlsFxTest.java:83 opens every window, every Settings page, the palette, the switcher, a confirm question and a text prompt, and fails on a control, cell or menu row with no name; src/main/java/com/example/app/ui/Switcher.java:44"
+      "evidence": "src/test/java/com/example/app/ui/NamedControlsFxTest.java opens every window and dialog, the Doctor, every Settings page, the palette, the switcher, a confirm question and a text prompt, and fails on a control, cell or menu row with no name"
     },
     {
       "id": "ACC-02",
@@ -718,14 +718,14 @@
     {
       "id": "ACC-05",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: A file's Git status shows by its color alone in the tab titles and the Documents window; only a tab's tooltip says it in words."
+      "status": "manual",
+      "evidence": "Look at a grayscale screenshot of each window: Git status now also shows its letter on tabs (src/main/java/com/example/app/ui/TabHeaders.java:63-69) and Documents rows (SamplePanels.java:66-70); Doctor pills carry words (DoctorWindow.java:63-73); grayed menu rows keep a tooltip; not recorded"
     },
     {
       "id": "ACC-06",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: There are no commands that move the keyboard to the next or previous part of the window."
+      "status": "pass",
+      "evidence": "window.focusNextRegion and window.focusPreviousRegion registered (src/main/java/com/example/app/ui/Commands.java:28-29, ToolWindowManager.focusRegion :958) and bound in all nine keymaps (F6/Shift+F6; C-x o / C-x S-o in emacs.json)."
     },
     {
       "id": "ACC-07",
@@ -742,8 +742,8 @@
     {
       "id": "ACC-09",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: There is no high-contrast theme, and Windows' high-contrast setting is not followed."
+      "status": "pass",
+      "evidence": "A listener on Platform.getPreferences() for Windows.SPI.HighContrast re-applies the theme and goes back when it ends (src/main/java/com/example/app/ui/Themes.java:77-82, effective() :106-112); ThemeChoice.HIGH_CONTRAST with high-contrast.css is in the theme list (ThemeChoice.java:18; MainWindow.chooseTheme); StyleContrastTest.java:347-381."
     },
     {
       "id": "WIN-01",
@@ -772,20 +772,20 @@
     {
       "id": "WIN-08",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The documents open when you quit are not open again at the next start."
+      "status": "pass",
+      "evidence": "Quit saves size, position, maximized and the open documents with the selected one (src/main/java/com/example/app/ui/MainWindow.java:856-880) to session.json; the next launch restores geometry (MainWindow.java:184) and reopens the documents in order (src/main/java/com/example/app/ui/DocumentTabs.java:102-114); SessionAndWelcomeFxTest.java:43-91."
     },
     {
       "id": "WIN-09",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: There are no commands to zoom the window in and out."
+      "status": "pass",
+      "evidence": "view.zoomIn/Out/Reset, bound to Ctrl/Cmd+=, - and 0 in every bundled keymap (C-=, C--, C-0 in Emacs); Settings.textZoom is saved; ui/DocumentTabs.java textZoom"
     },
     {
       "id": "WIN-12",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/UiZoom.java and ui/Themes.java zoom: one setting (config/Settings.java uiZoom) scales every pixel size of the stylesheets and the sizes the code binds (src/main/java/com/example/app/ui/Picker.java:75); three commands view.uiZoomIn/Out/Reset on Ctrl+Alt (src/main/resources/com/example/app/keymaps/cua.json:25), leaving Ctrl/Cmd+=, - and 0 for a content zoom; src/test/java/com/example/app/ui/MenuLookFxTest.java:221"
+      "evidence": "ui/UiZoom.java and Themes.zoom: one setting scales the chrome; view.uiZoomIn/Out/Reset on Ctrl+Alt (Cmd+Alt on macOS), leaving Ctrl/Cmd+=, - and 0 to the documents' text zoom in every keymap (keymaps/emacs.json: C-=, C--, C-0)"
     },
     {
       "id": "WIN-13",
@@ -839,25 +839,25 @@
       "id": "ICON-06",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/resources/com/example/app/styles/app.css:35 -state-key is a ladder() of -color-bg-default; resolves to #3c4380 on Editora Light (about 9:1 on default, 8:1 on subtle) and about #bbc1e7 on Editora Dark (about 9:1 and 8:1). Note: the palette's .key-chip (app.css:133) still uses -color-accent-fg, not -state-key."
+      "evidence": "-state-key is a ladder() of -color-bg-default (src/main/resources/com/example/app/styles/app.css:35); StyleContrastTest.theKeyColorReadsOnBothThemesGrounds (src/test/java/com/example/app/ui/StyleContrastTest.java:389) resolves it on both flagship themes; on the new High contrast theme's #000/#0d0d0d grounds it resolves to about #b0b6e0, about 10:1."
     },
     {
       "id": "ICON-07",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/resources/com/example/app/styles/app.css:444 every Git status and state color is a -state-* token"
+      "evidence": "State tokens declared once on .root of app.css, each a -color-* role or a ladder (app.css:15-35); new rules use them (.menu-item.danger uses -state-red, app.css:379-382); high-contrast.css sets only -color-* roles, no -state-*; StyleContrastTest.java:234."
     },
     {
       "id": "ICON-08",
       "level": "MUST",
       "status": "pass",
-      "evidence": "No component rule in app.css carries a fixed color: the scrim and shadow are tokens on .root (app.css:38-39) used at :94, :102, :358; ladders hold the other literals (:30-35). (The bundled control themes editora-*.css are the theme, not app sheets.)"
+      "evidence": "No component rule in app.css holds a fixed color (new rules at app.css:374-382 and :478-483 use tokens or none). src/main/resources/com/example/app/styles/high-contrast.css is a theme sheet: one .root block setting only -color-* roles, like editora-dark.css, no component rule."
     },
     {
       "id": "ICON-09",
       "level": "MUST",
       "status": "pass",
-      "evidence": "StyleContrastTest.java:124-162 walks every rule of app.css and both themes, failing any -fx-(text-)fill: -color-fg-subtle whose selector is not on the disabled/decorative list (:42-49), and computes muted >= 4.5:1 on default, subtle and overlay grounds of both flagship themes."
+      "evidence": "StyleContrastTest.java:124-162 walks app.css and both themes for -color-fg-subtle text fills and computes muted >= 4.5:1 on default, subtle and overlay of Editora Light and Dark. It does not read high-contrast.css, which holds no text-fill rule (only .root role values)."
     },
     {
       "id": "ICON-10",
@@ -886,8 +886,8 @@
     {
       "id": "ICON-14",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The key color's contrast is checked by a test that needs the toolkit instead of a plain one."
+      "status": "pass",
+      "evidence": "The only contrast test class, src/test/java/com/example/app/ui/StyleContrastTest.java, reads the .css resources as text and starts no toolkit (javafx.scene.paint.Color only); the FX key-color test was removed from MenuLookFxTest."
     },
     {
       "id": "ICON-15",
@@ -1067,13 +1067,13 @@
       "id": "TABS-04",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/TabStrip.java:17-45 every bulk close filters out pinned tabs; TabsAndPanelsTest.bulkCloseSkipsPinnedTabs"
+      "evidence": "Bulk closes still filter pinned tabs (src/main/java/com/example/app/ui/TabStrip.java, unchanged); the Welcome tab simply stopped being pinned (DocumentTabs.java:83-84); TabsAndPanelsTest.bulkCloseSkipsPinnedTabs."
     },
     {
       "id": "TABS-05",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/DocumentTabs.java:241-251 togglePin then moveToPinBoundary, index = other pinned tabs (ui/TabStrip.java:52-58); TabsAndPanelsTest.pinningMovesToThePinBoundary"
+      "evidence": "togglePin then moveToPinBoundary at the count of other pinned tabs (src/main/java/com/example/app/ui/TabStrip.java, DocumentTabs togglePin), unchanged by the batch."
     },
     {
       "id": "TABS-06",
@@ -1115,7 +1115,7 @@
       "id": "TABS-15",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/config/Settings.java:195-273 keeps open, sides, order, hidden, floating, sizes, splits and maximized; ui/ToolWindowManager.java:225-237 restores them at start (kept in settings.json, see SET-08)"
+      "evidence": "window.toolWindows (open, sides, order, hidden, floating, sizes, splits, maximized: src/main/java/com/example/app/config/Settings.java:259-280) now goes to session.json (ConfigStore.java:257-261) and is read back at start (ToolWindowManager restore)."
     },
     {
       "id": "TABS-19",
@@ -1169,7 +1169,7 @@
       "id": "MENU-14",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Every row of every menu the app draws is built by AppMenus.inWindowRow with Icons.commandGlyph (src/main/java/com/example/app/ui/AppMenus.java:262-285; CommandMenu.java:51), and every command id in the menu bar tables (AppMenus.java:75-185), the tab, editor, Output, Debug Log, Documents, Message Log, Settings page and binding menus, the toolbar and stripe menus has an entry in Icons.BY_COMMAND (src/main/java/com/example/app/ui/Icons.java:281-355); no check/radio rows. Shared glyphs are the same action in another scope (COPY, CLEAR, FIND, EXPORT) or close kin (KEYBOARD for settings.keymap and help.keyboardShortcuts, SYNC for sync.setup and sync.now); NamedControlsFxTest.java:138."
+      "evidence": "New rows get glyphs where built: view.welcome HOME and help.doctor PULSE in the command table (src/main/java/com/example/app/ui/Icons.java:302,319), the Welcome tab menu's buffer.close CLOSE; every id in the menu bar, right-click and Settings page menus has a table entry; NamedControlsFxTest.everyMenuRowReadsAsItsTitleAndWearsAGlyph (:157)."
     },
     {
       "id": "MENU-15",
@@ -1211,7 +1211,7 @@
       "id": "MENU-04",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:182-187 setSimple rebuilds only when the flag changes."
+      "evidence": "src/main/java/com/example/app/ui/AppMenus.java setSimple rebuilds only when the flag changes (unchanged)."
     },
     {
       "id": "MENU-17",
@@ -1264,8 +1264,8 @@
     {
       "id": "MENU-12",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: Rows that clear a log or reset a binding are not marked as destructive."
+      "status": "pass",
+      "evidence": "messageLog.clear, debugLog.clear, output.clear, keymap.resetBinding and config.import rows carry 'danger' (src/main/java/com/example/app/ui/AppMenus.java:255,269-270,300) styled -state-red = -color-danger-fg (app.css:379-382, :20); RightClickMenusFxTest.destructiveRowsAreStyledAsDangerous."
     },
     {
       "id": "MENU-13",
@@ -1396,32 +1396,32 @@
     {
       "id": "SET-08",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The window's size and position are kept in the settings file instead of a file of their own."
+      "status": "pass",
+      "evidence": "Settings.window is @JsonIgnore (src/main/java/com/example/app/config/Settings.java:82-83) and written to session.json (ConfigStore.java:257-261); migration 7→8 drops the window block (Migrations.java:33,69-72); settings.json keeps no geometry or open items; SessionAndWelcomeFxTest.java:61-62."
     },
     {
       "id": "SET-09",
       "level": "MUST",
       "status": "pass",
-      "evidence": "settings.json: SCHEMA_VERSION 7 (src/main/java/com/example/app/config/Settings.java:21) with steps 1-6 (src/main/java/com/example/app/config/Migrations.java:19-31); base.json/keybindings.json: SyncData.SCHEMA_VERSION 2 with step 1 (src/main/java/com/example/app/sync/SyncData.java:30,40,125-134)."
+      "evidence": "every config file carries a schemaVersion: settings.json (Settings, Migrations), session.json (ConfigStore.SESSION_SCHEMA), sync files (SyncData), account.json (sync/AccountPin.java SCHEMA_VERSION)"
     },
     {
       "id": "SET-10",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Newer settings.json is copied to settings.json.v<n>.bak and defaults load (src/main/java/com/example/app/config/ConfigStore.java:150-153); a newer base.json is copied to base.json.v<n>.bak and the sync goes on from an empty base (src/main/java/com/example/app/sync/SyncData.java:98-106, SyncEngine.java:117)."
+      "evidence": "settings.json, session.json, base.json and account.json from a newer build are kept aside as .v<n>.bak and defaults load (ConfigStore.read, readSession, SyncData.readBase, AccountPin.pinned)"
     },
     {
       "id": "SET-11",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Values clamped/defaulted on read (src/main/java/com/example/app/config/Settings.java:108-136, 191-201, 237-252, 313-318; unknown theme -> default, ThemeChoice.java:25-33); undecodable file (IOException or RuntimeException) -> settings.json.broken.bak and defaults (src/main/java/com/example/app/config/ConfigStore.java:159-162); base.json likewise (src/main/java/com/example/app/sync/SyncData.java:98-106)."
+      "evidence": "session.json is clamped as read (Window.clamp via Settings.clamped: Settings.java:150-152, documents filtered and capped at 100, activeDocument checked :236-245), an undecodable one (IOException or RuntimeException) goes to session.json.broken.bak (ConfigStore.java:220-223); textZoom clamped on read; account.txt with a mismatched URL or blank account reads as unpinned (AccountPin.java:57-67)."
     },
     {
       "id": "SET-22",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Every whole-file config write goes through ConfigFiles.write: temp file in the same folder, then Files.move with ATOMIC_MOVE (src/main/java/com/example/app/config/ConfigFiles.java:20-34): settings (src/main/java/com/example/app/config/ConfigStore.java:204), import (src/main/java/com/example/app/config/ConfigImport.java:160,165), base.json (src/main/java/com/example/app/sync/SyncData.java:90). Other writes are a report, an export and the smoke-test marker."
+      "evidence": "session.json and sync/account.txt are written through ConfigFiles.writeString, temp file then Files.move (ConfigStore.java:257-261; AccountPin.java:72); backups/settings-*.json are copies, not read back; the start-up marks file is written for the script, not read back."
     },
     {
       "id": "SET-12",
@@ -1456,8 +1456,8 @@
     {
       "id": "SET-18",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: Settings Sync does not remember which GitHub account each copy uses."
+      "status": "pass",
+      "evidence": "Sync page URL field and Create on GitHub via gh (unchanged); AccountPin.env finds the first signed-in account whose token can read the repo (GitHubCli.accounts/token/canRead :128-150), records it beside the clone and reuses it (src/main/java/com/example/app/sync/AccountPin.java:38-55), passed to fetch and push (SyncEngine.java:124-128,154,176); AccountPinTest.java:42."
     },
     {
       "id": "SET-19",
@@ -1468,8 +1468,8 @@
     {
       "id": "SET-20",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: Settings Sync replaces your key bindings without keeping a copy of the old ones first."
+      "status": "pass",
+      "evidence": "SyncMerge keeps this machine's value for an entry it changed (src/main/java/com/example/app/sync/SyncMerge.java:26-27; SyncTest.thisMachineWinsAndRemoteDeletionsApply); before a merged result replaces local bindings settings.json is copied to backups/ (src/main/java/com/example/app/ui/SyncController.java:143,178-200); SyncControllerFxTest.aSyncThatReplacesLocalSettingsBacksThemUpFirst."
     },
     {
       "id": "SET-21",
@@ -1546,8 +1546,8 @@
     {
       "id": "DIAG-07",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: There is no page that checks the outside tools the app uses, such as git and gh."
+      "status": "manual",
+      "evidence": "Open the Doctor (Settings → Advanced or help.doctor) with git missing and find its row Failed with what to install and a link: src/main/java/com/example/app/sync/Doctor.java:47-71, src/main/java/com/example/app/ui/DoctorWindow.java:55-90 (gh missing shows Warning, not Failed); not recorded"
     },
     {
       "id": "DIAG-08",
@@ -1576,8 +1576,8 @@
     {
       "id": "CLI-04",
       "level": "SHOULD",
-      "status": "limited",
-      "evidence": "reopens nothing from the last session: the tabs always open the same samples (src/main/java/com/example/app/ui/DocumentTabs.java:69-71); only window geometry and tool-window layout return (src/main/java/com/example/app/ui/MainWindow.java:157-166, src/main/java/com/example/app/ui/ToolWindowManager.java:225). pauta.json still has a pending entry (\"window still comes back at its last size\"), a problem: no entry is needed for a limited rule."
+      "status": "manual",
+      "evidence": "Launch with --no-session and find only what the command line names: CommandLine.java:52 sets noSession, MainWindow is built with restoreSession=false (Startup.java:142) and DocumentTabs skips the last session's documents (DocumentTabs.java:102-120), but that path still opens the Welcome page and three sample documents (DocumentTabs.java:116-121); not recorded"
     },
     {
       "id": "CLI-05",
@@ -1630,8 +1630,8 @@
     {
       "id": "CLI-10",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: Tools such as git are looked for in a fixed list of folders instead of your login shell's path."
+      "status": "pass",
+      "evidence": "git and gh (the only tools the app starts) get PATH = the login shell's PATH merged before the inherited one on macOS and Linux, the inherited one on Windows (src/main/java/com/example/app/sync/ShellPath.java:26-36; Git.java:72; GitHubCli.java:163; Executables.java:27); ShellPathTest. Browser.open (report/Browser.java) only hands a URL to the OS opener from the CLI."
     },
     {
       "id": "INTL-01",
@@ -1673,7 +1673,7 @@
       "id": "INTL-07",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/SettingsWindow.java:437 the sync URL's prompt comes from the catalog; the tagline is app.tagline"
+      "evidence": "New UI text comes from the catalog (doctor.*, empty.title, palette.legend, settings.textZoom, status.textZoom ...); no new string literal in a control's constructor, setText, setPromptText, setTitle or tooltip. Doctor row names 'git', 'gh', 'Java', 'JavaFX' (Doctor.java:47-66) are product names, and the legend's '↑↓'/'Esc' (MainWindow.java:479-481) are key labels."
     },
     {
       "id": "INTL-08",
@@ -1750,26 +1750,26 @@
     {
       "id": "PAL-06",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The Command Palette moves on fixed keys instead of your keymap's line and page keys."
+      "status": "pass",
+      "evidence": "Picker.onKey resolves the press through PickerKeys.resolve: ↑ ↓ Page Up/Down always, and the active keymap's nav.lineDown/lineUp/pageDown/pageUp chords (src/main/java/com/example/app/ui/PickerKeys.java:45-66; Picker.java:299-310); choose() returns on a disabled row and hides the card before running (Picker.java:321-326); PickerFxTest (C-n/C-p in Emacs)."
     },
     {
       "id": "PAL-07",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "OverlayHost hides on Esc and on the active keymap's edit.cancel chord (src/main/java/com/example/app/ui/OverlayHost.java:35-48; src/main/java/com/example/app/ui/MainWindow.java:102; emacs.json:33 C-g, CUA binds none), on a press on the scrim (:34), and gives focus back (:66, 87-89); the edit.cancel command hides too (src/main/java/com/example/app/ui/Commands.java:318-321)."
+      "evidence": "OverlayHost hides on Esc, the keymap's edit.cancel chord and a scrim click, and refocuses the previous owner (src/main/java/com/example/app/ui/OverlayHost.java:44-50,87-100; MainWindow.java:102), unchanged."
     },
     {
       "id": "PAL-08",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The Command Palette has no key that opens a command's help."
+      "status": "pass",
+      "evidence": "The help chord is the first of Ctrl+H, F1, Shift+F1 the keymap neither binds nor starts a prefix with (src/main/java/com/example/app/ui/PickerKeys.java:40,72-80; Ctrl+H stays Control on macOS since KeyStroke.resolve only maps Shortcut); it opens AppInfo.docsUrl() (versioned) + /commands/#<id> (MainWindow.java:446); PickerFxTest.helpTitleCurrentValueAndTheEnds."
     },
     {
       "id": "PAL-09",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The Command Palette's key legend does not follow a keymap change while it is open."
+      "status": "pass",
+      "evidence": "A keymap change calls palette.rebind with the new opener, rows and legend (src/main/java/com/example/app/ui/MainWindow.java:448-452; Picker.rebind :183-197), and the listener is removed when the palette hides."
     },
     {
       "id": "QOPEN-01",
@@ -1780,8 +1780,8 @@
     {
       "id": "QOPEN-02",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: Pickers have no title naming what you are choosing."
+      "status": "pass",
+      "evidence": "every picker is titled: theme, keymap, language and Bind Key (ui/MainWindow.java chooseBinding .titled)"
     },
     {
       "id": "QOPEN-03",
@@ -1792,8 +1792,8 @@
     {
       "id": "QOPEN-04",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The theme, keymap and language pickers do not open on the current choice."
+      "status": "pass",
+      "evidence": "Empty query passes items in supplier order and selects the value in force (src/main/java/com/example/app/ui/Picker.java:244-254, current() :173); theme, keymap and language pickers pass theirs (MainWindow.java:497,511,527); the bind-key picker has no value in force; PickerFxTest.helpTitleCurrentValueAndTheEnds."
     },
     {
       "id": "QOPEN-05",
@@ -1804,14 +1804,14 @@
     {
       "id": "QOPEN-06",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: Pickers use fixed keys instead of your keymap's, and lack Ctrl+Home and Ctrl+End."
+      "status": "pass",
+      "evidence": "every picker takes the keymap's moves through PickerKeys (.keymap on the theme, keymap, language and Bind Key pickers) and Ctrl/Cmd+Home/End"
     },
     {
       "id": "QOPEN-07",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Esc, the keymap's edit.cancel chord and a scrim press hide every picker through the shared OverlayHost and focus returns (src/main/java/com/example/app/ui/OverlayHost.java:34-48, 64-90; MainWindow.java:102); no picker previews anything, so there is nothing to undo."
+      "evidence": "Every picker closes through OverlayHost on Esc, the edit.cancel chord and a scrim press, and focus returns (OverlayHost.java:44-50,87-100); no picker previews a row."
     },
     {
       "id": "QOPEN-08",
@@ -1840,8 +1840,8 @@
     {
       "id": "QOPEN-12",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The tab switcher has no Page Up and Page Down, which the pickers have."
+      "status": "pass",
+      "evidence": "The tab switcher, the one list overlay besides the pickers, moves through PickerKeys (src/main/java/com/example/app/ui/Switcher.java:118-141, keymap at MainWindow.java:376), accepts on Enter and cancels through OverlayHost."
     },
     {
       "id": "WELC-01",
@@ -1858,20 +1858,20 @@
     {
       "id": "WELC-03",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The Welcome page is opened from the Window menu, not Help, by a command named for help instead of view."
+      "status": "pass",
+      "evidence": "No session to restore (first run, empty list or --no-session) shows the Welcome tab (src/main/java/com/example/app/ui/DocumentTabs.java:102-121); view.welcome (Commands.java:246) is a Help row in both menus (AppMenus.java:145,180); no project swap or direct-view startup in the template; SessionAndWelcomeFxTest.java:43-117."
     },
     {
       "id": "WELC-04",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: Closing the last tab leaves an empty window with no hint of what to do next."
+      "status": "pass",
+      "evidence": "Closing the last tab shows the empty hint with the ways in and their chords and focuses it; a tab hides it (src/main/java/com/example/app/ui/DocumentTabs.java:86-92,157-163,182-190); nothing re-adds Welcome; TabsAndPanelsFxTest.java:842-849."
     },
     {
       "id": "WELC-05",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The Welcome page is not built again each time it is shown, keeping the keyboard where it was."
+      "status": "pass",
+      "evidence": "Every show of the Welcome tab runs refreshWelcome (DocumentTabs.java:98,305 → MainWindow.java:292-305), which rebuilds the actions' titles and hint and re-requests the prior focus owner; SessionAndWelcomeFxTest.java:114-117."
     },
     {
       "id": "WELC-06",
@@ -1906,8 +1906,8 @@
     {
       "id": "WELC-11",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The Welcome tab offers the whole tab menu and is pinned, instead of only closing."
+      "status": "pass",
+      "evidence": "The Welcome tab's context menu is a CommandMenu with buffer.close only (src/main/java/com/example/app/ui/DocumentTabs.java:84,329); it is no longer pinned; the window title shows project and app name on it (DocumentTabs.java:453-465)."
     },
     {
       "id": "ABOUT-01",
@@ -2123,13 +2123,13 @@
       "id": "FIND-04",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/resources/com/example/app/keymaps/cua.json:20 find.show is Shortcut+F and F3 (Cmd+F and Cmd+G on macOS, C-s in Emacs); src/test/java/com/example/app/ui/FindBarFxTest.java:208; each find bar's command finds the next match when run again (FindBar.openOrNext)"
+      "evidence": "find.show is Ctrl/Cmd+F in every keymap, with F3 as well in CUA and Sublime (Cmd+G in CUA on macOS), C-s in Emacs; each find bar's command finds the next match when run again"
     },
     {
       "id": "FIND-05",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: Changing the search starts from the current match, not from where the caret was when the find bar opened."
+      "status": "pass",
+      "evidence": "The search anchor is the caret when the bar opens (src/main/java/com/example/app/ui/FindBar.java:139) and refine starts from it (:205); the document is a TextArea, which draws one selection, so the active match plus the count; FindBarFxTest."
     },
     {
       "id": "FIND-06",
@@ -2152,8 +2152,8 @@
     {
       "id": "FIND-09",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The find field does not use your keymap's text-editing keys."
+      "status": "pass",
+      "evidence": "TextInputKeys gives the find fields the Emacs caret/editing chords (src/main/java/com/example/app/ui/TextInputKeys.java; installed for document, Output and Debug Log bars: DocumentTabs.java:281, MainWindow.java:141-143, DebugLogWindow.java:39) and KeyDispatcher leaves them to any text field (KeyDispatcher.java:43-49); find's chords still dispatch. Side effect: C-h counts as editing, so Emacs's C-h prefix (C-h e, C-h l, C-h C-a) is dead whenever any text field, the document TextArea included, has focus."
     },
     {
       "id": "FIND-10",
@@ -2213,7 +2213,7 @@
       "id": "MLOG-03",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "The Message Log is shown through OverlayHost (src/main/java/com/example/app/ui/MessageLogView.java:112), which closes on Esc, on the keymap's edit.cancel chord (not a fixed Ctrl+G) and on a scrim press (src/main/java/com/example/app/ui/OverlayHost.java:34-48; src/main/java/com/example/app/ui/MainWindow.java:102)."
+      "evidence": "The Message Log is an OverlayHost card closed by Esc, the keymap's edit.cancel chord and a scrim press (OverlayHost.java:44-50; MessageLogView.java), unchanged."
     },
     {
       "id": "MLOG-04",
@@ -2350,8 +2350,8 @@
     {
       "id": "REL-17",
       "level": "SHOULD",
-      "status": "pending",
-      "evidence": "pauta.json: The Windows installer is not signed yet, though the release could sign it from a certificate each app supplies, as it signs the other systems' builds."
+      "status": "pass",
+      "evidence": ".github/workflows/release.yml:303-326 signs every target/installers/*.msi with signtool (SHA-256, timestamped, verified) before the Upload step (:328), when WINDOWS_CERT_PFX is set; ReleaseSupplyChainTest."
     },
     {
       "id": "REL-18",
