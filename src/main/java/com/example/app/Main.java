@@ -30,6 +30,7 @@ public final class Main {
         // The first statement: the app never uses AWT, and on macOS an initialised AWT contends with
         // JavaFX for the AppKit run loop.
         System.setProperty("java.awt.headless", "true");
+        StartupMarks.mark("main"); // PERF-19
         DebugLog.install();
         int code = run(args, System.out, System.err);
         if (code != LAUNCH) System.exit(code);

@@ -124,6 +124,7 @@ public final class Startup {
         Themes.prepareZoom(store.settings().uiZoom); // the scaled sheets, before the toolkit needs them
         HandOff handOff = new HandOff();
         SingleInstance instance = cli.newInstance() ? null : SingleInstance.listen(dir, handOff);
+        com.example.app.StartupMarks.mark("prepared");
         return new Prepared(cli, dir, store, instance, handOff);
     }
 
@@ -145,6 +146,9 @@ public final class Startup {
         // A press anywhere outside a right-click menu closes it, in every window (MENU-06/07).
         ContextMenuDismissal.install();
         window.show();
+        com.example.app.StartupMarks.mark("window");
+        // PERF-20: asked for with -D<app>.fxSampler=<ms>, a stall of the FX thread logs its stack.
+        FxSampler.startIfAsked(Platform::runLater, stall -> LOG.warning(stall));
         LOG.info(AppInfo.NAME + " " + AppInfo.VERSION + " started, config " + AppInfo.tildeHome(dir.toString()));
 
         switch (store.loadResult()) {
@@ -159,6 +163,9 @@ public final class Startup {
         java.util.concurrent.atomic.AtomicBoolean afterFirstPaint = new java.util.concurrent.atomic.AtomicBoolean();
         FirstPaint.then(stage.getScene(), () -> {
             afterFirstPaint.set(true);
+            com.example.app.StartupMarks.mark("first-paint");
+            LOG.info("Start-up: " + com.example.app.StartupMarks.line(com.example.app.StartupMarks.marks()));
+            measured(System.getProperty(com.example.app.StartupMarks.PROPERTY), host);
             Background.run(Fonts::loadDeferred); // registered off the FX thread (PERF-01)
             // Every keymap parsed now, off the FX thread, so picking one later parses nothing (PERF-01).
             Background.run(() -> Keymap.PRESETS.forEach(Keymap::load));
@@ -168,6 +175,20 @@ public final class Startup {
         smokeTest(System.getProperty(SMOKE_TEST), host);
         aotTrain(System.getProperty(AOT_TRAIN), host);
         return new Running(services, window, prepared.instance(), afterFirstPaint);
+    }
+
+    /** A measuring run (PERF-19): the marks to {@code file}, off the FX thread, then the app exits. */
+    static void measured(@Nullable String file, Host host) {
+        if (file == null || file.isBlank()) return;
+        String marks = com.example.app.StartupMarks.file(com.example.app.StartupMarks.marks());
+        Background.run(() -> {
+            try {
+                Files.writeString(Path.of(file), marks, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Could not write the start-up marks to " + file, e);
+            }
+            Platform.runLater(host::exit);
+        });
     }
 
     /** Ends an AOT training run after the window has settled. */

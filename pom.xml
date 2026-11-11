@@ -681,6 +681,18 @@
                         <executions>
                             <!-- In POM order, all bound to `package` after jpackage. Through bash, not as
                                  the executable: Windows cannot run a .sh directly. -->
+                            <!-- PERF-17: the stylesheets precompiled to .bss into the classes the jar takes. -->
+                            <execution>
+                                <id>precompile-styles</id>
+                                <phase>process-classes</phase>
+                                <goals><goal>java</goal></goals>
+                                <configuration>
+                                    <mainClass>com.example.app.ui.StyleCompiler</mainClass>
+                                    <arguments>
+                                        <argument>${project.build.outputDirectory}/com/example/app/styles</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
                             <execution>
                                 <id>add-notices</id>
                                 <phase>package</phase>

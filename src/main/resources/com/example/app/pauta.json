@@ -2,30 +2,6 @@
   "template": true,
   "exceptions": [
     {
-      "rule": "PERF-17",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/performance/#perf-17",
-      "kind": "pending",
-      "reason": "The stylesheets are not converted to their faster binary form for release builds.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
-      "rule": "PERF-19",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/performance/#perf-19",
-      "kind": "pending",
-      "reason": "There is no script that measures how long the app takes to start.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
-      "rule": "PERF-20",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/performance/#perf-20",
-      "kind": "pending",
-      "reason": "There is no switch that records what keeps the window busy.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
       "rule": "DOCS-01",
       "level": "MUST",
       "url": "https://pauta-project.dev/6.0.0/documentation/#docs-01",

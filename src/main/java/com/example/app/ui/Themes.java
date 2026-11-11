@@ -240,7 +240,16 @@ public final class Themes {
 
     /** The URL of one of the app's stylesheets. */
     static String sheet(String name) {
+        // The precompiled form when the build made one (PERF-17): it loads without being parsed.
+        String binary = binaryName(name);
+        java.net.URL bss = binary == null ? null : Themes.class.getResource("/com/example/app/styles/" + binary);
+        if (bss != null) return bss.toExternalForm();
         return Objects.requireNonNull(Themes.class.getResource("/com/example/app/styles/" + name))
                 .toExternalForm();
+    }
+
+    /** {@code app.css} → {@code app.bss}; null for a name that is no stylesheet. Pure. */
+    static @Nullable String binaryName(String name) {
+        return name.endsWith(".css") ? name.substring(0, name.length() - 4) + ".bss" : null;
     }
 }
