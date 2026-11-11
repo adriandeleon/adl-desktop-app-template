@@ -379,4 +379,62 @@ class StyleContrastTest {
         assertTrue(
                 Themes.isDark(com.example.app.config.ThemeChoice.HIGH_CONTRAST, javafx.application.ColorScheme.LIGHT));
     }
+
+    /**
+     * ICON-06, ICON-14: the key color, a ladder of the default ground, reads at 4.5:1 or more on the default,
+     * subtle and menu grounds of both flagship themes. Pure: the ladder is worked out as JavaFX works it out
+     * (the ground's brightness, 0.3 R + 0.59 G + 0.11 B, picks the place between the stops, mixed in linear
+     * RGB), so no toolkit starts.
+     */
+    @Test
+    void theKeyColorReadsOnBothThemesGrounds() throws Exception {
+        String key = body(read("app.css"), ".root");
+        Matcher m = Pattern.compile("-state-key:\\s*ladder\\(-color-bg-default,([^;]+)\\);")
+                .matcher(key);
+        assertTrue(m.find(), "-state-key is a ladder of the ground");
+        List<double[]> offsets = new ArrayList<>();
+        List<Color> colors = new ArrayList<>();
+        for (String stop : m.group(1).split(",")) {
+            String[] parts = stop.strip().split("\\s+");
+            colors.add(Color.web(parts[0]));
+            offsets.add(new double[] {Double.parseDouble(parts[1].replace("%", "")) / 100});
+        }
+        for (String theme : FLAGSHIP) {
+            Map<String, String> p = palette(theme);
+            Color ink = ladder(color(p, "-color-bg-default"), offsets, colors);
+            for (String ground : List.of("-color-bg-default", "-color-bg-subtle", "-color-bg-overlay")) {
+                double ratio = contrast(ink, color(p, ground));
+                assertTrue(ratio >= 4.5, theme + ": -state-key on " + ground + " is " + ratio);
+            }
+        }
+    }
+
+    /** JavaFX's ladder: the first stop at or past the ground's brightness, mixed with the one before it. */
+    static Color ladder(Color ground, List<double[]> offsets, List<Color> colors) {
+        double brightness = 0.3 * ground.getRed() + 0.59 * ground.getGreen() + 0.11 * ground.getBlue();
+        for (int i = 0; i < colors.size(); i++) {
+            double offset = offsets.get(i)[0];
+            if (brightness <= offset) {
+                if (i == 0) return colors.get(0);
+                double before = offsets.get(i - 1)[0];
+                double t = (brightness - before) / (offset - before);
+                Color a = colors.get(i - 1);
+                Color b = colors.get(i);
+                return Color.color(
+                        toSrgb(mix(channel(a.getRed()), channel(b.getRed()), t)),
+                        toSrgb(mix(channel(a.getGreen()), channel(b.getGreen()), t)),
+                        toSrgb(mix(channel(a.getBlue()), channel(b.getBlue()), t)));
+            }
+        }
+        return colors.getLast();
+    }
+
+    private static double mix(double a, double b, double t) {
+        return a + (b - a) * t;
+    }
+
+    private static double toSrgb(double v) {
+        double s = v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
+        return Math.min(1, Math.max(0, s));
+    }
 }

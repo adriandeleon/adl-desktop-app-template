@@ -2,14 +2,6 @@
   "template": true,
   "exceptions": [
     {
-      "rule": "ICON-14",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/icons-and-color/#icon-14",
-      "kind": "pending",
-      "reason": "The key color's contrast is checked by a test that needs the toolkit instead of a plain one.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/19"
-    },
-    {
       "rule": "PERF-17",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/6.0.0/performance/#perf-17",
@@ -32,22 +24,6 @@
       "kind": "pending",
       "reason": "There is no switch that records what keeps the window busy.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
-      "rule": "QUAL-13",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/quality/#qual-13",
-      "kind": "pending",
-      "reason": "No test sets every control in Settings and reads them back after a restart.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/19"
-    },
-    {
-      "rule": "REL-17",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/release/#rel-17",
-      "kind": "pending",
-      "reason": "The Windows installer is not signed yet, though the release could sign it from a certificate each app supplies, as it signs the other systems' builds.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/14"
     },
     {
       "rule": "DOCS-01",

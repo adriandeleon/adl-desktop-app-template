@@ -64,11 +64,14 @@ Set them with `gh secret set NAME` (type the value at the prompt; a piped `echo`
 | `APPLE_API_ISSUER` | The Issuer ID (UUID) for a team key; empty for an individual key | Team keys fail notarization |
 | `LINUX_GPG_KEY` | The shared release key, ASCII-armoured secret key (`gpg --armor --export-secret-keys <fpr>`) | Dry run: a throw-away key. Tag: fails |
 | `LINUX_GPG_PASSPHRASE` | Its passphrase, if it has one | |
+| `WINDOWS_CERT_PFX` | Base64 of the `.pfx` holding the Authenticode code-signing certificate and its key | The `.msi` ships unsigned, with a notice in the run (REL-17) |
+| `WINDOWS_CERT_PASSWORD` | The `.pfx` password | As above |
 | `PACKAGES_TOKEN` | Classic PAT with `repo` scope, for `adriandeleon/homebrew-tap` and the `winget-pkgs` fork | The GitHub release still publishes; no cask, no winget PR |
 
 Signing therefore skips cleanly on forks and dry runs, and a tag without the secrets fails rather than
-publishing unsigned downloads. Windows MSIs are not Authenticode signed yet (an open decision for the
-family); the build provenance attestation is their only signature.
+publishing unsigned downloads. The Windows `.msi` is Authenticode-signed once `WINDOWS_CERT_PFX` is set (and
+checked with `signtool verify`); until a certificate is chosen it ships unsigned, its build provenance
+attestation its only signature, and the run says so.
 
 ## The Linux signing key
 
