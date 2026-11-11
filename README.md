@@ -12,14 +12,14 @@
 ![Java](https://img.shields.io/badge/Java-25%2B-orange?logo=openjdk&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-27%2B-1e90ff)
 ![Platforms](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
-[![Pauta](https://img.shields.io/badge/Pauta-6.0.0%20%C2%B7%20Complete-2ea043)](https://exampleapp-project.dev/docs/pauta/)
+[![Pauta](https://img.shields.io/badge/Pauta-6.0.1%20%C2%B7%20Complete-2ea043)](https://exampleapp-project.dev/docs/pauta/)
 [![Stars](https://img.shields.io/github/stars/adriandeleon/ExampleApp?style=flat)](https://github.com/adriandeleon/ExampleApp/stargazers)
 
 </p>
 
 <!-- template:start -->
 > [!IMPORTANT]
-> **This is the template for [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [6.0.0](https://pauta-project.dev/6.0.0/).** Click **Use this template**, clone your new repository, then run:
+> **This is the template for [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [6.0.1](https://pauta-project.dev/6.0.1/).** Click **Use this template**, clone your new repository, then run:
 >
 > ```bash
 > scripts/rename.sh MyApp com.myapp
@@ -32,7 +32,7 @@
 > this box, the rename check in CI and itself. Then replace the icon (`branding/`, then
 > `scripts/make-icons.sh`) and the screenshots, and write your app in tabs and tool windows in place of
 > the samples (`SampleFiles`, `SamplePanels`).
-> Every MUST and SHOULD of Pauta 6.0.0 that a template can meet is here and tested, so the template is
+> Every MUST and SHOULD of Pauta 6.0.1 that a template can meet is here and tested, so the template is
 > Complete; see [docs/architecture.md](docs/architecture.md) for where each piece lives. What only your app
 > can have is listed, rule by rule, in [`pauta.json`](src/main/resources/com/example/app/pauta.json) and in
 > the app's Pauta window (Help → Pauta Conformance) as `app-only`: your website, your screenshots and your
@@ -43,7 +43,7 @@
 ExampleApp is a keyboard-first JavaFX desktop app for Windows, macOS and Linux. Every action is a
 command you can run from the Command Palette, and nothing leaves your computer unless you ask.
 
-Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [6.0.0](https://pauta-project.dev/6.0.0/), [Pauta conformance: Complete](https://exampleapp-project.dev/docs/pauta/).
+Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [6.0.1](https://pauta-project.dev/6.0.1/), [Pauta conformance: Complete](https://exampleapp-project.dev/docs/pauta/).
 
 <p align="center">
   <picture>

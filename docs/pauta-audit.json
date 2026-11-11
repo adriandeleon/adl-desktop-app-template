@@ -1,11 +1,11 @@
 {
-  "$schema": "https://pauta-project.dev/6.0.0/audit.schema.json",
+  "$schema": "https://pauta-project.dev/6.0.1/audit.schema.json",
   "app": "ExampleApp",
-  "commit": "4aa2356",
-  "edition": "6.0.0",
+  "commit": "18826ad",
+  "edition": "6.0.1",
   "date": "2026-11-11",
   "scope": [],
-  "rules": "https://pauta-project.dev/6.0.0/rules.json",
+  "rules": "https://pauta-project.dev/6.0.1/rules.json",
   "results": [
     {
       "id": "OS-01",
@@ -95,7 +95,7 @@
       "id": "PAUTA-09",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/resources/com/example/app/pauta.json bundled; every entry has rule, level, url, kind, reason; every pending has a link; no rule twice; levels and urls match rules-6.0.0 (checked); template flag beside exceptions only in a template."
+      "evidence": "src/main/resources/com/example/app/pauta.json bundled; every entry has rule, level, url, kind, reason; every pending has a link; no rule twice; levels and urls match rules-6.0.1 (checked); template flag beside exceptions only in a template."
     },
     {
       "id": "PAUTA-10",
@@ -107,7 +107,7 @@
       "id": "PAUTA-11",
       "level": "SHOULD",
       "status": "manual",
-      "evidence": "The change raising pauta.version (pom.xml:34, uncommitted) also replaces src/test/resources/pauta-rules.json (identical to 6.0.0 rules.json) and .claude/skills/pauta-audit/SKILL.md (identical to the 6.0.0 skill), touches pauta.json, README.md and AGENTS.md, and leaves no checked entry; confirm it lands as one change ; not recorded"
+      "evidence": "The change raising pauta.version (pom.xml:34, uncommitted) also replaces src/test/resources/pauta-rules.json (identical to 6.0.1 rules.json) and .claude/skills/pauta-audit/SKILL.md (identical to the 6.0.1 skill), touches pauta.json, README.md and AGENTS.md, and leaves no checked entry; confirm it lands as one change ; not recorded"
     },
     {
       "id": "PAUTA-13",
@@ -125,13 +125,13 @@
       "id": "PAUTA-15",
       "level": "MUST",
       "status": "pass",
-      "evidence": "README.md:15 badge 'Pauta-6.0.0 · Complete' and README.md:46 'Built to ... 6.0.0 ..., Pauta conformance: Complete', both linking https://exampleapp-project.dev/docs/pauta/; pauta.json has no pending entry, so the helper computes Complete; held by PautaConformanceTest."
+      "evidence": "README.md:15 badge 'Pauta-6.0.1 · Complete' and README.md:46 'Built to ... 6.0.1 ..., Pauta conformance: Complete', both linking https://exampleapp-project.dev/docs/pauta/; pauta.json has no pending entry, so the helper computes Complete; held by PautaConformanceTest."
     },
     {
       "id": "PAUTA-17",
       "level": "MUST",
       "status": "pass",
-      "evidence": "AGENTS.md:9-12 '## Pauta' names 6.0.0 and links https://pauta-project.dev/6.0.0/llms.txt and llms-full.txt; no latest/ or other-edition link; EditionTest.java:48-60."
+      "evidence": "AGENTS.md:9-12 '## Pauta' names 6.0.1 and links https://pauta-project.dev/6.0.1/llms.txt and llms-full.txt; no latest/ or other-edition link; EditionTest.java:48-60."
     },
     {
       "id": "PLAT-01",
@@ -1955,7 +1955,7 @@
       "id": "ABOUT-07",
       "level": "MUST",
       "status": "pass",
-      "evidence": "About says \"Built to Pauta 6.0.0\" and the conformance the helper computes: pauta.json has no pending entry, so Complete (src/main/java/com/example/app/ui/AboutDialog.java:55-63,101-104; PautaConformance.java:202-210)."
+      "evidence": "About says \"Built to Pauta 6.0.1\" and the conformance the helper computes: pauta.json has no pending entry, so Complete (src/main/java/com/example/app/ui/AboutDialog.java:55-63,101-104; PautaConformance.java:202-210)."
     },
     {
       "id": "ABOUT-08",
