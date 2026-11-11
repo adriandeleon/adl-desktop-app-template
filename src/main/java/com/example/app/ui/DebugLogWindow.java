@@ -30,6 +30,7 @@ public final class DebugLogWindow {
     private final Stage stage = new Stage();
     private final TextArea text = new TextArea();
     private final DebugLogFindBar findBar = new DebugLogFindBar(text);
+    private final CommandMenu menu;
 
     public DebugLogWindow(AppServices services, @Nullable Window owner) {
         this.services = services;
@@ -37,18 +38,17 @@ public final class DebugLogWindow {
         findBar.runCommandsThrough(id -> services.commands().run(id));
         text.getStyleClass().add("debug-log-text");
         // A read-only console: its right-click menu is the Debug Log's commands.
-        CommandMenu.onConsole(
-                text,
-                new CommandMenu(
-                        services,
-                        java.util.Arrays.asList(
-                                "debugLog.find",
-                                null,
-                                "debugLog.copy",
-                                "debugLog.export",
-                                null,
-                                "debugLog.refresh",
-                                "debugLog.clear")));
+        menu = new CommandMenu(
+                services,
+                java.util.Arrays.asList(
+                        "debugLog.find",
+                        null,
+                        "debugLog.copy",
+                        "debugLog.export",
+                        null,
+                        "debugLog.refresh",
+                        "debugLog.clear"));
+        CommandMenu.onConsole(text, menu);
 
         // Every button runs a command (KBD-01), so the palette and a key binding reach the same work.
         Button refresh = button("debuglog.refresh", "debugLog.refresh");
@@ -109,6 +109,10 @@ public final class DebugLogWindow {
 
     DebugLogFindBar findBar() {
         return findBar;
+    }
+
+    CommandMenu menu() {
+        return menu;
     }
 
     TextArea text() {

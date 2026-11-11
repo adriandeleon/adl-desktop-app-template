@@ -121,7 +121,7 @@ class StyleContrastTest {
                 ".about-tagline",
                 ".about-env",
                 ".header-title",
-                ".menu-item-chord")) {
+                ".menu-item .menu-item-chord")) {
             assertFalse(body(app, selector).contains("-color-fg-subtle"), selector + " is set in the ~3:1 subtle role");
         }
         for (String theme : FLAGSHIP) {
