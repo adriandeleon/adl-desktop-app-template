@@ -42,6 +42,14 @@ public final class Icons {
     /** Style class of the filled family. */
     public static final String FILLED = "toolbar-icon";
 
+    /**
+     * Simple mode: Editora's glyph, a window whose side rail and lines are short dashes, chrome stripped
+     * back to the content.
+     */
+    public static final String SIMPLE_MODE =
+            "M1.8 2.6h12.4a1 1 0 0 1 1 1v8.8a1 1 0 0 1 -1 1h-12.4a1 1 0 0 1 -1 -1v-8.8a1 1 0 0 1 1 -1z"
+                    + "M1.0 5.6h14M4.4 5.6v7.8M2.6 8.2h0.6M2.6 10.2h0.6";
+
     /** General settings: three sliders. */
     public static final String SLIDERS = "M2 4.5h12M2 8h12M2 11.5h12M5 3v3M10.5 6.5v3M7 10v3";
 
@@ -183,6 +191,7 @@ public final class Icons {
             Map.entry("view.messageLog", MESSAGES),
             Map.entry("view.toggleToolbar", TOOLBAR),
             Map.entry("view.toggleTabBar", TAB_BAR),
+            Map.entry("view.toggleSimpleMode", SIMPLE_MODE),
             Map.entry("help.welcome", HOME),
             Map.entry("buffer.close", CLOSE),
             Map.entry("buffer.closeOthers", CLOSE_OTHERS),

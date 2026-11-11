@@ -178,6 +178,7 @@ class ConfigStoreTest {
         s.lastUpdateCheck = 42;
         s.showStatusBar = false;
         s.titleBarMenus = false;
+        s.simpleMode = true;
         s.window.x = 1.0;
         s.window.y = 2.0;
         s.window.width = 3;

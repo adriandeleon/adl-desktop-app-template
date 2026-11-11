@@ -74,7 +74,8 @@ public final class SettingsWindow {
                             "settings.toggleUpdateCheck",
                             "view.toggleToolbar",
                             "view.toggleTabBar",
-                            "view.toggleStatusBar"),
+                            "view.toggleStatusBar",
+                            "view.toggleSimpleMode"),
             Page.APPEARANCE, java.util.Arrays.asList("settings.theme", "view.toggleTitleBarMenus"),
             Page.KEYMAP, java.util.Arrays.asList("settings.keymap", "settings.bindKey"),
             Page.SYNC,
@@ -117,6 +118,7 @@ public final class SettingsWindow {
     private final SettingSwitch updates = new SettingSwitch(Messages.tr("settings.updates.title"));
     private final SettingSwitch toolbar = new SettingSwitch(Messages.tr("settings.toolbar.title"));
     private final SettingSwitch tabBar = new SettingSwitch(Messages.tr("settings.tabBar.title"));
+    private final SettingSwitch simpleMode = new SettingSwitch(Messages.tr("settings.simpleMode.title"));
     private final SettingSwitch statusBar = new SettingSwitch(Messages.tr("settings.statusBar.title"));
     private final ComboBox<ThemeChoice> theme = new ComboBox<>();
     private final SettingSwitch titleBar = new SettingSwitch(Messages.tr("settings.titleBar.title"));
@@ -230,6 +232,8 @@ public final class SettingsWindow {
         row(card, Page.GENERAL, "settings.tabBar", tabBar, "tabs documents strip");
         statusBar.setOnAction(e -> services.store().update(s -> s.showStatusBar = statusBar.isSelected()));
         row(card, Page.GENERAL, "settings.statusBar", statusBar, "echo messages");
+        simpleMode.setOnAction(e -> services.store().update(s -> s.simpleMode = simpleMode.isSelected()));
+        row(card, Page.GENERAL, "settings.simpleMode", simpleMode, "beginner basic minimal fewer menus buttons");
         loaders.add(() -> {
             Settings s = services.settings();
             language.setValue(s.language);
@@ -237,6 +241,7 @@ public final class SettingsWindow {
             toolbar.setSelected(s.showToolbar);
             tabBar.setSelected(s.showTabBar);
             statusBar.setSelected(s.showStatusBar);
+            simpleMode.setSelected(s.simpleMode);
         });
     }
 
@@ -735,6 +740,10 @@ public final class SettingsWindow {
 
     SettingSwitch titleBarSwitch() {
         return titleBar;
+    }
+
+    SettingSwitch simpleModeSwitch() {
+        return simpleMode;
     }
 
     SettingSwitch toolbarSwitch() {

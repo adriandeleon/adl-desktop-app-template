@@ -86,7 +86,7 @@ class AppToolbarFxTest {
                 .toList();
     }
 
-    /** The bar reads as its lists say: groups in the cluster, Settings alone in the tail at the end. */
+    /** The bar reads as its lists say: groups in the cluster, Simple mode then Settings in the tail at the end. */
     @Test
     void theBarHoldsItsCommandsInGroupsWithSettingsAtTheEnd() throws Exception {
         List<String> cluster = call(() -> {
@@ -107,8 +107,10 @@ class AppToolbarFxTest {
                         "toolbar-view.messageLog"),
                 cluster);
         assertEquals(
-                List.of(button("app.settings")),
-                call(() -> List.copyOf(toolbar.tail().getChildren())));
+                List.of(button("view.toggleSimpleMode"), button("app.settings")),
+                call(() -> toolbar.tail().getChildren().stream()
+                        .filter(n -> n instanceof Button)
+                        .toList()));
         assertSame(
                 toolbar.tail(), call(() -> toolbar.node().getChildren().getLast()), "TBAR-16: Settings ends the bar");
     }
@@ -260,7 +262,7 @@ class AppToolbarFxTest {
         assertEquals(1, menus.size(), "one menu, moved");
         assertSame(toolbar.menu().menu(), menus.getFirst());
         assertEquals(
-                List.of("view.toggleToolbar"),
+                List.of("view.toggleToolbar", "view.toggleSimpleMode"),
                 call(() -> menus.getFirst().getItems().stream()
                         .map(MenuItem::getId)
                         .filter(Objects::nonNull)

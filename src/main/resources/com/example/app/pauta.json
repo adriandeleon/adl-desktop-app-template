@@ -641,13 +641,6 @@
       "reason": "ExampleApp shows no files, so it has no file icons."
     },
     {
-      "rule": "MENU-04",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/menus/#menu-04",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no Simple mode, so it has one set of menus."
-    },
-    {
       "rule": "QOPEN-12",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/4.1.0/templates/quick-open/#qopen-12",
