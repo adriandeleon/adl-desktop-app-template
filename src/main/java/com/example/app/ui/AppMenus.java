@@ -251,7 +251,11 @@ final class AppMenus {
     }
 
     private Row row(String id) {
-        if (systemMenu) return new Row(new MenuItem(), id, null, null);
+        if (systemMenu) {
+            MenuItem item = new MenuItem();
+            if (DESTRUCTIVE.contains(id)) item.getStyleClass().add("danger");
+            return new Row(item, id, null, null);
+        }
         return inWindowRow(id);
     }
 
@@ -259,6 +263,13 @@ final class AppMenus {
      * An in-window row (MENU-02): the command's glyph (or an empty slot, so titles line up), the title, a
      * spacer and the chord. The right-click menus ({@link CommandMenu}) draw their rows the same way.
      */
+    /**
+     * The rows that delete, discard or reset, styled as dangerous (MENU-12): their title in the red. Whether
+     * each asks first is the confirm dialog's business, not the row's.
+     */
+    static final java.util.Set<String> DESTRUCTIVE = java.util.Set.of(
+            "messageLog.clear", "debugLog.clear", "output.clear", "keymap.resetBinding", "config.import");
+
     static Row inWindowRow(String id) {
         Node glyph = Icons.commandGlyph(id);
         Region slot = new Region();
@@ -287,6 +298,7 @@ final class AppMenus {
                         title.textProperty(),
                         chord.textProperty()));
         CustomMenuItem item = new CustomMenuItem(box);
+        if (DESTRUCTIVE.contains(id)) item.getStyleClass().add("danger");
         item.setHideOnClick(true);
         return new Row(item, id, title, chord);
     }

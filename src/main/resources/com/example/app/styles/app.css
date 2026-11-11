@@ -370,6 +370,11 @@
 }
 /* A row's chord (MENU-15): Inter 11 px in the keyboard's periwinkle, in the menu bar's drop-downs and every
    right-click menu alike. The extra .label class outranks the 14 px pin above and the theme's label fill. */
+/* A row that deletes, discards or resets (MENU-12). */
+.context-menu .menu-item.danger .label.menu-item-title,
+.menu-item.danger .label {
+    -fx-text-fill: -state-red;
+}
 .context-menu .menu-item .label.menu-item-chord,
 .menu-item .menu-item-chord {
     -fx-font-family: "Inter";

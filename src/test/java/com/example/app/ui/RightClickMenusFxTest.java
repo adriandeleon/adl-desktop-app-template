@@ -351,4 +351,21 @@ class RightClickMenusFxTest {
                 false,
                 null);
     }
+
+    /** MENU-12: a row that deletes, discards or resets wears the danger style; others do not. */
+    @Test
+    void destructiveRowsAreStyledAsDangerous() throws Exception {
+        CommandMenu log = app.window().messageLog().rowMenu();
+        run(log::menu);
+        javafx.scene.control.MenuItem clear = call(() -> log.items().stream()
+                .filter(i -> "messageLog.clear".equals(i.getId()))
+                .findFirst()
+                .orElseThrow());
+        javafx.scene.control.MenuItem copy = call(() -> log.items().stream()
+                .filter(i -> "messageLog.copy".equals(i.getId()))
+                .findFirst()
+                .orElseThrow());
+        assertTrue(clear.getStyleClass().contains("danger"));
+        assertFalse(copy.getStyleClass().contains("danger"));
+    }
 }

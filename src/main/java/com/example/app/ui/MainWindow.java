@@ -136,6 +136,9 @@ public final class MainWindow {
                         "output", Messages.tr("tool.output"), ToolWindow.Side.BOTTOM, Icons.OUTPUT, () -> {
                             SamplePanels.Output built = new SamplePanels.Output();
                             output = built;
+                            built.findBar()
+                                    .editingKeys(() ->
+                                            services.keybindings().keymap().emacs());
                             // A read-only console: its right-click menu is the Output's commands (MENU-05).
                             CommandMenu.onConsole(
                                     built.console(),

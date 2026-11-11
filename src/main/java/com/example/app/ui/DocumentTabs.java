@@ -169,6 +169,7 @@ final class DocumentTabs {
         Tab tab = new Tab();
         tab.setContent(document.node());
         CommandMenu.onConsole(document.text(), editorMenu);
+        document.findBar().editingKeys(() -> services.keybindings().keymap().emacs());
         documents.put(tab, document);
         install(tab);
         document.dirtyProperty().addListener((o, was, now) -> {

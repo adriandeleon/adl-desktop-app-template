@@ -52,6 +52,14 @@ final class FindBar extends HBox {
     private final Label count = new Label();
     private final Debounce searching = new Debounce(this::refine);
 
+    /** Where the caret was when the bar opened: a search starts there (FIND-05). */
+    private int anchor;
+
+    /** Gives the field the keymap's caret and editing chords (FIND-09); the window says which keymap is on. */
+    void editingKeys(java.util.function.BooleanSupplier emacs) {
+        TextInputKeys.install(query, emacs);
+    }
+
     /** The commands that step this bar: Enter, Shift+Enter and the buttons run them. */
     private final String nextId;
 
@@ -126,6 +134,9 @@ final class FindBar extends HBox {
 
     /** Shows the bar, seeding the query with a one-line selection when there is one. */
     void open() {
+        // FIND-05: the search starts from where the caret was when the bar opened, so refining the query
+        // never runs away down the text.
+        anchor = target.getSelection().getStart();
         String seed = target.getSelectedText();
         if (!seed.isBlank() && !seed.contains("\n")) query.setText(seed);
         setVisible(true);
@@ -191,7 +202,7 @@ final class FindBar extends HBox {
         if (matches.isEmpty()) {
             show(search, -1);
         } else {
-            int from = target.getSelection().getStart();
+            int from = anchor;
             int at = 0;
             for (int i = 0; i < matches.size(); i++) {
                 if (matches.get(i)[0] >= from) {

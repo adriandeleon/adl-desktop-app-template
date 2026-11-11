@@ -36,6 +36,7 @@ public final class DebugLogWindow {
         this.services = services;
         text.setEditable(false);
         findBar.runCommandsThrough(id -> services.commands().run(id));
+        findBar.editingKeys(() -> services.keybindings().keymap().emacs());
         text.getStyleClass().add("debug-log-text");
         text.setAccessibleText(Messages.tr("debuglog.title"));
         // A read-only console: its right-click menu is the Debug Log's commands.

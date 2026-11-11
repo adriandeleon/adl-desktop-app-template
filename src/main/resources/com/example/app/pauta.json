@@ -42,22 +42,6 @@
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
     },
     {
-      "rule": "FIND-05",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/find-bar/#find-05",
-      "kind": "pending",
-      "reason": "Changing the search starts from the current match, not from where the caret was when the find bar opened.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
-    },
-    {
-      "rule": "FIND-09",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/find-bar/#find-09",
-      "kind": "pending",
-      "reason": "The find field does not use your keymap's text-editing keys.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
-    },
-    {
       "rule": "ICON-14",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/6.0.0/icons-and-color/#icon-14",
@@ -88,14 +72,6 @@
       "kind": "pending",
       "reason": "There are no IntelliJ, VS Code or Sublime keymaps.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
-    },
-    {
-      "rule": "MENU-12",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/menus/#menu-12",
-      "kind": "pending",
-      "reason": "Rows that clear a log or reset a binding are not marked as destructive.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/22"
     },
     {
       "rule": "PAL-06",

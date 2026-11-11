@@ -39,6 +39,13 @@ public final class KeyDispatcher {
         if (stroke == null) return;
         boolean modified = stroke.ctrl() || stroke.alt() || stroke.meta();
         if (pending.isEmpty() && !modified && event.getTarget() instanceof TextInputControl) return;
+        // A text field keeps the keymap's caret and editing chords: they never run a command (FIND-09).
+        if (pending.isEmpty()
+                && event.getTarget() instanceof TextInputControl
+                && TextInputKeys.isEditing(
+                        stroke, services.keybindings().keymap().emacs())) {
+            return;
+        }
         pending.add(stroke);
         List<KeyStroke> sequence = List.copyOf(pending);
         String id = services.keybindings().commandFor(sequence);
