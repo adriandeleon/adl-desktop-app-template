@@ -53,23 +53,7 @@
       "level": "MUST",
       "url": "https://pauta-project.dev/4.1.0/menus/#menu-14",
       "kind": "pending",
-      "reason": "Some menu rows have no icon yet.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/22"
-    },
-    {
-      "rule": "MENU-15",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/menus/#menu-15",
-      "kind": "pending",
-      "reason": "Key chords in menus are not drawn in the key color, and no test checks them in right-click menus.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/22"
-    },
-    {
-      "rule": "MENU-16",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/menus/#menu-16",
-      "kind": "pending",
-      "reason": "Right-click menus do not pin their text sizes, so they can draw at a different size from the menu bar.",
+      "reason": "25 rows in the menus have no icon yet, among them Quit, Copy, Clear and Export in the logs, Check for Updates and Report a Problem: each needs one drawn to match the others. Text fields still show the stock Cut, Copy and Paste menu, which has no icons.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/22"
     },
     {
@@ -190,14 +174,6 @@
       "url": "https://pauta-project.dev/4.1.0/templates/find-bar/#find-09",
       "kind": "pending",
       "reason": "The find field does not use your keymap's text-editing keys.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
-    },
-    {
-      "rule": "ICON-06",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/icons-and-color/#icon-06",
-      "kind": "pending",
-      "reason": "Key chords are not drawn in a color of their own.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/24"
     },
     {
@@ -537,13 +513,6 @@
       "url": "https://pauta-project.dev/4.1.0/templates/find-bar/#find-12",
       "kind": "not-applicable",
       "reason": "ExampleApp's only find bar does not search with regular expressions, so nothing can run too long."
-    },
-    {
-      "rule": "ICON-13",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/icons-and-color/#icon-13",
-      "kind": "not-applicable",
-      "reason": "ExampleApp uses no colors beyond its theme's own."
     },
     {
       "rule": "ICON-23",

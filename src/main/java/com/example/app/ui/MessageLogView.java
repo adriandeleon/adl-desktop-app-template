@@ -38,6 +38,7 @@ public final class MessageLogView {
     private final Runnable onRead;
     private final TextField filter = new TextField();
     private final ListView<MessageLog.Entry> list = new ListView<>();
+    private final CommandMenu rowMenu;
     /** Says how many older messages the bounded log no longer holds (PERF-11). */
     private final Label cut = new Label();
 
@@ -68,8 +69,7 @@ public final class MessageLogView {
         list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         list.setPlaceholder(new Label(Messages.tr("messagelog.empty")));
         // Each row's right-click menu holds its commands; the Menu key and Shift+F10 reach it too.
-        CommandMenu rowMenu =
-                new CommandMenu(services, java.util.Arrays.asList("messageLog.copy", null, "messageLog.clear"));
+        rowMenu = new CommandMenu(services, java.util.Arrays.asList("messageLog.copy", null, "messageLog.clear"));
         list.setCellFactory(v -> CommandMenu.onRow(new EntryCell(), () -> rowMenu));
         RowContextMenu.install(list);
         list.setOnKeyPressed(e -> {
@@ -135,6 +135,10 @@ public final class MessageLogView {
         return entries.stream()
                 .map(e -> TIME.format(e.time()) + "  " + e.text())
                 .collect(Collectors.joining("\n"));
+    }
+
+    CommandMenu rowMenu() {
+        return rowMenu;
     }
 
     ListView<MessageLog.Entry> list() {

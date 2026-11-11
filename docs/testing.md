@@ -38,6 +38,7 @@
 | `CommandSweepFxTest` | Every registered command runs in a real headless window, and has a title and description |
 | `TabsAndPanelsTest`, `TabsAndPanelsFxTest` | Pauta's Tabs and tool panels, a test per rule a test can check: bulk closes skip pinned tabs, Reopen Closed Tab's list, no tool window built before the first paint, the arrangement back after a restart, the stripe's first icon on the first line of text |
 | `SimpleModeFxTest` | Simple mode, a test per rule it shows: a shorter menu rebuilt only when the mode changes (MENU-04), hidden groups take their gaps (TBAR-05), the toggle lit while on (TBAR-07), the toggle just before Settings (TBAR-16), the bar's height kept (TBAR-19) |
+| `MenuLookFxTest` | Every menu, opened from the toolbar, a tab, a list row, a console or the menu bar, draws in Inter 14 px; chords are Inter 11 px in `-state-key`, follow the keymap, and that color reads at 4.5:1 on both themes |
 | `MessagesTest` | Every catalog has every key; apostrophes follow the pattern rule; translations are not English copies |
 | `ConfigStoreTest#everySettingSurvivesARestart` | The settings round trip |
 | `ConfigStoreTest#outOfRangeAndUnknownValuesAreCorrectedAsTheFileIsRead` | Every value read from `settings.json` is clamped or falls back to its default |

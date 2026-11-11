@@ -109,6 +109,11 @@ one-line summary written for users.
 
 ### Fixed
 
+- **Every menu draws at the same size, wherever you open it.** A right-click menu opened from the toolbar
+  drew a third larger than the others; menus now always use Inter at 14 px, their key chords at 11 px
+  (Pauta MENU-16).
+- **Key chords in menus are drawn in the keyboard's own color,** a periwinkle that reads on both themes, in
+  right-click menus as in the menu bar (Pauta MENU-15, ICON-06).
 - **Starting and quitting never wait on the disk.** The settings file is read on a thread of its own while
   the window's toolkit starts, and the last save at quit is waited for off the window's thread; Settings
   Sync's first run now waits until the window has drawn (Pauta PERF-01, PERF-15, PERF-16).

@@ -29,6 +29,10 @@
        light ink on a dark ground and a deep one on a light ground, since the themes have no role for them. */
     -state-olive: ladder(-color-bg-default, #a9b84a 0%, #b3c157 10%, #c3cf73 20%, #d3dc92 30%, #dde4a8 49%, #4f5c10 50%);
     -state-violet: ladder(-color-bg-default, #b392f0 0%, #bc9ff3 10%, #cab5f6 20%, #dacbf9 30%, #e4d9fb 49%, #6538c2 50%);
+    /* The keyboard's one hue (ICON-06), periwinkle, as in Editora: a ladder of the ground like the two above,
+       a deep ink on a light ground and a lighter one the darker it gets. Every key chord a menu shows wears it
+       (MENU-15); it reads at 4.5:1 or more on the default and subtle grounds of both themes. */
+    -state-key: ladder(-color-bg-default, #b0b6e0 0%, #b8bee5 10%, #cdd1f1 20%, #e3e6f9 30%, #ecedfb 49%, #3c4380 50%);
 }
 
 /* ---- window ---- */
@@ -341,9 +345,24 @@
     -fx-text-fill: -color-fg-muted;
     -fx-font-size: 12.5px;
 }
-.menu-item-chord {
-    -fx-text-fill: -color-fg-muted;
+/* Every menu, whatever node it was opened from (MENU-16): a popup inherits the font of the node that showed
+   it, and em sizes resolve against it, so a menu opened from the toolbar or a monospaced view would draw
+   at their size. The font is pinned in pixels on the menu and its rows' labels. */
+.context-menu,
+.context-menu .menu-item,
+.context-menu .menu-item .label {
+    -fx-font-family: "Inter";
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+    -fx-font-style: normal;
+}
+/* A row's chord (MENU-15): Inter 11 px in the keyboard's periwinkle, in the menu bar's drop-downs and every
+   right-click menu alike. The extra .label class outranks the 14 px pin above and the theme's label fill. */
+.context-menu .menu-item .label.menu-item-chord,
+.menu-item .menu-item-chord {
+    -fx-font-family: "Inter";
     -fx-font-size: 11px;
+    -fx-text-fill: -state-key;
 }
 
 /* ---- toolbar (Toolbars and tooltips) ----
