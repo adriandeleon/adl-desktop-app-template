@@ -28,6 +28,14 @@ class ShellPathTest {
                 String.join(SEP, "/usr/bin", "/bin"), ShellPath.merged(null, String.join(SEP, "/usr/bin", "", "/bin")));
     }
 
+    /** A shell that isn't there says nothing, and the inherited PATH is used as it is: on every OS. */
+    @Test
+    void aMissingShellGivesNoPath(@TempDir Path dir) {
+        assertNull(ShellPath.read(dir.resolve("no-such-shell").toString()));
+        assertEquals(
+                String.join(SEP, "/usr/bin", "/bin"), ShellPath.merged(null, String.join(SEP, "/usr/bin", "/bin")));
+    }
+
     @Test
     void theLoginShellIsAskedForItsPath(@TempDir Path dir) throws Exception {
         Assumptions.assumeFalse(

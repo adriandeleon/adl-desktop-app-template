@@ -387,7 +387,7 @@ class ReleaseSupplyChainTest {
     /** REL-17: the Windows leg signs the .msi, once a certificate is set, before it is uploaded. */
     @Test
     void theWindowsInstallerIsSignedBeforeItIsUploaded() throws IOException {
-        String release = java.nio.file.Files.readString(java.nio.file.Path.of(".github/workflows/release.yml"));
+        String release = read(WORKFLOWS.resolve("release.yml"));
         int sign = release.indexOf("- name: Sign the installer (Windows)");
         int upload = release.indexOf("- name: Upload\n");
         org.junit.jupiter.api.Assertions.assertTrue(sign > 0, "a Windows signing step");

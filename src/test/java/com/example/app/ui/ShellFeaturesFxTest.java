@@ -150,10 +150,13 @@ class ShellFeaturesFxTest {
     @Test
     void theTitleBarSettingAndCommandSayWhyWhereTheSystemCantDrawIt() throws Exception {
         String reason = call(() -> app.window().titleBarMenusUnavailable());
+        // On macOS the menus are in the screen's menu bar; elsewhere the headless toolkit has no extended stage.
+        boolean screenMenu = call(() -> app.window().menuBar().isUseSystemMenuBar());
         assertEquals(
-                Messages.tr("palette.disabled.titleBarUnsupported"),
+                Messages.tr(
+                        screenMenu ? "palette.disabled.titleBarScreenMenu" : "palette.disabled.titleBarUnsupported"),
                 reason,
-                "the headless toolkit has no extended stage style");
+                "the reason this system gives");
         assertEquals(reason, services.commands().get("view.toggleTitleBarMenus").unavailableReason());
         assertFalse(call(() -> services.commands().run("view.toggleTitleBarMenus")));
         run(() -> app.window().openSettings(SettingsWindow.Page.APPEARANCE));

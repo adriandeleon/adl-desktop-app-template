@@ -1,14 +1,12 @@
 package com.example.app.sync;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -40,27 +38,9 @@ class AccountPinTest {
      */
     @Test
     void theFirstAccountThatCanReadIsPinnedAndKept(@TempDir Path dir) throws Exception {
-        Assumptions.assumeFalse(
-                System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows"));
         Path calls = dir.resolve("api-calls");
-        Path gh = dir.resolve("gh.sh");
-        Files.writeString(gh, """
-                #!/bin/sh
-                case "$1 $2" in
-                  "auth status") echo "  ✓ Logged in to github.com account work (keyring)"
-                                 echo "  ✓ Logged in to github.com account home (keyring)" ;;
-                  "auth token") eval last=\\$$#; echo "token-$last" ;;
-                  "api repos/home/app-sync") echo x >> "%s"; [ "$GH_TOKEN" = "token-home" ] ;;
-                  *) exit 1 ;;
-                esac
-                """.formatted(calls));
-        Files.setPosixFilePermissions(
-                gh,
-                Set.of(
-                        PosixFilePermission.OWNER_READ,
-                        PosixFilePermission.OWNER_WRITE,
-                        PosixFilePermission.OWNER_EXECUTE));
-        GitHubCli cli = new GitHubCli(gh.toString());
+        Files.createFile(calls);
+        GitHubCli cli = FakeGh.cli(calls);
         String url = "https://github.com/home/app-sync.git";
         Path sync = dir.resolve("sync");
         Files.createDirectories(sync);
@@ -83,5 +63,43 @@ class AccountPinTest {
         // SET-11: one that can't be read is ignored.
         Files.writeString(sync.resolve(AccountPin.FILE), "{broken");
         assertNull(AccountPin.pinned(sync, url));
+    }
+
+    /**
+     * A fake gh in Java, run by this JDK's launcher, so the test runs the same on Windows, macOS and Linux: two
+     * accounts signed in, a token per account, and only home's token can read {@code home/app-sync}. Each API call
+     * adds a line to the file named first.
+     */
+    static final class FakeGh {
+
+        static GitHubCli cli(Path calls) throws Exception {
+            String java =
+                    Path.of(System.getProperty("java.home"), "bin", "java").toString();
+            String classes = Path.of(FakeGh.class
+                            .getProtectionDomain()
+                            .getCodeSource()
+                            .getLocation()
+                            .toURI())
+                    .toString();
+            return new GitHubCli(java, List.of("-cp", classes, FakeGh.class.getName(), calls.toString()));
+        }
+
+        public static void main(String[] args) throws Exception {
+            java.io.PrintStream out = new java.io.PrintStream(
+                    new java.io.FileOutputStream(java.io.FileDescriptor.out), true, StandardCharsets.UTF_8);
+            String command = args.length > 2 ? args[1] + " " + args[2] : "";
+            switch (command) {
+                case "auth status" -> {
+                    out.println("  ✓ Logged in to github.com account work (keyring)");
+                    out.println("  ✓ Logged in to github.com account home (keyring)");
+                }
+                case "auth token" -> out.println("token-" + args[args.length - 1]);
+                case "api repos/home/app-sync" -> {
+                    Files.writeString(Path.of(args[0]), "x\n", StandardOpenOption.APPEND);
+                    if (!"token-home".equals(System.getenv("GH_TOKEN"))) System.exit(1);
+                }
+                default -> System.exit(1);
+            }
+        }
     }
 }

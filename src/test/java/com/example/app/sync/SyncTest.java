@@ -76,6 +76,7 @@ class SyncTest {
         SyncData.write(file, Map.of("app.quit", "C-q"));
         String written = Files.readString(file);
         assertTrue(written.contains("\"schemaVersion\" : " + SyncData.SCHEMA_VERSION), written);
+        assertFalse(written.contains("\r"), "the same bytes on every OS");
         assertEquals(Map.of("app.quit", "C-q"), SyncData.read(file));
         // Never trusted: a binding with no chord is dropped; something that is not an object is refused.
         Files.writeString(file, "{\"schemaVersion\": 2, \"keybindings\": {\"app.quit\": null, \"x\": \"F2\"}}");
@@ -117,6 +118,13 @@ class SyncTest {
         String url = remote.toUri().toString();
         SyncEngine newer = new SyncEngine(root.resolve("newer/sync"), new Git());
         assertTrue(newer.sync(url, "main", Map.of("app.quit", "C-q")).ok());
+        // The clone keeps files as they were pushed, whatever the user's own core.autocrlf.
+        assertEquals(
+                "false",
+                new Git()
+                        .run(newer.repoDir(), "config", "core.autocrlf")
+                        .output()
+                        .strip());
         // The newer computer's build writes schema 99 and pushes it.
         Path repo = newer.repoDir();
         String future = "{\"schemaVersion\": 99, \"keybindings\": {}, \"more\": true}\n";

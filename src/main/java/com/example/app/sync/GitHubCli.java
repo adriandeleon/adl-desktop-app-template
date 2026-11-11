@@ -49,6 +49,8 @@ public final class GitHubCli {
 
     private final java.util.function.Supplier<String> finder;
     private volatile @org.jspecify.annotations.Nullable String gh;
+    /** Arguments that go before gh's own: none, except for a test's fake run by the JDK's launcher. */
+    private final List<String> leading;
 
     /** Overrides which gh runs; the test suite points it at a command that does not exist. */
     public static final String PROPERTY = AppInfo.ID + ".gh";
@@ -59,11 +61,18 @@ public final class GitHubCli {
             String forced = System.getProperty(PROPERTY);
             return forced != null ? forced : Executables.find("gh");
         };
+        this.leading = List.of();
     }
 
     public GitHubCli(String gh) {
-        this.finder = () -> gh;
-        this.gh = gh;
+        this(gh, List.of());
+    }
+
+    /** gh is {@code command} with {@code leading} first: a test's fake that runs the same on every OS. */
+    GitHubCli(String command, List<String> leading) {
+        this.finder = () -> command;
+        this.gh = command;
+        this.leading = List.copyOf(leading);
     }
 
     private String gh() {
@@ -158,6 +167,7 @@ public final class GitHubCli {
     private Result run(java.util.Map<String, String> env, Duration timeout, String... args) {
         List<String> argv = new ArrayList<>();
         argv.add(gh());
+        argv.addAll(leading);
         argv.addAll(List.of(args));
         ProcessBuilder builder = new ProcessBuilder(argv).redirectErrorStream(true);
         builder.environment().put("PATH", ShellPath.path()); // the login shell's (CLI-10)

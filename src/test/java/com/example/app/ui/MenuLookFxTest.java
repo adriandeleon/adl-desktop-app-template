@@ -176,24 +176,29 @@ class MenuLookFxTest {
         DebugLogWindow log = call(window::debugLogWindow);
         run(() -> log.text().setStyle("-fx-font-family: \"JetBrains Mono\"; -fx-font-size: 20px;"));
         check(seen, "console", call(log::menu), log.text());
-        // And the menu bar's own drop-down.
-        run(() -> {
-            hideMenus();
-            Menu file = window.menuBar().getMenus().getFirst();
-            file.show();
-        });
-        run(() -> {
-            for (Window w : Window.getWindows()) {
-                if (w instanceof ContextMenu menu && menu.isShowing()) {
-                    menu.getScene().getRoot().applyCss();
-                    for (Node title : menu.getScene().getRoot().lookupAll(".menu-item-title")) {
-                        assertInter14((Label) title, "menu bar");
-                        seen.add("menu bar");
+        // And the menu bar's own drop-down, where the app draws it: on macOS the screen's menu bar is the system's.
+        boolean screenMenu = call(() -> window.menuBar().isUseSystemMenuBar());
+        if (!screenMenu) {
+            run(() -> {
+                hideMenus();
+                Menu file = window.menuBar().getMenus().getFirst();
+                file.show();
+            });
+            run(() -> {
+                for (Window w : Window.getWindows()) {
+                    if (w instanceof ContextMenu menu && menu.isShowing()) {
+                        menu.getScene().getRoot().applyCss();
+                        for (Node title : menu.getScene().getRoot().lookupAll(".menu-item-title")) {
+                            assertInter14((Label) title, "menu bar");
+                            seen.add("menu bar");
+                        }
                     }
                 }
-            }
-        });
-        assertTrue(seen.containsAll(List.of("toolbar", "tab", "list row", "console", "menu bar")), seen.toString());
+            });
+        }
+        List<String> drawn = new ArrayList<>(List.of("toolbar", "tab", "list row", "console"));
+        if (!screenMenu) drawn.add("menu bar");
+        assertTrue(seen.containsAll(drawn), seen.toString());
     }
 
     private void check(List<String> seen, String from, CommandMenu menu, Node anchor) throws Exception {

@@ -41,7 +41,8 @@ public final class SyncData {
     private static final ObjectMapper JSON = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
-            .enable(SerializationFeature.INDENT_OUTPUT);
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .setDefaultPrettyPrinter(ConfigFiles.indented());
 
     private static final Logger LOG = Logger.getLogger(SyncData.class.getName());
 

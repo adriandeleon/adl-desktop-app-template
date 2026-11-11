@@ -91,6 +91,7 @@ class ConfigStoreTest {
         assertEquals(ThemeChoice.DARK, store.settings().theme);
         store.flush();
         assertTrue(Files.readString(store.file()).contains("\"schemaVersion\" : " + Settings.SCHEMA_VERSION));
+        assertFalse(Files.readString(store.file()).contains("\r"), "the same bytes on every OS");
     }
 
     @Test

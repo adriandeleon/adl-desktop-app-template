@@ -15,6 +15,15 @@ import java.nio.file.StandardCopyOption;
  */
 public final class ConfigFiles {
 
+    /**
+     * Indented JSON with {@code \n} line ends on every OS. Jackson's default follows the system's, so a Windows
+     * computer would write {@code \r\n} into the files it shares with a Mac through Settings Sync.
+     */
+    public static com.fasterxml.jackson.core.util.DefaultPrettyPrinter indented() {
+        return new com.fasterxml.jackson.core.util.DefaultPrettyPrinter()
+                .withObjectIndenter(new com.fasterxml.jackson.core.util.DefaultIndenter("  ", "\n"));
+    }
+
     private ConfigFiles() {}
 
     public static void write(Path target, byte[] bytes) throws IOException {

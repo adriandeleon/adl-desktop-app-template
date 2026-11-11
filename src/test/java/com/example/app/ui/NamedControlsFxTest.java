@@ -178,9 +178,12 @@ class NamedControlsFxTest {
         List<String> unnamed = new ArrayList<>();
         List<javafx.scene.control.Menu> bar =
                 call(() -> List.copyOf(window.menuBar().getMenus()));
+        // On macOS the screen's menu bar is the system's to draw (MENU-14 is about the menus the app draws):
+        // its rows still read as their titles, and carry no glyph.
+        boolean screenMenu = call(() -> window.menuBar().isUseSystemMenuBar());
         for (javafx.scene.control.Menu menu : bar) {
             run(() -> menu.getOnShowing().handle(null));
-            for (MenuItem item : call(menu::getItems)) check(item, unnamed, menu.getText());
+            for (MenuItem item : call(menu::getItems)) check(item, unnamed, menu.getText(), !screenMenu);
         }
         run(window::openDebugLog);
         List<CommandMenu> menus = List.of(
@@ -193,16 +196,17 @@ class NamedControlsFxTest {
                 menu.menu();
                 menu.refresh(); // what a showing does
             });
-            for (MenuItem item : call(menu::items)) check(item, unnamed, "right-click");
+            for (MenuItem item : call(menu::items)) check(item, unnamed, "right-click", true);
         }
         assertEquals(List.of(), unnamed, "menu rows that read as nothing or wear no glyph");
     }
 
-    private static void check(MenuItem item, List<String> unnamed, String where) throws Exception {
+    private static void check(MenuItem item, List<String> unnamed, String where, boolean drawn) throws Exception {
         if (item instanceof SeparatorMenuItem) return;
         String name = call(() ->
                 item instanceof CustomMenuItem custom ? custom.getContent().getAccessibleText() : item.getText());
         if (name == null || name.isBlank()) unnamed.add(where + ": " + item.getId());
+        if (!drawn) return;
         // MENU-14: the icon column holds a glyph, never an empty slot.
         boolean glyph = call(() -> item instanceof CustomMenuItem custom
                 ? custom.getContent() instanceof Parent row
