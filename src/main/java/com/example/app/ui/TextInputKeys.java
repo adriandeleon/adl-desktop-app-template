@@ -25,7 +25,7 @@ final class TextInputKeys {
         if (emacs) {
             if (stroke.ctrl() && !stroke.alt() && !stroke.meta() && !stroke.shift()) {
                 return switch (code) {
-                    case A, E, F, B, D, K, Y, H -> true;
+                    case A, E, F, B, D, K, Y -> true; // C-h stays Emacs's help prefix
                     default -> false;
                 };
             }
@@ -59,7 +59,6 @@ final class TextInputKeys {
                 case F -> field.forward();
                 case B -> field.backward();
                 case D -> field.deleteNextChar();
-                case H -> field.deletePreviousChar();
                 case K -> kill(field);
                 case Y -> field.paste();
                 default -> {

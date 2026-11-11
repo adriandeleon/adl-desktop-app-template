@@ -52,12 +52,25 @@ public final class ShellPath {
                     .redirectError(ProcessBuilder.Redirect.DISCARD)
                     .start();
             process.getOutputStream().close();
-            byte[] out = process.getInputStream().readNBytes(64 * 1024);
+            // Read on its own thread, so a shell that keeps its output open can't outlast the timeout.
+            java.util.concurrent.CompletableFuture<byte[]> out =
+                    java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                        try {
+                            return process.getInputStream().readNBytes(64 * 1024);
+                        } catch (IOException e) {
+                            return new byte[0];
+                        }
+                    });
             if (!process.waitFor(5, TimeUnit.SECONDS)) {
                 process.destroyForcibly();
                 return null;
             }
-            String path = new String(out, StandardCharsets.UTF_8).strip();
+            String path;
+            try {
+                path = new String(out.get(1, TimeUnit.SECONDS), StandardCharsets.UTF_8).strip();
+            } catch (java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+                return null;
+            }
             return process.exitValue() == 0 && !path.isEmpty() ? path : null;
         } catch (IOException e) {
             return null;

@@ -113,11 +113,14 @@ final class DocumentTabs {
             if (selected != null) tabPane.getSelectionModel().select(selected);
             else showWelcome();
         } else {
-            // No session to restore: the Welcome page (WELC-03), beside three samples: one modified, one
-            // clean, one read-only.
+            // No session to restore: the Welcome page (WELC-03). A first run opens three samples beside it, one
+            // modified, one clean, one read-only; --no-session opens nothing of its own (CLI-04).
             tabPane.getTabs().add(welcome);
             render(welcome);
-            for (SampleFiles.Sample sample : List.of(samples.get(0), samples.get(1), samples.getLast())) open(sample);
+            if (restore) {
+                for (SampleFiles.Sample sample : List.of(samples.get(0), samples.get(1), samples.getLast()))
+                    open(sample);
+            }
             tabPane.getSelectionModel().select(welcome);
         }
         updateWindowTitle();

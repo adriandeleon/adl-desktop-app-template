@@ -74,5 +74,14 @@ class AccountPinTest {
         assertEquals(asked, Files.readAllLines(calls).size(), "pinned: the API is not asked again");
         assertNull(AccountPin.pinned(sync, "https://github.com/home/other.git"), "a pin is for its own URL");
         assertTrue(AccountPin.env(sync, "git@github.com:home/app-sync.git", cli).isEmpty());
+
+        // SET-10: a pin a newer build wrote is kept aside, and the account is found again.
+        Files.writeString(
+                sync.resolve(AccountPin.FILE), "{\"schemaVersion\": 9, \"url\": \"" + url + "\", \"account\": \"x\"}");
+        assertNull(AccountPin.pinned(sync, url));
+        assertTrue(Files.exists(sync.resolve(AccountPin.FILE + ".v9.bak")));
+        // SET-11: one that can't be read is ignored.
+        Files.writeString(sync.resolve(AccountPin.FILE), "{broken");
+        assertNull(AccountPin.pinned(sync, url));
     }
 }

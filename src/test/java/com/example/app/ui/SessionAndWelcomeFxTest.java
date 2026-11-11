@@ -80,6 +80,7 @@ class SessionAndWelcomeFxTest {
             assertEquals(
                     "Welcome",
                     call(() -> third.window().tabs().title(third.window().tabs().selected())));
+            assertEquals(List.of("Welcome"), titles(third.window()), "--no-session opens nothing of its own (CLI-04)");
             run(() -> third.window().tabs().closeAllTabs());
             run(() -> third.window().saveWindowState());
         } finally {
@@ -93,7 +94,7 @@ class SessionAndWelcomeFxTest {
     /** WELC-03, WELC-05, WELC-11: Help → Welcome Page; a Close-only menu; rebuilt on every show. */
     @Test
     void theWelcomePageIsInHelpClosesAloneAndIsRebuiltWhenShown() throws Exception {
-        Startup.Running app = FxTestSupport.start(dir, host, "--no-session");
+        Startup.Running app = FxTestSupport.start(dir, host);
         try {
             MainWindow window = app.window();
             assertTrue(call(() -> window.menus().groups().stream()
@@ -123,7 +124,7 @@ class SessionAndWelcomeFxTest {
     /** WIN-09: the documents zoom on their own, kept as a setting, and every keymap binds the three commands. */
     @Test
     void theDocumentsTextZoomsOnItsOwn() throws Exception {
-        Startup.Running app = FxTestSupport.start(dir, host, "--no-session");
+        Startup.Running app = FxTestSupport.start(dir, host);
         try {
             MainWindow window = app.window();
             run(() -> window.tabs().tabPane().getSelectionModel().select(1));

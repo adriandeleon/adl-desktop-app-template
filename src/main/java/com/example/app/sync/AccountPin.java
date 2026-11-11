@@ -13,7 +13,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Which GitHub account a sync clone uses (SET-18): on a computer signed in to two accounts, the first that can
- * read the repository is found once, recorded beside the clone ({@code account.txt}: the URL, then the account)
+ * read the repository is found once, recorded beside the clone ({@code account.json}: a schema version, the URL and the account; SET-09)
  * and used for that clone from then on, so a sync never asks which one again. Only an HTTPS remote on github.com
  * has an account to pin; SSH uses the user's keys.
  */
@@ -21,7 +21,13 @@ final class AccountPin {
 
     private static final Pattern HTTPS = Pattern.compile("^https://github\\.com/([\\w.-]+)/([\\w.-]+?)(?:\\.git)?/?$");
 
-    static final String FILE = "account.txt";
+    static final String FILE = "account.json";
+
+    /** The file's schema: a newer one is kept aside and the account found again (SET-10). */
+    static final int SCHEMA_VERSION = 1;
+
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private AccountPin() {}
 
@@ -53,23 +59,38 @@ final class AccountPin {
         return token == null ? Map.of() : Map.of("GH_TOKEN", token);
     }
 
-    /** The account recorded for {@code url}, or null when none is, or one was for another URL. */
+    /**
+     * The account recorded for {@code url}, or null when none is, or one was for another URL. A file a newer
+     * build wrote is kept aside ({@code account.json.v<n>.bak}, SET-10) and one that can't be read is ignored
+     * (SET-11): either way the account is found again.
+     */
     static @Nullable String pinned(Path syncDir, String url) {
+        Path file = syncDir.resolve(FILE);
         try {
-            Path file = syncDir.resolve(FILE);
             if (!Files.isRegularFile(file)) return null;
-            String[] lines = Files.readString(file, StandardCharsets.UTF_8).split("\\R");
-            return lines.length >= 2 && lines[0].strip().equals(url.strip()) && !lines[1].isBlank()
-                    ? lines[1].strip()
-                    : null;
-        } catch (IOException e) {
+            var tree = JSON.readTree(Files.readString(file, StandardCharsets.UTF_8));
+            int version = tree.path("schemaVersion").asInt(0);
+            if (version > SCHEMA_VERSION) {
+                Files.move(
+                        file,
+                        file.resolveSibling(FILE + ".v" + version + ".bak"),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                return null;
+            }
+            String account = tree.path("account").asText("");
+            return tree.path("url").asText("").equals(url.strip()) && !account.isBlank() ? account : null;
+        } catch (IOException | RuntimeException e) {
             return null;
         }
     }
 
     private static void record(Path syncDir, String url, String account) {
         try {
-            ConfigFiles.writeString(syncDir.resolve(FILE), url.strip() + "\n" + account + "\n");
+            var tree = JSON.createObjectNode()
+                    .put("schemaVersion", SCHEMA_VERSION)
+                    .put("url", url.strip())
+                    .put("account", account);
+            ConfigFiles.writeString(syncDir.resolve(FILE), JSON.writeValueAsString(tree) + "\n");
         } catch (IOException e) {
             // Not recorded: the next sync looks again, which costs a call and nothing else.
         }

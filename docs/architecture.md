@@ -117,7 +117,7 @@ The tests start the app through the same `Startup.prepare` and `Startup.start`, 
 `~/.exampleapp` (`--config-dir`, then `--dev` (`~/.exampleapp-dev`), then `EXAMPLEAPP_CONFIG_DIR`, then the
 default): `settings.json` (preferences only), `session.json` (the window's place, the tool windows and the
 open documents: Pauta SET-08, WIN-08), `exampleapp-session.log` (+ `.prev.log`), `instance.sock`, `sync/`
-(the clone, `base.json`, and `account.txt`, the GitHub account pinned to the clone: SET-18), `backups/`
+(the clone, `base.json`, and `account.json`, the GitHub account pinned to the clone: SET-18), `backups/`
 (`settings-<time>.json`, kept before a sync replaces your settings: SET-20) and the backups of files that
 could not be read (`settings.json.v<n>.bak`, `settings.json.broken.bak`, the same for `session.json`). Every JSON file there has a `schemaVersion` and a
 migration step per version: `settings.json` (`Settings`, `Migrations`) and Settings Sync's

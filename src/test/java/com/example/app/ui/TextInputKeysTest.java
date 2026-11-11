@@ -19,7 +19,7 @@ class TextInputKeysTest {
             assertTrue(TextInputKeys.isEditing(stroke(chord), true), chord);
         }
         // Find's own chords stay global: next, previous, the palette, cancel.
-        for (String chord : new String[] {"C-s", "C-r", "C-g", "M-x", "C-x"}) {
+        for (String chord : new String[] {"C-s", "C-r", "C-g", "M-x", "C-x", "C-h"}) { // C-h: the help prefix
             assertFalse(TextInputKeys.isEditing(stroke(chord), true), chord);
         }
     }

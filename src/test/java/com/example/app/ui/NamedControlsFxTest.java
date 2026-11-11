@@ -131,6 +131,24 @@ class NamedControlsFxTest {
             walk(scene.getRoot(), labelled(scene.getRoot()), unnamed, "switcher");
             window.overlays().hide();
         });
+        // The Doctor, with a failed row and its link (DIAG-07).
+        run(() -> {
+            DoctorWindow doctor = new DoctorWindow(app.services(), window.stage());
+            doctor.dialog().show();
+            doctor.fill(List.of(
+                    new com.example.app.sync.Doctor.Check(
+                            "git",
+                            com.example.app.sync.Doctor.Status.FAILED,
+                            "Not found.",
+                            "Install git.",
+                            "https://x"),
+                    new com.example.app.sync.Doctor.Check(
+                            "Java", com.example.app.sync.Doctor.Status.OK, "25", null, null)));
+            Scene scene = doctor.dialog().getDialogPane().getScene();
+            scene.getRoot().applyCss();
+            walk(scene.getRoot(), labelled(scene.getRoot()), unnamed, "doctor");
+            doctor.dialog().close();
+        });
         // A question before something is lost, and a text prompt: dialogs of their own.
         run(() -> {
             javafx.scene.control.Alert question =

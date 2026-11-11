@@ -576,7 +576,10 @@ public final class MainWindow {
                 .map(c -> new Picker.Item<>(
                         c, c.title(), c.description(), services.keybindings().label(c.id()), null))
                 .toList();
-        new Picker<>(overlays, Messages.tr("picker.bindKey"), "", items, this::promptBinding).show();
+        new Picker<>(overlays, Messages.tr("picker.bindKey"), "", items, this::promptBinding)
+                .titled(Messages.tr("command.settings.bindKey")) // QOPEN-02
+                .keymap(services::keybindings, Os.isMac()) // QOPEN-06
+                .show();
     }
 
     TextInputDialog promptBinding(Command command) {

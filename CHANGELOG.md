@@ -14,8 +14,8 @@ one-line summary written for users.
   the next start opens them again; `--no-session` starts with the Welcome page and leaves them for next time
   (Pauta WIN-08, CLI-04). The window's place and what was open live in `session.json`, apart from your
   preferences in `settings.json` (SET-08).
-- **Zoom the documents' text on its own:** View → Zoom Text In, Zoom Text Out and Actual Text Size
-  (`Ctrl/Cmd+=`, `-` and `0`; `C-x C-=`, `C-x C--`, `C-x C-0` in Emacs) or Settings → Appearance → Text
+- **Zoom the documents' text on its own:** Zoom Text In, Zoom Text Out and Actual Text Size, from the
+  Command Palette or `Ctrl/Cmd+=`, `-` and `0` (`C-=`, `C--`, `C-0` in Emacs) or Settings → Appearance → Text
   size, kept across launches; the window's own zoom stays apart (Pauta WIN-09).
 - **IntelliJ, VS Code and Sublime Text keymaps,** each with its macOS form, beside CUA and Emacs (Pauta
   KBD-10).
