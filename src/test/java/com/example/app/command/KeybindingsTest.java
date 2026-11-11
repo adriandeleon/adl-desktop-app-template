@@ -136,6 +136,11 @@ class KeybindingsTest {
         }
         for (String id : java.util.List.of("intellij", "vscode", "sublime")) {
             assertNotNull(Keymap.class.getResource("/com/example/app/keymaps/" + id + ".mac.json"), id + ".mac.json");
+            // KBD-21: the macOS variant binds the same commands; only chords may differ.
+            assertEquals(
+                    Keymap.load(id, false).bindings().keySet(),
+                    Keymap.load(id, true).bindings().keySet(),
+                    id + ".mac.json binds the same commands");
         }
     }
 }
