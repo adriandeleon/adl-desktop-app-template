@@ -8,6 +8,7 @@ import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -77,13 +78,24 @@ class SettingsRoundTripFxTest {
         }
     }
 
-    /** Every setting control on every page, in layout order: combo boxes, switches and fields. */
+    /**
+     * Every setting control on every page, in layout order: combo boxes, switches and fields. The rows of the
+     * keybinding list are left out: it is a virtual list whose cell count follows the layout, and
+     * SettingsWindowFxTest and KeybindingsTest cover it.
+     */
     private static List<Node> controls(Parent root) {
         List<Node> found = new ArrayList<>();
         for (Node row : root.lookupAll(".setting-row")) {
-            collect(row, found);
+            if (!inList(row)) collect(row, found);
         }
         return found;
+    }
+
+    private static boolean inList(Node node) {
+        for (Node at = node.getParent(); at != null; at = at.getParent()) {
+            if (at instanceof ListView<?>) return true;
+        }
+        return false;
     }
 
     private static void collect(Node node, List<Node> found) {
