@@ -10,6 +10,26 @@ one-line summary written for users.
 
 ### Added
 
+- **Zoom the whole window.** View → Zoom In, Zoom Out and Actual Size (`Ctrl+Alt+=`, `Ctrl+Alt+-` and
+  `Ctrl+Alt+0`, `Cmd+Option` on macOS; `Ctrl/Cmd+=` stays free for zooming a document's text), or Settings →
+  Appearance → Zoom, from 80 % to 200 %: menus, toolbar, tabs, status bar and dialogs grow and shrink together, at once, and the size is
+  kept (Pauta WIN-12, MENU-16).
+- **Find in a document and in the Output.** Edit → Find… (`Ctrl/Cmd+F` or `F3`, `Cmd+G` on macOS, `C-s` in
+  Emacs; again for the next match) opens a find bar over the open document, and Output: Find… one over the Output
+  console: they search as you type, count the matches, and Enter and Shift+Enter step (Pauta FIND-01,
+  FIND-04).
+- **An Edit menu, and right-click menus on the document, the Output and the Documents list,** with Cut,
+  Copy, Paste and Select All as commands the palette reaches too, Output: Clear and Documents: Open
+  (Pauta MENU-05).
+- **Quit asks before your typing is lost.** Quitting with changes in a document asks first, by name;
+  Cancel keeps the app open (Pauta WIN-13).
+- **About and Settings in macOS's application menu,** with Settings' keys in its title (Pauta ABOUT-01,
+  WIN-15).
+- **Help → Keyboard Shortcuts** opens the searchable key binding list (Pauta DOCS-08).
+- **A console launcher on Windows,** `exampleapp-cli`, so `--help`, `--version` and `--report` print in the
+  console they were typed in (Pauta CLI-11). `-V` works as `--version` (CLI-13).
+- **Every menu row has an icon,** drawn for the commands that had none (Pauta MENU-14), and a file's icon
+  follows its type (ICON-23).
 - **A Command Palette that finds and runs every command.** `Ctrl/Cmd+Shift+P`, or `M-x` in the Emacs
   keymap; unavailable commands are listed grayed with the reason.
 - **CUA and Emacs keymaps, with your own bindings on top.** Edit any binding in Settings → Keymap.
@@ -27,7 +47,7 @@ one-line summary written for users.
   menus and the title in it (Settings → Appearance turns it off; macOS keeps the screen menu bar).
 - **Menus show each command's key binding,** in the active keymap, Emacs sequences included.
 - **About names the Pauta edition and how fully the app conforms to it.** The edition's link opens its
-  rules (*Working toward Pauta 4.1.0* while the conformance is Partial), a *Pauta conformance* link opens
+  rules (*Working toward Pauta x.y.z* while the conformance is Partial), a *Pauta conformance* link opens
   the Pauta window, and *Copy details* and `--version` carry `Pauta:` and `Pauta conformance:` lines.
 - **A Pauta window lists every rule the app does not meet.** Help → Pauta Conformance, or the Command
   Palette: the edition, the conformance (Complete, Core or Partial), and each exception with its reason
@@ -58,9 +78,9 @@ one-line summary written for users.
 - **A `pauta-audit` skill for coding agents.** Ask for "audit against Pauta" and it checks every rule of the
   app's Pauta edition, writing `docs/pauta-audit.json` and `docs/pauta-audit.md` with a status (pass, fail,
   manual, pending, deviation, not-applicable, app-only or limited) and evidence for each rule, failed MUSTs
-  first. The skill is the copy Pauta 4.3.1 serves, word for word.
+  first. The skill is the copy Pauta 6.0.0 serves, word for word.
 - **`AGENTS.md` points coding agents at the app's own Pauta edition.** A Pauta section gives the edition's
-  `llms.txt` and `llms-full.txt`, says to cite rules as "KBD-07 (Pauta 4.1.0)" and to read the numbered
+  `llms.txt` and `llms-full.txt`, says to cite rules as "KBD-07 (Pauta 6.0.0)" and to read the numbered
   edition, never `latest/`.
 - **A toolbar under the menus.** The Command Palette, Theme, Keymap, Sync Now and the Message Log are one
   click away, with Settings at the right end. Each button's tooltip names its command and its key in your
@@ -85,10 +105,35 @@ one-line summary written for users.
 
 ### Changed
 
-- **The `pauta-audit` skill is Pauta 5.0.0's.** It now decides how to audit and how to write the report for any
-  edition, says which `rules.json` fields each edition has, asks which edition to use when the app names none, and
-  treats a command id or key that a rule's statement names as required. The app is still built to Pauta 4.1.0;
-  the skill audits it against that edition.
+- **ExampleApp is built to Pauta 6.0.0,** and its conformance is now Core: it meets every MUST of the
+  edition a template can, and the SHOULDs it does not yet are listed in the Pauta window (Help → Pauta
+  Conformance). The `pauta-audit` skill and the copy of the edition's rules are 6.0.0's.
+- **The template marks what only an app made from it can have.** `pauta.json` says `"template": true`, and
+  the rules that need an app's own website, screenshots, repository settings or certificate are
+  `app-only`; the Pauta window lists them under "For each app made from it". `scripts/rename.sh` sets
+  `template` to `false`, after which `./mvnw verify` lists what the app inherited and the release build
+  fails until each one is met or pending on an issue of the app's own (Pauta PAUTA-16). A `checked` list
+  records the rules a person checked by hand, and the test fails one gone stale (PAUTA-18).
+- **Dialogs put Cancel first, on every system,** and their buttons are in your language, not the
+  system's; a question before something is lost opens with Cancel as the default, so Enter keeps what you
+  have (Pauta WIN-11, CONF-13, CONF-14).
+- **Menus in the title bar stays in Settings on every system,** grayed with the reason where the system
+  can't draw it, instead of only saying so in its description (Pauta OS-01).
+- **`--report` writes the report in the current folder,** or the temp folder when that one can't be
+  written, and prints where (Pauta CLI-05).
+- **`--dev` wins over `EXAMPLEAPP_CONFIG_DIR`,** as a flag typed for this run should (Pauta SET-07).
+- **Keyboard focus is easier to see:** the ring is 2 px wide, just outside the control, and a text field's
+  border widens instead (Pauta KBD-22). Menus have rounder cards with a deeper shadow and roomier rows
+  (MENU-18), every tooltip waits the same 400 ms (TBAR-14), and the status bar no longer draws a line
+  under the bottom tool stripe (TBAR-06).
+- **In the Emacs keymap, `C-g` closes the palette, a picker or the Message Log;** in CUA, Esc does, as
+  before (Pauta PAL-07, QOPEN-07, MLOG-03).
+- **The tagline, counts and modifier keys read right in every language:** "1 file", not "1 files", and
+  `Ctrl`, never "Strg" (Pauta INTL-07, INTL-12, INTL-13). With no language chosen, dates and numbers
+  follow your system's region (INTL-14).
+- **Screen readers hear more:** every control and menu row has a name, the status bar's message and badge
+  are buttons, the palette announces the row the arrows move to, and a tab's tooltip names its file's Git
+  status (Pauta ACC-01, ACC-02, ACC-08, TABS-08).
 - **An available update stands out in About.** "Update available" is now amber, a color nothing else in About
   uses, instead of the accent every link wears (Pauta ABOUT-10).
 - **The README points to the user guide on the website,** and the contributor docs say who they are
@@ -109,6 +154,18 @@ one-line summary written for users.
 
 ### Fixed
 
+- **The window no longer waits on files while you work.** Logging, the extra font, the About and Pauta
+  windows' images and the lookup of `git` and `gh` all moved off the window's thread; the outline is
+  re-read once typing pauses instead of on every key, and the Output keeps its newest 1,000 lines
+  (Pauta PERF-01, PERF-06, PERF-08, PERF-11).
+- **Settings files are written whole or not at all,** an import and Settings Sync's own file included, and
+  a sync file from a newer version, or one that can't be read, is kept aside instead of failing every
+  sync (Pauta SET-22, SET-10, SET-11).
+- **One class decides which system the app runs on** (`Os`), and tests can run it as any of the three;
+  one checks that the commands, menus and Settings are the same on each (Pauta OS-02, OS-03).
+- **The release build runs its tests without a virtual display,** as everywhere else (Pauta PLAT-11), and
+  caches its build tools when it publishes (REL-25). Every thread the app starts is a daemon (PERF-04),
+  and no test sleeps (QUAL-07).
 - **Every menu draws at the same size, wherever you open it.** A right-click menu opened from the toolbar
   drew a third larger than the others; menus now always use Inter at 14 px, their key chords at 11 px
   (Pauta MENU-16).

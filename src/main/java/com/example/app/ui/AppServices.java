@@ -6,7 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javafx.application.Platform;
 
-import com.example.app.AppInfo;
+import com.example.app.Os;
 import com.example.app.command.CommandRegistry;
 import com.example.app.command.Keybindings;
 import com.example.app.command.Keymap;
@@ -60,7 +60,7 @@ public final class AppServices {
 
     private Keybindings build(Settings settings) {
         keymapState = settings.keymap + settings.keybindings;
-        return new Keybindings(Keymap.load(settings.keymap), settings.keybindings, AppInfo.isMac());
+        return new Keybindings(Keymap.load(settings.keymap), settings.keybindings, Os.isMac());
     }
 
     public ConfigStore store() {

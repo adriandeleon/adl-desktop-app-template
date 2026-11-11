@@ -38,18 +38,26 @@ final class DocumentTabs {
     /** What a closed document held when it differed from its file, by path. */
     private final Map<Path, String> edits = new HashMap<>();
 
+    private final CommandMenu editorMenu;
+
     private final ClosedTabs closedTabs = new ClosedTabs();
     private final TabHeaders headers;
     private final CommandMenu menu;
     private final Tab welcome;
     private final Consumer<String> setTitle;
     private final List<Runnable> activeListeners = new ArrayList<>();
+    private final List<Runnable> textListeners = new ArrayList<>();
 
     DocumentTabs(AppServices services, Node welcomeContent, Consumer<String> setTitle) {
         this.services = services;
         this.setTitle = setTitle;
         this.headers = new TabHeaders(pinned::contains, this::moveBeside);
         this.menu = new CommandMenu(services, TabContextMenu.COMMANDS);
+        // The editor's right-click menu (MENU-05), one for every document, in place of the stock one.
+        this.editorMenu = new CommandMenu(
+                services,
+                java.util.Arrays.asList(
+                        "edit.cut", "edit.copy", "edit.paste", null, "edit.selectAll", null, "find.show"));
         tabPane.getStyleClass().add("document-tabs");
         tabPane.setMinSize(0, 0); // the strip scrolls its headers; it never holds a tool window's divider back
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
@@ -97,9 +105,17 @@ final class DocumentTabs {
         return headers;
     }
 
-    /** Runs {@code listener} whenever the active tab changes or its text does: what a panel follows (TABS-23). */
+    /** Runs {@code listener} whenever the active tab changes: what a panel follows (TABS-23). */
     void onActiveChanged(Runnable listener) {
         activeListeners.add(listener);
+    }
+
+    /**
+     * Runs {@code listener} on every edit of the active tab's text. Per keystroke: a listener that reads the
+     * whole document waits for typing to pause (PERF-08).
+     */
+    void onActiveTextChanged(Runnable listener) {
+        textListeners.add(listener);
     }
 
     @Nullable
@@ -151,7 +167,8 @@ final class DocumentTabs {
         closedTabs.forget(sample.path());
         DocumentView document = new DocumentView(sample, edits.remove(sample.path()), caret);
         Tab tab = new Tab();
-        tab.setContent(document.text());
+        tab.setContent(document.node());
+        CommandMenu.onConsole(document.text(), editorMenu);
         documents.put(tab, document);
         install(tab);
         document.dirtyProperty().addListener((o, was, now) -> {
@@ -159,7 +176,7 @@ final class DocumentTabs {
             if (tab == selected()) updateWindowTitle();
         });
         document.text().textProperty().addListener((o, was, now) -> {
-            if (tab == selected()) activeListeners.forEach(Runnable::run);
+            if (tab == selected()) textListeners.forEach(Runnable::run);
         });
         tabPane.getTabs().add(tab);
         render(tab);
@@ -197,6 +214,24 @@ final class DocumentTabs {
         tabPane.getSelectionModel().select(tab);
         Node header = tab.getGraphic();
         if (header != null) menu.show(header, event);
+    }
+
+    /**
+     * The documents whose typing a quit would lose (WIN-13): the open ones with changes, then those closed
+     * this session with changes kept, by name.
+     */
+    List<String> unsavedNames() {
+        List<String> names = new ArrayList<>();
+        for (Tab tab : tabPane.getTabs()) {
+            DocumentView document = documents.get(tab);
+            if (document != null && document.isDirty()) names.add(document.title());
+        }
+        for (Path path : edits.keySet()) {
+            Path name = path.getFileName();
+            String title = name == null ? path.toString() : name.toString();
+            if (!names.contains(title)) names.add(title);
+        }
+        return names;
     }
 
     // ---- the operations (TABS-01), each run by a command on the selected tab ----

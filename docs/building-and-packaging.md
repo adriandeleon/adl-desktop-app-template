@@ -41,6 +41,19 @@ or when training fails, the build still succeeds with a warning and the app star
 sets `EXAMPLEAPP_REQUIRE_AOT=1` so a release cannot ship without its cache. The step runs after the
 notices and before the macOS version fix and signing, so the signature covers the cache.
 
+**Launchers.** On Windows the image has a second launcher, `exampleapp-cli`, built with jpackage's
+`win-console` from `packaging/windows/exampleapp-cli.properties`: the GUI launcher has no console, so
+`exampleapp-cli --help`, `--version`, `--report` and the refusal of an unknown option print where they
+were typed (Pauta CLI-11). Every launcher exports `com.sun.glass.ui` to the app, and on macOS
+`com.sun.glass.ui.mac` too (the `glass.mac.option` property), so `MacAppMenu` can put About and Settings
+in the application menu; the command line skips those options if a launcher leaves them among the
+arguments (CLI-12).
+
+**The release build fails on what a template left.** `-Pdist` sets `pauta.release`, and
+`PautaConformanceTest` then fails on each `app-only` entry and each pending entry that links the template's
+issues, in an app made from the template (Pauta PAUTA-16). The template itself, `"template": true`, is not
+held to it.
+
 ## Installers
 
 | OS | Files | Notes |

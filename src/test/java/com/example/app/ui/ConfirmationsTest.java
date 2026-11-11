@@ -24,7 +24,9 @@ class ConfirmationsTest {
                 Confirmations.importConfig(
                         "exampleapp-config.zip", java.util.List.of(com.example.app.config.ConfigImport.Part.values())),
                 Confirmations.resetBinding("About", "Ctrl+Alt+J", "F12"),
-                Confirmations.resetBinding("About", "Ctrl+Alt+J", ""));
+                Confirmations.resetBinding("About", "Ctrl+Alt+J", ""),
+                Confirmations.quitUnsaved(List.of("notes.md")),
+                Confirmations.quitUnsaved(List.of("notes.md", "README.md")));
     }
 
     @Test
@@ -40,6 +42,9 @@ class ConfirmationsTest {
                 && questions.get(1).message().contains("F12"));
         assertTrue(questions.get(1).message().contains("removed"));
         assertTrue(questions.get(2).message().contains("no keys"));
+        assertEquals(
+                "notes.md has changes. Quit and lose them?", questions.get(3).message());
+        assertTrue(questions.get(4).message().startsWith("2 documents have changes: notes.md, README.md."));
     }
 
     @Test

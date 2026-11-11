@@ -1,6 +1,13 @@
 package com.example.app.ui;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javafx.application.Application;
 import javafx.application.ColorScheme;
@@ -12,6 +19,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
+import com.example.app.config.Settings;
 import com.example.app.config.ThemeChoice;
 import org.jspecify.annotations.Nullable;
 
@@ -35,7 +43,14 @@ public final class Themes {
 
     private static final String WINDOW_HOOKED = Themes.class.getName() + ".uiFont";
 
+    /** The sheets the UI zoom scales: the control themes and the app's own (WIN-12). */
+    private static final List<String> ZOOMED = List.of(LIGHT_THEME, DARK_THEME, "app.css");
+
+    /** Each scaled sheet, by name and percent, as a data: URL. Built off the FX thread ({@link #prepareZoom}). */
+    private static final Map<String, String> SCALED = new ConcurrentHashMap<>();
+
     private static ThemeChoice choice = ThemeChoice.DEFAULT;
+    private static int zoom = Settings.DEFAULT_UI_ZOOM;
     private static boolean listening;
     private static boolean uiFontInstalled;
 
@@ -51,7 +66,7 @@ public final class Themes {
             });
         }
         boolean dark = isDark();
-        Application.setUserAgentStylesheet(sheet(dark ? DARK_THEME : LIGHT_THEME));
+        Application.setUserAgentStylesheet(zoomed(dark ? DARK_THEME : LIGHT_THEME, zoom));
         for (Window window : Window.getWindows()) {
             Scene scene = window.getScene();
             if (scene != null) scene.getPreferences().setColorScheme(dark ? ColorScheme.DARK : ColorScheme.LIGHT);
@@ -91,7 +106,9 @@ public final class Themes {
     public static Scene style(Scene scene) {
         // The UI font is attached by installUiFont once the window shows; adding it here too means a
         // scene measured before it is shown is measured in the font it is drawn in.
-        for (String sheet : new String[] {UI_FONT, "app.css"}) addSheet(scene, sheet);
+        addSheet(scene, UI_FONT);
+        String app = zoomed("app.css", zoom);
+        if (!scene.getStylesheets().contains(app)) scene.getStylesheets().add(app);
         scene.getPreferences().setColorScheme(isDark() ? ColorScheme.DARK : ColorScheme.LIGHT);
         return scene;
     }
@@ -128,6 +145,56 @@ public final class Themes {
     private static void addSheet(Scene scene, String sheet) {
         String url = sheet(sheet);
         if (!scene.getStylesheets().contains(url)) scene.getStylesheets().add(url);
+    }
+
+    /** The UI zoom in effect, in percent. */
+    public static int zoom() {
+        return zoom;
+    }
+
+    /**
+     * Reads and scales the sheets for {@code percent}: string work over the theme's few thousand lines, so
+     * never on the FX thread (PERF-01). {@link #zoom(int)} then only swaps URLs.
+     */
+    public static void prepareZoom(int percent) {
+        for (String name : ZOOMED) zoomed(name, percent);
+    }
+
+    /**
+     * Applies the UI zoom to the whole app at once (WIN-12): the control theme, every open window's app
+     * sheet, and the glyphs and sizes bound to {@link UiZoom#factor}. FX thread; call {@link #prepareZoom}
+     * first, off it.
+     */
+    public static void zoom(int percent) {
+        int next = Settings.clampUiZoom(percent);
+        if (next == zoom) return;
+        String oldApp = zoomed("app.css", zoom);
+        zoom = next;
+        String newApp = zoomed("app.css", zoom);
+        UiZoom.setFactor(zoom);
+        Application.setUserAgentStylesheet(zoomed(isDark() ? DARK_THEME : LIGHT_THEME, zoom));
+        for (Window window : Window.getWindows()) {
+            Scene scene = window.getScene();
+            if (scene == null) continue;
+            int at = scene.getStylesheets().indexOf(oldApp);
+            if (at >= 0) scene.getStylesheets().set(at, newApp);
+        }
+    }
+
+    /** One of the zoomed sheets at {@code percent}: the bundled file at 100%, a scaled copy otherwise. */
+    static String zoomed(String name, int percent) {
+        if (percent == Settings.DEFAULT_UI_ZOOM) return sheet(name);
+        return SCALED.computeIfAbsent(name + "@" + percent, k -> UiZoom.dataUrl(UiZoom.scale(text(name), percent)));
+    }
+
+    /** A bundled stylesheet's text. */
+    private static String text(String name) {
+        try (InputStream in =
+                Objects.requireNonNull(Themes.class.getResourceAsStream("/com/example/app/styles/" + name))) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /** The URL of one of the app's stylesheets. */

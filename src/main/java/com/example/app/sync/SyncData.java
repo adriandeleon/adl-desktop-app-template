@@ -4,10 +4,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.UnaryOperator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import com.example.app.config.ConfigFiles;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +42,8 @@ public final class SyncData {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
             .enable(SerializationFeature.INDENT_OUTPUT);
+
+    private static final Logger LOG = Logger.getLogger(SyncData.class.getName());
 
     public int schemaVersion = SCHEMA_VERSION;
 
@@ -81,9 +87,33 @@ public final class SyncData {
     public static void write(Path file, Map<String, String> bindings) throws IOException {
         SyncData data = new SyncData();
         data.keybindings = new TreeMap<>(bindings);
-        Path parent = file.getParent();
-        if (parent != null) Files.createDirectories(parent);
-        Files.writeString(file, JSON.writeValueAsString(data) + "\n", StandardCharsets.UTF_8);
+        ConfigFiles.writeString(file, JSON.writeValueAsString(data) + "\n");
+    }
+
+    /**
+     * The sync engine's own base (the bindings both sides last agreed on), which it keeps beside the clone.
+     * Never trusted (SET-10, SET-11): a base a newer build wrote is kept as {@code base.json.v<n>.bak}, one
+     * that cannot be read as {@code base.json.broken.bak}, and either way the sync goes on from an empty
+     * base, as on a first sync, instead of failing every time.
+     */
+    public static Map<String, String> readBase(Path file) {
+        try {
+            return read(file);
+        } catch (NewerException e) {
+            copyAside(file, file.getFileName() + ".v" + e.version() + ".bak");
+        } catch (IOException | RuntimeException e) {
+            copyAside(file, file.getFileName() + ".broken.bak");
+        }
+        return new TreeMap<>();
+    }
+
+    private static void copyAside(Path file, String name) {
+        try {
+            Files.copy(file, file.resolveSibling(name), StandardCopyOption.REPLACE_EXISTING);
+            Files.deleteIfExists(file);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Could not back up " + file, e);
+        }
     }
 
     /** The version a tree says it is; a tree with none is the bare map of version 1. */

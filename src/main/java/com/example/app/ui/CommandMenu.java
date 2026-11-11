@@ -97,7 +97,10 @@ final class CommandMenu {
         return cell;
     }
 
-    /** Gives a read-only text area (a console) this menu in place of the stock Cut/Copy/Paste one. */
+    /**
+     * Gives a text area, an editor or a read-only console, this menu in place of the stock Cut/Copy/Paste one,
+     * whose rows are no commands.
+     */
     static void onConsole(TextInputControl console, CommandMenu menu) {
         console.setContextMenu(menu.menu());
     }

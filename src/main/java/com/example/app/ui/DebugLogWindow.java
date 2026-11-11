@@ -29,7 +29,7 @@ public final class DebugLogWindow {
     private final AppServices services;
     private final Stage stage = new Stage();
     private final TextArea text = new TextArea();
-    private final DebugLogFindBar findBar = new DebugLogFindBar(text);
+    private final FindBar findBar = new FindBar(text, "debugLog.findNext", "debugLog.findPrevious");
     private final CommandMenu menu;
 
     public DebugLogWindow(AppServices services, @Nullable Window owner) {
@@ -37,6 +37,7 @@ public final class DebugLogWindow {
         text.setEditable(false);
         findBar.runCommandsThrough(id -> services.commands().run(id));
         text.getStyleClass().add("debug-log-text");
+        text.setAccessibleText(Messages.tr("debuglog.title"));
         // A read-only console: its right-click menu is the Debug Log's commands.
         menu = new CommandMenu(
                 services,
@@ -102,12 +103,12 @@ public final class DebugLogWindow {
         return stage;
     }
 
-    /** Opens the find bar over the log (the {@code debugLog.find} command). */
+    /** Opens the find bar over the log, or finds the next match when it is open (the {@code debugLog.find} command). */
     void find() {
-        findBar.open();
+        findBar.openOrNext();
     }
 
-    DebugLogFindBar findBar() {
+    FindBar findBar() {
         return findBar;
     }
 

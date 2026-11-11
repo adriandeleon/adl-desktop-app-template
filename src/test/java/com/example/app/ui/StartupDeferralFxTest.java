@@ -93,9 +93,9 @@ class StartupDeferralFxTest {
                 prepared.store().loadResult());
         app = call(() -> Startup.start(new Stage(), prepared, host));
         run(() -> app.services().store().update(s -> s.showStatusBar = false));
-        Thread exit = call(() -> app.services().store().flushOnExit());
-        assertFalse(exit.isDaemon(), "the JVM must wait for the last save");
-        exit.join();
+        // stop() makes the last save itself, on the FX thread, the one wait PERF-01 allows there; every thread
+        // the app starts is a daemon (PERF-04), so nothing else keeps the JVM up.
+        run(app::close);
         assertTrue(java.nio.file.Files.readString(prepared.store().file()).contains("\"showStatusBar\" : false"));
     }
 
@@ -155,7 +155,16 @@ class StartupDeferralFxTest {
             run(() -> services.store().update(s -> s.lastUpdateCheck = 0));
             assertTrue(call(closing::scheduleStartupCheck));
             run(closing::cancel);
-            Thread.sleep(400);
+            assertFalse(call(closing::startupCheckPending), "the startup check's timer was stopped");
+            // Past the 100 ms delay, waited for on the FX thread's own timeline, never a sleep (QUAL-07).
+            java.util.concurrent.CountDownLatch past = new java.util.concurrent.CountDownLatch(1);
+            run(() -> {
+                javafx.animation.PauseTransition wait =
+                        new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
+                wait.setOnFinished(e -> past.countDown());
+                wait.play();
+            });
+            assertTrue(past.await(5, java.util.concurrent.TimeUnit.SECONDS));
             run(() -> {});
             assertEquals(0, late.get(), "a cancelled startup check ran");
         } finally {

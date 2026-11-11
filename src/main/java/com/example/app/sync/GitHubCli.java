@@ -47,17 +47,32 @@ public final class GitHubCli {
         }
     }
 
-    private final String gh;
+    private final java.util.function.Supplier<String> finder;
+    private volatile @org.jspecify.annotations.Nullable String gh;
 
     /** Overrides which gh runs; the test suite points it at a command that does not exist. */
     public static final String PROPERTY = AppInfo.ID + ".gh";
 
+    /** The user's gh, looked for on its first run, off the FX thread (PERF-01). */
     public GitHubCli() {
-        this(System.getProperty(PROPERTY, Executables.find("gh")));
+        this.finder = () -> {
+            String forced = System.getProperty(PROPERTY);
+            return forced != null ? forced : Executables.find("gh");
+        };
     }
 
     public GitHubCli(String gh) {
+        this.finder = () -> gh;
         this.gh = gh;
+    }
+
+    private String gh() {
+        String found = gh;
+        if (found == null) {
+            found = finder.get();
+            gh = found;
+        }
+        return found;
     }
 
     /** Whether GitHub accepts {@code name} for a repository, and gh cannot read it as an option. */
@@ -101,7 +116,7 @@ public final class GitHubCli {
     /** Runs gh with prompts off and nothing on its terminal; exit -1 when it could not start or hung. */
     private Result run(Duration timeout, String... args) {
         List<String> argv = new ArrayList<>();
-        argv.add(gh);
+        argv.add(gh());
         argv.addAll(List.of(args));
         ProcessBuilder builder = new ProcessBuilder(argv).redirectErrorStream(true);
         builder.environment().put("GH_PROMPT_DISABLED", "1");

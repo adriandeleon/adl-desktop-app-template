@@ -32,6 +32,11 @@ final class SampleFiles {
         String cssClass() {
             return "git-status-" + name().toLowerCase(Locale.ROOT);
         }
+
+        /** The status in words, so color is not its only sign (TABS-08, ACC-05). */
+        String words() {
+            return com.example.app.i18n.Messages.tr("git.status." + name().toLowerCase(Locale.ROOT));
+        }
     }
 
     /** One sample: where it would live, whether it is read-only, and its Git status (null for clean). */
@@ -86,6 +91,23 @@ final class SampleFiles {
     }
 
     /** The headings of a Markdown text, for the Outline: each line that starts with {@code #}. Pure. */
+    /** A heading and where its line starts in the text. */
+    record Heading(String title, int offset) {}
+
+    /** Every heading of {@code text} with its line's offset, in order. Pure; off the FX thread (PERF-01). */
+    static List<Heading> headingsAt(String text) {
+        List<Heading> found = new java.util.ArrayList<>();
+        int at = 0;
+        for (String line : text.split("\n", -1)) {
+            if (line.startsWith("#")) {
+                String title = line.replaceFirst("^#+\\s*", "");
+                if (!title.isBlank()) found.add(new Heading(title, at));
+            }
+            at += line.length() + 1;
+        }
+        return List.copyOf(found);
+    }
+
     static List<String> headings(String text) {
         return text.lines()
                 .filter(line -> line.startsWith("#"))

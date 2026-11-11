@@ -2,7 +2,6 @@ package com.example.app.config;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -198,27 +197,11 @@ public final class ConfigStore {
         }
     }
 
-    /**
-     * At exit, from the FX thread: waits for the last save on a thread of its own, which is not a daemon,
-     * so the JVM stays up until the file is on disk and the FX thread never waits (PERF-01).
-     */
-    public Thread flushOnExit() {
-        return Thread.ofPlatform().daemon(false).name("settings-flush").start(this::flush);
-    }
-
     private void writePending() {
         Settings snapshot = pendingWrite.getAndSet(null);
         if (snapshot == null) return;
         try {
-            String text = JSON.writeValueAsString(snapshot);
-            Files.createDirectories(dir);
-            Path temp = Files.createTempFile(dir, FILE, ".tmp");
-            Files.writeString(temp, text, StandardCharsets.UTF_8);
-            try {
-                Files.move(temp, file(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-            } catch (AtomicMoveNotSupportedException e) {
-                Files.move(temp, file(), StandardCopyOption.REPLACE_EXISTING);
-            }
+            ConfigFiles.writeString(file(), JSON.writeValueAsString(snapshot));
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Could not save " + file(), e);
         }

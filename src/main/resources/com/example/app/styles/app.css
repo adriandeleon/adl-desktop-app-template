@@ -33,6 +33,10 @@
        a deep ink on a light ground and a lighter one the darker it gets. Every key chord a menu shows wears it
        (MENU-15); it reads at 4.5:1 or more on the default and subtle grounds of both themes. */
     -state-key: ladder(-color-bg-default, #b0b6e0 0%, #b8bee5 10%, #cdd1f1 20%, #e3e6f9 30%, #ecedfb 49%, #3c4380 50%);
+    /* The overlay's scrim and the floating cards' shadow (ICON-08): black at a fixed alpha, the one place a
+       fixed color may stand, since the themes have no role for either. */
+    -scrim: rgba(0, 0, 0, 0.18);
+    -shadow: rgba(0, 0, 0, 0.28);
 }
 
 /* ---- window ---- */
@@ -55,7 +59,6 @@
 .status-bar {
     -fx-padding: 3 10 3 10;
     -fx-background-color: -color-bg-subtle;
-    -fx-border-color: -color-border-muted transparent transparent transparent;
     -fx-font-size: 12px;
     -fx-min-height: 26px;
 }
@@ -88,7 +91,7 @@
 
 /* ---- overlays: palette, pickers, message log ---- */
 .overlay-backdrop {
-    -fx-background-color: rgba(0, 0, 0, 0.18);
+    -fx-background-color: -scrim;
 }
 .command-palette, .message-log {
     -fx-background-color: -color-bg-overlay;
@@ -96,7 +99,7 @@
     -fx-border-radius: 12;
     -fx-background-radius: 12;
     -fx-padding: 6;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.28), 24, 0.1, 0, 6);
+    -fx-effect: dropshadow(gaussian, -shadow, 24, 0.1, 0, 6);
 }
 .command-palette .list-view, .message-log .list-view {
     -fx-background-color: transparent;
@@ -348,6 +351,15 @@
 /* Every menu, whatever node it was opened from (MENU-16): a popup inherits the font of the node that showed
    it, and em sizes resolve against it, so a menu opened from the toolbar or a monospaced view would draw
    at their size. The font is pinned in pixels on the menu and its rows' labels. */
+/* MENU-18: the card's radius 8 and a shadow of radius 16 at offset Y 16; a row 34 px high (padding 8 × 12). */
+.context-menu {
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-effect: dropshadow(gaussian, -shadow, 16, 0, 0, 16);
+}
+.context-menu .menu-item {
+    -fx-padding: 8px 12px 8px 12px;
+}
 .context-menu,
 .context-menu .menu-item,
 .context-menu .menu-item .label {
@@ -406,6 +418,7 @@
 /* Tooltips share the menus' card radius. */
 .tooltip {
     -fx-background-radius: 8px, 7px;
+    -fx-show-delay: 400ms; /* every tooltip, whoever made it (TBAR-14) */
 }
 
 /* ---- document tabs (Tabs and tool panels) ----
@@ -430,7 +443,7 @@
 }
 .tab.git-status-modified .tab-title,
 .documents-list .git-status-modified {
-    -fx-text-fill: -color-accent-fg;
+    -fx-text-fill: -state-accent;
 }
 .tab.git-status-added .tab-title,
 .documents-list .git-status-added {
@@ -594,4 +607,24 @@
    author rules are decided by order. */
 *:focus-visible {
     -fx-border-color: -focus-ring;
+}
+/* KBD-22: 2 px wide, 1 px outside the control: a border with negative insets adds nothing to the control's
+   own size, so focusing one never moves the layout. */
+.button:focus-visible,
+.toggle-button:focus-visible,
+.menu-button:focus-visible,
+.split-menu-button:focus-visible,
+.hyperlink:focus-visible,
+.combo-box-base:focus-visible,
+.check-box:focus-visible,
+.radio-button:focus-visible {
+    -fx-border-width: 2;
+    -fx-border-insets: -3;
+    -fx-border-radius: 6;
+}
+/* A text field draws it inside, by widening its own focus border to 2 px. */
+.text-input:focus-visible {
+    -fx-border-width: 0;
+    -fx-background-color: -focus-ring, -color-input-bg-focused;
+    -fx-background-insets: 0, 2px;
 }

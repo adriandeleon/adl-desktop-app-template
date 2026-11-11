@@ -76,6 +76,19 @@ final class AppMenus {
     private static final List<Spec> FULL = List.of(
             spec("menu.file", "app.settings", null, "config.export", "config.import", "sync.now", null, "app.quit"),
             spec(
+                    "menu.edit",
+                    "edit.cut",
+                    "edit.copy",
+                    "edit.paste",
+                    null,
+                    "edit.selectAll",
+                    null,
+                    "find.show",
+                    "find.next",
+                    "find.previous",
+                    null,
+                    "output.find"),
+            spec(
                     "menu.view",
                     "view.toggleToolbar",
                     "view.toggleTabBar",
@@ -84,6 +97,10 @@ final class AppMenus {
                     "settings.theme",
                     "settings.keymap",
                     "settings.language",
+                    null,
+                    "view.uiZoomIn",
+                    "view.uiZoomOut",
+                    "view.uiZoomReset",
                     null,
                     "view.toggleSimpleMode"),
             // The tabs and the tool windows: every one of their commands has a row (TABS-01).
@@ -125,6 +142,7 @@ final class AppMenus {
                     "menu.help",
                     "palette.show",
                     "help.documentation",
+                    "help.keyboardShortcuts",
                     null,
                     "help.checkForUpdates",
                     "view.messageLog",
@@ -141,6 +159,7 @@ final class AppMenus {
      */
     private static final List<Spec> SIMPLE = List.of(
             spec("menu.file", "app.settings", null, "app.quit"),
+            spec("menu.edit", "edit.copy", "edit.paste", null, "find.show"),
             spec(
                     "menu.view",
                     "view.toggleToolbar",
@@ -159,7 +178,7 @@ final class AppMenus {
                     "tool.documents",
                     "tool.outline",
                     "tool.output"),
-            spec("menu.help", "palette.show", "help.documentation", null, "help.about"));
+            spec("menu.help", "palette.show", "help.documentation", "help.keyboardShortcuts", null, "help.about"));
 
     private static Spec spec(String key, @Nullable String... ids) {
         return new Spec(key, java.util.Collections.unmodifiableList(java.util.Arrays.<@Nullable String>asList(ids)));
@@ -243,24 +262,37 @@ final class AppMenus {
     static Row inWindowRow(String id) {
         Node glyph = Icons.commandGlyph(id);
         Region slot = new Region();
-        slot.setMinSize(ICON_SLOT, ICON_SLOT);
-        slot.setPrefSize(ICON_SLOT, ICON_SLOT);
+        UiZoom.bind(slot.minWidthProperty(), ICON_SLOT); // the slot follows the UI zoom (WIN-12, MENU-16)
+        UiZoom.bind(slot.minHeightProperty(), ICON_SLOT);
+        UiZoom.bind(slot.prefWidthProperty(), ICON_SLOT);
+        UiZoom.bind(slot.prefHeightProperty(), ICON_SLOT);
         Label title = new Label();
         title.getStyleClass().add("menu-item-title");
         Label chord = new Label();
         chord.getStyleClass().add("menu-item-chord");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox box = new HBox(8, glyph != null ? glyph : slot, title, spacer, chord);
-        HBox.setMargin(chord, new Insets(0, 0, 0, 16));
+        // The icon column is 22 px wide whatever the glyph's own size, so every title starts in one line.
+        javafx.scene.layout.StackPane column = new javafx.scene.layout.StackPane(glyph != null ? glyph : slot);
+        column.getStyleClass().add("menu-item-icon");
+        UiZoom.bind(column.minWidthProperty(), ICON_SLOT);
+        UiZoom.bind(column.prefWidthProperty(), ICON_SLOT);
+        HBox box = new HBox(8, column, title, spacer, chord);
+        HBox.setMargin(chord, new Insets(0, 0, 0, 18)); // the chord starts 18 px or more after the title (MENU-18)
         box.setAlignment(Pos.CENTER_LEFT);
+        // A row drawn from nodes reads as its title and chord to a screen reader (ACC-01).
+        box.accessibleTextProperty()
+                .bind(javafx.beans.binding.Bindings.createStringBinding(
+                        () -> Icons.withChord(title.getText(), chord.getText()),
+                        title.textProperty(),
+                        chord.textProperty()));
         CustomMenuItem item = new CustomMenuItem(box);
         item.setHideOnClick(true);
         return new Row(item, id, title, chord);
     }
 
     /** The width of the glyph column, so a row without a glyph keeps its title in line. */
-    static final double ICON_SLOT = 18;
+    static final double ICON_SLOT = 22;
 
     /** Re-labels every row with its title and current binding: after a keymap switch or a rebinding. */
     void refresh() {

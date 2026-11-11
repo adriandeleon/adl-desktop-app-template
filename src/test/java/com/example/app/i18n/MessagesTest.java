@@ -100,4 +100,49 @@ class MessagesTest {
         assertEquals("es", Messages.resolve("", "es"));
         assertEquals("en", Messages.resolve("", "ja"));
     }
+
+    /** INTL-14: the four cases of the formatting locale. */
+    @Test
+    void theFormattingLocaleKeepsTheSystemsRegion() {
+        java.util.Locale mexico = java.util.Locale.of("es", "MX");
+        java.util.Locale japan = java.util.Locale.of("ja", "JP");
+        // None chosen, a catalog for the system's language: the system's locale whole.
+        assertEquals(mexico, Messages.locale("", mexico));
+        // None chosen, no catalog: English menus, the system's locale whole.
+        assertEquals(japan, Messages.locale("", japan));
+        assertEquals("en", Messages.resolve("", "ja"));
+        // The system's own language chosen: its region kept.
+        assertEquals(mexico, Messages.locale("es", mexico));
+        // Another language chosen: the bare language.
+        assertEquals(java.util.Locale.of("de"), Messages.locale("de", mexico));
+    }
+
+    /** INTL-12: no "(s)" beside a count, and every choice pattern parses, in every catalog. */
+    @Test
+    void countsAreWordedForTheCountInEveryLanguage() {
+        for (String language : Messages.available().keySet()) {
+            Messages.bundle(language).forEach((key, value) -> {
+                if (!Messages.isPattern(value)) return;
+                assertFalse(value.contains("(s)"), language + ": " + key + " writes (s)");
+                if (value.contains(",choice,")) {
+                    new java.text.MessageFormat(value).format(new Object[] {1, 1, 1, 1});
+                    new java.text.MessageFormat(value).format(new Object[] {3, 3, 3, 3});
+                }
+            });
+        }
+        org.junit.jupiter.api.Assertions.assertTrue(
+                Messages.tr("status.configExported", 1, "a.zip").startsWith("Exported 1 file to"));
+    }
+
+    /** INTL-13: a chord's modifiers are never translated. */
+    @Test
+    void noCatalogTranslatesAModifier() {
+        java.util.regex.Pattern translated = java.util.regex.Pattern.compile("\\b(Strg|Umschalt|Maj|Mayús|Maiusc)\\+");
+        for (String language : Messages.available().keySet()) {
+            Messages.bundle(language)
+                    .forEach((key, value) -> assertFalse(
+                            translated.matcher(value).find(),
+                            language + ": " + key + " translates a modifier: " + value));
+        }
+    }
 }

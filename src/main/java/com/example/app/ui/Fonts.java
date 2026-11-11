@@ -37,8 +37,9 @@ public final class Fonts {
 
     /** Registers the faces the first window does not need; returns how many loaded. */
     public static int loadDeferred() {
+        int loaded = load(DEFERRED);
         deferredLoaded = true;
-        return load(DEFERRED);
+        return loaded;
     }
 
     /** Whether {@link #loadDeferred} has run. */

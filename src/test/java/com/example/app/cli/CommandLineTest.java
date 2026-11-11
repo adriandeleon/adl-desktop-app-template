@@ -68,4 +68,23 @@ class CommandLineTest {
             assertTrue(usage.contains(flag), flag);
         }
     }
+
+    /** CLI-12: the JVM options a launcher can leave are skipped with their values; CLI-13: -V is --version. */
+    @Test
+    void skipsTheLaunchersJvmOptionsAndTakesCapitalVForVersion() {
+        CommandLine cli = CommandLine.parse(new String[] {
+            "--add-exports",
+            "javafx.graphics/com.sun.glass.ui=com.example.app",
+            "--add-opens=javafx.base/x=y",
+            "-p",
+            "/app/mods",
+            "--add-exports=a/b=c",
+            "notes.txt",
+            "-V"
+        });
+        assertNull(cli.error());
+        assertEquals(List.of("notes.txt"), cli.files());
+        assertTrue(cli.version());
+        assertEquals("unknown option -x", CommandLine.parse(new String[] {"-x"}).error());
+    }
 }

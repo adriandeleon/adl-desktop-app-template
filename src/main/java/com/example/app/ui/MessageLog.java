@@ -35,9 +35,11 @@ public final class MessageLog {
      * {@code cannot} or {@code invalid} a warning. Name new keys accordingly.
      */
     public static Severity severityOf(String key) {
-        String lower = key.toLowerCase(Locale.ROOT);
-        if (lower.endsWith("failed") || lower.endsWith("error")) return Severity.ERROR;
-        if (lower.contains("cannot") || lower.contains("invalid")) return Severity.WARNING;
+        // MLOG-05: only a status.* key says it, by its last segment.
+        if (!key.startsWith("status.")) return Severity.INFO;
+        String last = key.substring(key.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
+        if (last.contains("fail") || last.contains("error")) return Severity.ERROR;
+        if (last.contains("cannot") || last.contains("invalid")) return Severity.WARNING;
         return Severity.INFO;
     }
 

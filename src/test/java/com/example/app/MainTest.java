@@ -45,7 +45,8 @@ class MainTest {
                 new String[] {"--report", "--config-dir", dir.toString()},
                 new PrintStream(out, true, StandardCharsets.UTF_8),
                 new PrintStream(err, true, StandardCharsets.UTF_8),
-                url -> opened.add(url));
+                url -> opened.add(url),
+                dir);
         assertEquals(0, code, "an exit code, not LAUNCH: main exits before the toolkit starts");
         assertTrue(java.nio.file.Files.isRegularFile(dir.resolve(com.example.app.report.ReportCommand.FILE)));
         assertEquals(1, opened.size(), "the prefilled issue is opened");

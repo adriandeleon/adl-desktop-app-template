@@ -35,6 +35,7 @@ final class Prompts {
         dialog.setTitle(title);
         dialog.setHeaderText(null);
         dialog.setContentText(label);
+        dialog.getEditor().setAccessibleText(label); // the field is named by its label (ACC-01)
         Label why = new Label();
         why.getStyleClass().add("prompt-problem");
         why.setWrapText(true);

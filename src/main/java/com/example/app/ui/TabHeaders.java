@@ -57,12 +57,14 @@ final class TabHeaders {
         toggle(header, "pinned", isPinned);
         toggle(header, "read-only", document.isReadOnly());
         if (isPinned) header.getChildren().add(Icons.line(Icons.PIN));
-        Node glyph = Icons.line(Icons.FILE);
+        Node glyph = Icons.line(Icons.forFileName(document.title()));
         glyph.getStyleClass().add("tab-file-icon");
         header.getChildren().addAll(glyph, title);
         tab.setText("");
         tab.setGraphic(header);
-        tooltip(tab, document.path().toString());
+        // The Git status in words beside the path: color is not its only sign (TABS-08, ACC-05).
+        SampleFiles.GitStatus status = document.sample().status();
+        tooltip(tab, status == null ? document.path().toString() : document.path() + " — " + status.words());
         TabGitStatus.apply(tab, TabGitStatus.classFor(document.sample()));
     }
 

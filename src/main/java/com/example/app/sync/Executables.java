@@ -5,8 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
+import com.example.app.Os;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -23,7 +23,7 @@ public final class Executables {
 
     /** The tool's full path, or its bare name (left to the OS to find, or to fail) when not found. */
     public static String find(String name) {
-        Path found = find(name, System.getenv().getOrDefault("PATH", ""), isWindows());
+        Path found = find(name, System.getenv().getOrDefault("PATH", ""), Os.isWindows());
         return found == null ? name : found.toString();
     }
 
@@ -39,9 +39,5 @@ public final class Executables {
             }
         }
         return null;
-    }
-
-    private static boolean isWindows() {
-        return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).startsWith("windows");
     }
 }

@@ -59,9 +59,9 @@ public final class DebugLog {
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     private static final Deque<String> ENTRIES = new ArrayDeque<>();
 
-    private static @Nullable FileChannel channel;
-    private static @Nullable FileLock lock;
-    private static @Nullable Path file;
+    private static volatile @Nullable FileChannel channel;
+    private static volatile @Nullable FileLock lock;
+    private static volatile @Nullable Path file;
     private static @Nullable Handler handler;
     private static int dropped;
     private static long fileBytes;
@@ -110,20 +110,27 @@ public final class DebugLog {
     }
 
     /** Mirrors the log to the session file in {@code configDir}, keeping the last one as the previous file. */
-    public static synchronized void attachFile(Path configDir) {
-        detachFile();
-        try {
-            Files.createDirectories(configDir);
-            if (!claim(configDir.resolve(FILE), true)) {
-                claim(
-                        configDir.resolve(AppInfo.ID + "-session-"
-                                + ProcessHandle.current().pid() + ".log"),
-                        false);
+    public static void attachFile(Path configDir) {
+        synchronized (FILE_LOCK) {
+            detachFile();
+            try {
+                Files.createDirectories(configDir);
+                if (!claim(configDir.resolve(FILE), true)) {
+                    claim(
+                            configDir.resolve(AppInfo.ID + "-session-"
+                                    + ProcessHandle.current().pid() + ".log"),
+                            false);
+                }
+            } catch (IOException e) {
+                detachFile(); // a log that cannot be written is no reason to fail a launch
             }
-        } catch (IOException e) {
-            detachFile(); // a log that cannot be written is no reason to fail a launch
+            PENDING.clear(); // every line kept so far is written now, once
+            java.util.List<String> kept;
+            synchronized (DebugLog.class) {
+                kept = new java.util.ArrayList<>(ENTRIES);
+            }
+            for (String line : kept) write(line);
         }
-        for (String line : ENTRIES) write(line);
     }
 
     private static boolean claim(Path candidate, boolean rotate) throws IOException {
@@ -161,7 +168,13 @@ public final class DebugLog {
     }
 
     /** Releases the session file. */
-    public static synchronized void detachFile() {
+    public static void detachFile() {
+        synchronized (FILE_LOCK) {
+            closeFile();
+        }
+    }
+
+    private static void closeFile() {
         try {
             if (lock != null) lock.release();
             if (channel != null) channel.close();
@@ -174,17 +187,45 @@ public final class DebugLog {
     }
 
     /** The session file, or null when there is none. */
-    public static synchronized @Nullable Path file() {
+    public static @Nullable Path file() {
         return file;
     }
 
-    static synchronized void append(String line) {
-        ENTRIES.addLast(line);
-        while (ENTRIES.size() > MAX_ENTRIES) {
-            ENTRIES.removeFirst();
-            dropped++;
+    /**
+     * Keeps the line and writes it to the session file. A line logged on the FX thread is handed to the
+     * writer thread, so logging never blocks the window (PERF-01); any other thread writes it before it goes
+     * on, so a crash's last lines reach the file. Lines reach the file in the order they were logged.
+     */
+    static void append(String line) {
+        synchronized (DebugLog.class) {
+            ENTRIES.addLast(line);
+            while (ENTRIES.size() > MAX_ENTRIES) {
+                ENTRIES.removeFirst();
+                dropped++;
+            }
         }
-        write(line);
+        PENDING.add(line);
+        if (javafx.application.Platform.isFxApplicationThread()) WRITER.execute(DebugLog::flushFile);
+        else flushFile();
+    }
+
+    /** The lines not yet in the file, oldest first. */
+    private static final java.util.concurrent.ConcurrentLinkedQueue<String> PENDING =
+            new java.util.concurrent.ConcurrentLinkedQueue<>();
+
+    /** Writes what the FX thread logs; one thread, so the file keeps the order. */
+    private static final java.util.concurrent.ExecutorService WRITER =
+            java.util.concurrent.Executors.newSingleThreadExecutor(
+                    Thread.ofPlatform().name("debug-log-writer").daemon().factory());
+
+    /** Guards the file: whoever holds it writes every pending line, in order. */
+    private static final Object FILE_LOCK = new Object();
+
+    /** Writes every pending line to the file now. Off the FX thread: the quit's last step calls it too. */
+    public static void flushFile() {
+        synchronized (FILE_LOCK) {
+            for (String line = PENDING.poll(); line != null; line = PENDING.poll()) write(line);
+        }
     }
 
     private static void write(String line) {
@@ -209,7 +250,11 @@ public final class DebugLog {
     private static void rewriteWithNewest(FileChannel out) throws IOException {
         java.util.List<byte[]> newest = new java.util.ArrayList<>();
         long size = 0;
-        for (java.util.Iterator<String> it = ENTRIES.descendingIterator(); it.hasNext(); ) {
+        java.util.List<String> kept;
+        synchronized (DebugLog.class) {
+            kept = new java.util.ArrayList<>(ENTRIES);
+        }
+        for (java.util.Iterator<String> it = kept.reversed().iterator(); it.hasNext(); ) {
             byte[] bytes = (it.next() + System.lineSeparator()).getBytes(StandardCharsets.UTF_8);
             if (size + bytes.length > MAX_FILE_BYTES / 2) break;
             newest.add(0, bytes);

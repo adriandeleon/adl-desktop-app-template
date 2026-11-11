@@ -22,10 +22,26 @@ final class Commands {
         r.register("view.messageLog", window::openMessageLog);
         r.register("messageLog.copy", window::copyMessageLog);
         r.register("messageLog.clear", window::clearMessageLog);
-        r.register("view.toggleTitleBarMenus", () -> {
-            services.store().update(s -> s.titleBarMenus = !s.titleBarMenus);
-            services.echo("status.titleBarRestart");
-        });
+        // The UI zoom (WIN-12): three commands, kept across launches through the setting.
+        r.register(
+                "view.uiZoomIn",
+                () -> zoomUi(services, UiZoom.in(services.settings().uiZoom)),
+                () -> Chrome.uiZoomInUnavailable(services.settings().uiZoom));
+        r.register(
+                "view.uiZoomOut",
+                () -> zoomUi(services, UiZoom.out(services.settings().uiZoom)),
+                () -> Chrome.uiZoomOutUnavailable(services.settings().uiZoom));
+        r.register(
+                "view.uiZoomReset",
+                () -> zoomUi(services, com.example.app.config.Settings.DEFAULT_UI_ZOOM),
+                () -> Chrome.uiZoomResetUnavailable(services.settings().uiZoom));
+        r.register(
+                "view.toggleTitleBarMenus",
+                () -> {
+                    services.store().update(s -> s.titleBarMenus = !s.titleBarMenus);
+                    services.echo("status.titleBarRestart");
+                },
+                window::titleBarMenusUnavailable);
         r.register("view.toggleToolbar", () -> {
             services.store().update(s -> s.showToolbar = !s.showToolbar);
             services.echo(services.settings().showToolbar ? "status.toolbarOn" : "status.toolbarOff");
@@ -80,6 +96,8 @@ final class Commands {
                 () -> services.host()
                         .openUrl(services.store().dir().resolve("sync").toUri().toString()));
         r.register("sync.setup", () -> window.openSettings(SettingsWindow.Page.SYNC));
+        // The keyboard reference (DOCS-08): the key binding editor, searchable, from the Help menu.
+        r.register("help.keyboardShortcuts", () -> window.openSettings(SettingsWindow.Page.KEYMAP));
         r.register("sync.createGitHubRepo", window::createSyncRepo);
         r.register("sync.setRepository", window::promptSyncRepository);
         r.register("sync.setBranch", window::promptSyncBranch);
@@ -146,6 +164,11 @@ final class Commands {
      * and the per-tab ones on the tab's right-click menu ({@link TabContextMenu}). Each acts on the selected
      * tab. The ids are Editora's.
      */
+    private static void zoomUi(AppServices services, int percent) {
+        services.store().update(s -> s.uiZoom = percent);
+        services.echo("status.uiZoom", percent);
+    }
+
     private static void registerTabs(MainWindow window, CommandRegistry r) {
         r.register(
                 "buffer.close",
@@ -264,10 +287,89 @@ final class Commands {
                         window.toolWindows().bottomTarget(),
                         tw -> window.toolWindows().resize(tw, -ToolWindowManager.RESIZE_STEP)),
                 () -> Chrome.toolWindowUnavailable(window.toolWindows().bottomTarget() != null));
+        // Find (FIND-04): find.show over the documents, output.find over the console; each, run while its
+        // bar is open, finds the next match. The bars hand Enter, Shift+Enter and their buttons to these.
+        r.register(
+                "find.show",
+                () -> {
+                    FindBar bar = window.documentFindBar();
+                    if (bar != null) bar.openOrNext();
+                },
+                () -> Chrome.findUnavailable(window.documentFindBar() != null));
+        r.register(
+                "find.next",
+                () -> stepFind(window.documentFindBar(), true),
+                () -> Chrome.findStepUnavailable(isOpen(window.documentFindBar())));
+        r.register(
+                "find.previous",
+                () -> stepFind(window.documentFindBar(), false),
+                () -> Chrome.findStepUnavailable(isOpen(window.documentFindBar())));
+        r.register("output.find", window::findInOutput);
+        r.register(
+                "output.findNext",
+                () -> stepFind(window.outputFindBar(), true),
+                () -> Chrome.findStepUnavailable(isOpen(window.outputFindBar())));
+        r.register(
+                "output.findPrevious",
+                () -> stepFind(window.outputFindBar(), false),
+                () -> Chrome.findStepUnavailable(isOpen(window.outputFindBar())));
+        // Cancel (PAL-07, QOPEN-07, MLOG-03): the keymap's chord closes the palette, a picker or the Message
+        // Log, as Esc does; C-g in the Emacs keymap.
+        r.register(
+                "edit.cancel",
+                () -> window.overlays().hide(),
+                () -> Chrome.cancelUnavailable(window.overlays().isShowing()));
+        // The text commands (MENU-05): on the text control that has the keyboard, as the stock menu did.
+        r.register(
+                "edit.cut",
+                () -> onText(window, javafx.scene.control.TextInputControl::cut),
+                () -> Chrome.editUnavailable(window.focusedText(), true));
+        r.register(
+                "edit.copy",
+                () -> onText(window, javafx.scene.control.TextInputControl::copy),
+                () -> Chrome.editUnavailable(window.focusedText(), false));
+        r.register(
+                "edit.paste",
+                () -> onText(window, javafx.scene.control.TextInputControl::paste),
+                () -> Chrome.editUnavailable(window.focusedText(), true));
+        r.register(
+                "edit.selectAll",
+                () -> onText(window, javafx.scene.control.TextInputControl::selectAll),
+                () -> Chrome.editUnavailable(window.focusedText(), false));
+        r.register(
+                "documents.open",
+                () -> {
+                    SamplePanels.Documents list = window.documents();
+                    if (list != null) list.openSelected();
+                },
+                () -> Chrome.documentsOpenUnavailable(
+                        window.documents() != null && window.documents().hasSelection()));
+        r.register(
+                "output.clear",
+                () -> {
+                    SamplePanels.Output output = window.output();
+                    if (output != null) output.clear();
+                },
+                () -> Chrome.outputClearUnavailable(window.output() != null
+                        && !window.output().console().getText().isEmpty()));
         r.register(
                 "output.runSample",
                 window::runSampleTask,
                 () -> Chrome.sampleTaskUnavailable(window.isSampleTaskRunning()));
+    }
+
+    private static void onText(
+            MainWindow window, java.util.function.Consumer<javafx.scene.control.TextInputControl> action) {
+        javafx.scene.control.TextInputControl text = window.focusedText();
+        if (text != null) action.accept(text);
+    }
+
+    private static boolean isOpen(@org.jspecify.annotations.Nullable FindBar bar) {
+        return bar != null && bar.isOpen();
+    }
+
+    private static void stepFind(@org.jspecify.annotations.Nullable FindBar bar, boolean forward) {
+        if (bar != null && bar.isOpen()) bar.step(forward);
     }
 
     private static ToolWindow toolWindow(MainWindow window, String id) {

@@ -72,6 +72,7 @@ class MenuLookFxTest {
     void stop() throws Exception {
         run(() -> {
             hideMenus();
+            Themes.zoom(com.example.app.config.Settings.DEFAULT_UI_ZOOM);
             Themes.apply(ThemeChoice.LIGHT);
         });
         FxTestSupport.stop(app);
@@ -198,23 +199,61 @@ class MenuLookFxTest {
     }
 
     private void check(List<String> seen, String from, CommandMenu menu, Node anchor) throws Exception {
+        check(seen, from, menu, anchor, 1);
+    }
+
+    private void check(List<String> seen, String from, CommandMenu menu, Node anchor, double zoom) throws Exception {
         run(() -> {
             showFrom(menu, anchor);
             for (MenuItem item : menu.items()) {
                 if (!(item instanceof CustomMenuItem) || item instanceof javafx.scene.control.SeparatorMenuItem)
                     continue;
-                assertInter14(label(item, "menu-item-title"), from);
+                assertInter(label(item, "menu-item-title"), from, 14 * zoom);
                 Label chord = label(item, "menu-item-chord");
-                assertEquals(11, chord.getFont().getSize(), 0.01, from + ": chord size");
+                assertEquals(11 * zoom, chord.getFont().getSize(), 0.01, from + ": chord size");
             }
             seen.add(from);
         });
     }
 
+    /** MENU-16, WIN-12: the UI zoom scales every menu's 14 and 11 px, whatever opened it, and resets. */
+    @Test
+    void theUiZoomScalesEveryMenu() throws Exception {
+        assertTrue(call(() -> services.commands().run("view.uiZoomIn")));
+        assertTrue(call(() -> services.commands().run("view.uiZoomIn")));
+        assertEquals(120, services.settings().uiZoom);
+        FxTestSupport.waitUntil(() -> Themes.zoom() == 120);
+        List<String> seen = new ArrayList<>();
+        check(
+                seen,
+                "toolbar",
+                call(() -> window.toolbar().menu()),
+                call(() -> window.toolbar().bar()),
+                1.2);
+        check(
+                seen,
+                "tab",
+                call(() -> window.tabs().menu()),
+                call(() -> window.tabs().tabPane().lookup(".tab")),
+                1.2);
+        assertTrue(call(() -> services.commands().run("view.uiZoomReset")));
+        FxTestSupport.waitUntil(() -> Themes.zoom() == 100);
+        check(
+                seen,
+                "toolbar",
+                call(() -> window.toolbar().menu()),
+                call(() -> window.toolbar().bar()),
+                1);
+    }
+
     private static void assertInter14(Label title, String from) {
+        assertInter(title, from, 14);
+    }
+
+    private static void assertInter(Label title, String from, double size) {
         Font font = title.getFont();
         assertEquals("Inter", font.getFamily(), from + ": " + title.getText());
-        assertEquals(14, font.getSize(), 0.01, from + ": " + title.getText());
+        assertEquals(size, font.getSize(), 0.01, from + ": " + title.getText());
         assertFalse(font.getStyle().toLowerCase(java.util.Locale.ROOT).contains("bold"), from + ": bold");
     }
 

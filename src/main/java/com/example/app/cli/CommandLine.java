@@ -43,7 +43,10 @@ public record CommandLine(
             switch (arg) {
                 case "--" -> onlyFiles = true;
                 case "-h", "--help" -> help = true;
-                case "-v", "--version" -> version = true;
+                case "-v", "-V", "--version" -> version = true;
+                // CLI-12: JVM options a launcher can leave among the program's arguments, skipped with their
+                // value: never refused, never taken for a file.
+                case "--add-exports", "--add-opens", "-p" -> i++;
                 case "--dev" -> dev = true;
                 case "--new-instance" -> newInstance = true;
                 case "--no-session" -> noSession = true;
@@ -55,6 +58,7 @@ public record CommandLine(
                     configDir = args[++i];
                 }
                 default -> {
+                    if (arg.startsWith("--add-exports=") || arg.startsWith("--add-opens=")) continue;
                     if (arg.startsWith("--config-dir=")) {
                         configDir = arg.substring("--config-dir=".length());
                         if (configDir.isBlank()) return failed("--config-dir needs a folder");
@@ -81,7 +85,7 @@ public record CommandLine(
 
                 Options:
                   -h, --help            Show this help and exit
-                  -v, --version         Show the version and exit
+                  -v, -V, --version     Show the version and exit
                       --config-dir DIR  Use DIR as the config folder (default ~/.%1$s)
                       --dev             Use ~/.%1$s-dev, so a development build keeps its own config
                       --new-instance    Start a second process instead of handing off to the running one

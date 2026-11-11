@@ -25,6 +25,15 @@ class ChromeTest {
         assertFalse(Chrome.usesHeaderBar(false, true, false), "EXTENDED unsupported");
     }
 
+    /** OS-01: the title-bar setting and command exist everywhere; where they can't work they say why. */
+    @Test
+    void theTitleBarMenusSayWhyTheyAreUnavailable() {
+        assertNull(Chrome.titleBarMenusUnavailable(false, true));
+        assertEquals(Messages.tr("palette.disabled.titleBarScreenMenu"), Chrome.titleBarMenusUnavailable(true, true));
+        assertEquals(
+                Messages.tr("palette.disabled.titleBarUnsupported"), Chrome.titleBarMenusUnavailable(false, false));
+    }
+
     @Test
     void eachGateSaysWhyACommandCannotRun() {
         assertNull(Chrome.syncNowUnavailable(true));

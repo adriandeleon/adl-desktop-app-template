@@ -536,12 +536,23 @@ class TabsAndPanelsFxTest {
         select(tab("README.md"));
         assertTrue(runCommand("tool.outline"));
         SamplePanels.Outline outline = Objects.requireNonNull(window.outline());
-        assertEquals("README.md", call(() -> outline.list().getItems().getFirst()));
+        // The headings are read off the FX thread (PERF-01): each step waits for the scan to land.
+        FxTestSupport.waitUntil(() -> "README.md".equals(first(outline)));
         select(tab("notes.md"));
-        assertEquals("notes.md", call(() -> outline.list().getItems().getFirst()));
+        FxTestSupport.waitUntil(() -> "notes.md".equals(first(outline)));
         DocumentView notes = Objects.requireNonNull(call(tabs::activeDocument));
         run(() -> notes.text().appendText("\n## Added"));
-        assertEquals("Added", call(() -> outline.list().getItems().getLast()));
+        // waitUntil asks on the FX thread already.
+        FxTestSupport.waitUntil(() -> !outline.list().getItems().isEmpty()
+                && "Added".equals(outline.list().getItems().getLast()));
+        // A heading's row puts the caret on its line, from the offsets the scan found.
+        run(() -> {
+            outline.list().getSelectionModel().selectLast();
+            outline.list()
+                    .fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ENTER, false, false, false, false));
+        });
+        int caret = call(() -> notes.text().getCaretPosition());
+        assertTrue(call(() -> notes.text().getText().substring(caret)).startsWith("## Added"));
     }
 
     // ---- the stripes are toolbars (TBAR-12, TBAR-13) ----
@@ -791,6 +802,26 @@ class TabsAndPanelsFxTest {
         assertTrue(tools.isOpen(window.outputWindow()));
     }
 
+    /** TBAR-03: a header button's tooltip and accessible name carry the chord of the keymap in use. */
+    @Test
+    void aPanelsHeaderButtonsFollowAKeymapChange() throws Exception {
+        assertTrue(runCommand("tool.documents"));
+        settle();
+        Region panel = (Region) Objects.requireNonNull(window.documentsWindow().contentIfBuilt())
+                .getParent();
+        Button close = call(() -> panel.lookupAll(".tool-window-header-button").stream()
+                .map(Button.class::cast)
+                .toList()
+                .get(2));
+        String id = "view.closeFocusedToolWindow";
+        run(() -> services.store().update(s -> s.keybindings.put(id, "C-M-F9")));
+        String chord = call(() -> services.keybindings().label(id));
+        assertFalse(chord.isEmpty());
+        assertTrue(call(close::getAccessibleText).endsWith("(" + chord + ")"), call(close::getAccessibleText));
+        assertEquals(
+                call(close::getAccessibleText), call(() -> close.getTooltip().getText()));
+    }
+
     /** The other closes, and the switcher's other keys. */
     @Test
     void theOtherClosesAndSwitcherKeys() throws Exception {
@@ -818,5 +849,29 @@ class TabsAndPanelsFxTest {
         assertEquals(1, titles().size());
         run(() -> Event.fireEvent(switcher.list(), click(switcher.list(), 1)));
         assertFalse(call(() -> window.overlays().isShowing()));
+    }
+
+    /** PERF-11: the Output console is bounded, and the newest lines are the ones it keeps. */
+    @Test
+    void theOutputConsoleKeepsTheNewestLinesUpToItsCap() throws Exception {
+        SamplePanels.Output output = call(SamplePanels.Output::new);
+        int total = SamplePanels.Output.MAX_LINES + 25;
+        run(() -> {
+            for (int i = 1; i <= total; i++) output.append("line " + i + "\n");
+        });
+        String text = call(() -> output.console().getText());
+        assertEquals(SamplePanels.Output.MAX_LINES, text.split("\n").length);
+        assertTrue(text.startsWith("line 26\n"), "the oldest went first");
+        assertTrue(text.endsWith("line " + total + "\n"), "the newest is kept");
+    }
+
+    private static String first(SamplePanels.Outline outline) {
+        try {
+            return call(() -> outline.list().getItems().isEmpty()
+                    ? ""
+                    : outline.list().getItems().getFirst());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

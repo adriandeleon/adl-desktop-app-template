@@ -21,7 +21,15 @@ import org.jspecify.annotations.Nullable;
 public final class OverlayHost {
 
     private final StackPane root;
-    private final Region scrim = new Region();
+    /** A click on it cancels, so a screen reader hears a button that does the same (ACC-02). */
+    private final Region scrim = new Region() {
+        @Override
+        public void executeAccessibleAction(javafx.scene.AccessibleAction action, Object... parameters) {
+            if (action == javafx.scene.AccessibleAction.FIRE) hide();
+            else super.executeAccessibleAction(action, parameters);
+        }
+    };
+
     private @Nullable Node card;
     private @Nullable Node returnFocus;
     private @Nullable Runnable onHide;
@@ -31,13 +39,23 @@ public final class OverlayHost {
         root = new StackPane(content);
         root.getStyleClass().add("overlay-root");
         scrim.getStyleClass().add("overlay-backdrop");
+        scrim.setAccessibleRole(javafx.scene.AccessibleRole.BUTTON);
+        scrim.setAccessibleText(com.example.app.i18n.Messages.tr("command.edit.cancel"));
         scrim.setOnMouseClicked(e -> hide());
         root.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-            if (isShowing() && (e.getCode() == KeyCode.ESCAPE || (e.isControlDown() && e.getCode() == KeyCode.G))) {
+            if (isShowing() && (e.getCode() == KeyCode.ESCAPE || isCancel.test(e))) {
                 hide();
                 e.consume();
             }
         });
+    }
+
+    /** The active keymap's cancel chord, {@code C-g} in Emacs (PAL-07, QOPEN-07, MLOG-03); Esc always. */
+    private java.util.function.Predicate<KeyEvent> isCancel = e -> false;
+
+    /** Tells the host which press is the keymap's cancel: the window asks its keybindings. */
+    void cancelOn(java.util.function.Predicate<KeyEvent> isCancel) {
+        this.isCancel = isCancel;
     }
 
     public StackPane root() {

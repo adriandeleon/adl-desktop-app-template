@@ -75,9 +75,11 @@ class ReportTest {
 
     @Test
     void browserCommandPerPlatform() {
-        assertEquals(List.of("open", "u"), Browser.command("Mac OS X", "u"));
-        assertEquals(List.of("rundll32", "url.dll,FileProtocolHandler", "u"), Browser.command("Windows 11", "u"));
-        assertEquals(List.of("xdg-open", "u"), Browser.command("Linux", "u"));
+        assertEquals(List.of("open", "u"), Browser.command(com.example.app.Os.Kind.MAC, "u"));
+        assertEquals(
+                List.of("rundll32", "url.dll,FileProtocolHandler", "u"),
+                Browser.command(com.example.app.Os.Kind.WINDOWS, "u"));
+        assertEquals(List.of("xdg-open", "u"), Browser.command(com.example.app.Os.Kind.LINUX, "u"));
     }
 
     @Test
@@ -85,7 +87,7 @@ class ReportTest {
         Files.writeString(dir.resolve(DebugLog.PREVIOUS_FILE), "crash in previous run\n");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         List<String> opened = new ArrayList<>();
-        int code = ReportCommand.run(dir, new PrintStream(out, true, StandardCharsets.UTF_8), url -> {
+        int code = ReportCommand.run(dir, dir, new PrintStream(out, true, StandardCharsets.UTF_8), url -> {
             opened.add(url);
             return false;
         });
@@ -109,6 +111,7 @@ class ReportTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         List<String> opened = new ArrayList<>();
         int code = ReportCommand.run(
+                dir,
                 dir,
                 new PrintStream(out, true, StandardCharsets.UTF_8),
                 url -> {
@@ -144,17 +147,36 @@ class ReportTest {
     void aLongReportSaysToPaste(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve(DebugLog.FILE), "z ".repeat(5000));
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        assertEquals(0, ReportCommand.run(dir, new PrintStream(out, true, StandardCharsets.UTF_8), url -> true));
+        assertEquals(0, ReportCommand.run(dir, dir, new PrintStream(out, true, StandardCharsets.UTF_8), url -> true));
         assertTrue(out.toString(StandardCharsets.UTF_8).contains("too long for a link"));
     }
 
     @Test
-    void anUnwritableFolderFails(@TempDir Path dir) throws Exception {
+    void theReportGoesInTheCurrentFolderAndItsPathIsPrinted(@TempDir Path config, @TempDir Path here) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        assertEquals(0, ReportCommand.run(config, here, new PrintStream(out, true, StandardCharsets.UTF_8), u -> true));
+        Path file = here.resolve(ReportCommand.FILE).toAbsolutePath();
+        assertTrue(Files.isRegularFile(file));
+        assertFalse(Files.exists(config.resolve(ReportCommand.FILE)), "not the config folder");
+        assertTrue(out.toString(StandardCharsets.UTF_8).contains(file.toString()), "the path is printed");
+    }
+
+    @Test
+    void aCurrentFolderThatCantBeWrittenSendsTheReportToTheTempFolder(@TempDir Path dir) throws Exception {
         Path file = dir.resolve("file");
         Files.writeString(file, "x");
+        Path temp = Path.of(System.getProperty("java.io.tmpdir")).resolve(ReportCommand.FILE);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        assertEquals(
-                1,
-                ReportCommand.run(file.resolve("sub"), new PrintStream(out, true, StandardCharsets.UTF_8), u -> true));
+        try {
+            assertEquals(
+                    0,
+                    ReportCommand.run(
+                            dir, file.resolve("sub"), new PrintStream(out, true, StandardCharsets.UTF_8), u -> true));
+            assertTrue(Files.isRegularFile(temp));
+            assertTrue(out.toString(StandardCharsets.UTF_8)
+                    .contains(temp.toAbsolutePath().toString()));
+        } finally {
+            Files.deleteIfExists(temp);
+        }
     }
 }

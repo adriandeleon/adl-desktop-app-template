@@ -41,7 +41,8 @@ final class Switcher {
     Switcher(DocumentTabs tabs, OverlayHost host) {
         this.tabs = tabs;
         this.host = host;
-        list.setFixedCellSize(CELL_HEIGHT);
+        list.setAccessibleText(Messages.tr("switcher.header")); // ACC-01
+        UiZoom.bind(list.fixedCellSizeProperty(), CELL_HEIGHT); // sizes follow the UI zoom (WIN-12)
         list.setCellFactory(v -> new Row());
         list.getSelectionModel().selectedItemProperty().addListener((o, was, now) -> updateFooter());
         list.setOnMouseClicked(e -> commit());
@@ -71,7 +72,7 @@ final class Switcher {
         armed = false;
         list.getItems().setAll(tabs.tabs());
         int rows = Math.max(1, Math.min(list.getItems().size(), MAX_VISIBLE));
-        list.setPrefHeight(rows * CELL_HEIGHT + 2);
+        list.setPrefHeight((rows * CELL_HEIGHT + 2) * UiZoom.factor().get());
         Tab current = tabs.selected();
         list.getSelectionModel().select(Math.max(0, list.getItems().indexOf(current)));
         double width = widthFor();
@@ -86,7 +87,8 @@ final class Switcher {
     double widthFor() {
         double max = 0;
         for (Tab tab : list.getItems()) max = Math.max(max, textWidth(pathOf(tab)));
-        return Math.max(MIN_WIDTH, Math.ceil(max) + 48);
+        double zoom = UiZoom.factor().get(); // the path is measured in the zoomed font already (WIN-12)
+        return Math.max(MIN_WIDTH * zoom, Math.ceil(max) + 48 * zoom);
     }
 
     private double textWidth(String text) {

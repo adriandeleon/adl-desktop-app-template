@@ -44,7 +44,31 @@ public final class Messages {
     private static Map<String, String> active = base;
     private static String current = "en";
 
+    /** The locale the JVM started with: the system's, region and all (INTL-14). */
+    private static final Locale SYSTEM = Locale.getDefault();
+
     private Messages() {}
+
+    /**
+     * Starts the catalog in the language the settings choose, or the system's, or English, and makes the
+     * locale that formats dates and numbers the JVM's default (INTL-14): {@link #locale} says which.
+     */
+    public static synchronized void start(String pref) {
+        Locale locale = locale(pref, SYSTEM);
+        if (!locale.equals(Locale.getDefault())) Locale.setDefault(locale);
+        init(resolve(pref, SYSTEM.getLanguage()));
+    }
+
+    /**
+     * The locale for dates and numbers (INTL-14). With no bundled language chosen, the system's locale whole,
+     * whatever language the menus are in; with the system's own language chosen, the system's locale, its
+     * region kept; with another language chosen, that bare language.
+     */
+    public static Locale locale(String pref, Locale system) {
+        if (!LANGUAGES.containsKey(pref)) return system;
+        if (pref.equals(system.getLanguage())) return system;
+        return Locale.of(pref);
+    }
 
     /** Loads English plus the chosen language's overlay; an unknown code means English. */
     public static synchronized void init(String lang) {
@@ -86,7 +110,8 @@ public final class Messages {
     static String render(String value, @Nullable Object @Nullable [] args) {
         if (!isPattern(value)) return value;
         try {
-            return new MessageFormat(value, Locale.forLanguageTag(current)).format(args == null ? new Object[0] : args);
+            // The JVM's default locale, which start() set: never one built from the bare language (INTL-14).
+            return new MessageFormat(value).format(args == null ? new Object[0] : args);
         } catch (IllegalArgumentException e) {
             return value; // a malformed pattern must not take the UI down
         }

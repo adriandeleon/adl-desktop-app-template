@@ -88,6 +88,27 @@ class SyncTest {
         assertEquals(Map.of(), SyncData.read(root.resolve("absent.json")));
     }
 
+    /** SET-10, SET-11: a base from a newer build, or one that can't be read, is kept aside and the sync goes on. */
+    @Test
+    void aBaseFromANewerBuildOrUnreadableIsBackedUpAndTheSyncGoesOn(@TempDir Path dir) throws Exception {
+        Path base = dir.resolve("base.json");
+        String newer = "{\"schemaVersion\": 99, \"keybindings\": {}}";
+        Files.writeString(base, newer);
+        assertTrue(SyncData.readBase(base).isEmpty());
+        assertEquals(newer, Files.readString(dir.resolve("base.json.v99.bak")));
+        assertFalse(Files.exists(base), "the next sync writes a base of this version");
+
+        Files.writeString(base, "{broken");
+        assertTrue(SyncData.readBase(base).isEmpty());
+        assertEquals("{broken", Files.readString(dir.resolve("base.json.broken.bak")));
+
+        SyncData.write(base, Map.of("app.quit", "C-q"));
+        assertEquals(Map.of("app.quit", "C-q"), SyncData.readBase(base));
+        try (var files = Files.list(dir)) {
+            assertTrue(files.noneMatch(f -> f.toString().endsWith(".tmp")), "SET-22: no temporary file is left");
+        }
+    }
+
     @Test
     void aRepositoryFromANewerBuildIsLeftAsItIs(@TempDir Path root) throws Exception {
         Path remote = root.resolve("remote.git");

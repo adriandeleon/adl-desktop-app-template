@@ -134,6 +134,11 @@ public final class UpdateCoordinator {
         }
     }
 
+    /** Whether a startup check is waiting for its delay (the tests read it after a cancel). */
+    boolean startupCheckPending() {
+        return pending != null;
+    }
+
     /** How many listeners are registered (a closed About must leave none, PERF-13). */
     int listenerCount() {
         return listeners.size();

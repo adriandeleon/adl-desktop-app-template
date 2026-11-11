@@ -5,9 +5,9 @@ class with a unit test; the toolkit code around it stays thin.**
 
 | Package | What | Key classes |
 |---|---|---|
-| `com.example.app` | Entry point and identity | `Main` (CLI, hand-off, then `Application.launch`), `App`, `AppInfo`, `PautaConformance` (the exceptions in `pauta.json` and the conformance computed from them) |
+| `com.example.app` | Entry point and identity | `Main` (CLI, hand-off, then `Application.launch`), `App`, `AppInfo`, `Os` (the one class that reads `os.name`, with an override for the tests), `PautaConformance` (the exceptions, the `template` flag and the `checked` list in `pauta.json`, and the conformance computed from them) |
 | `cli` | The command line, pure | `CommandLine` |
-| `config` | Versioned `settings.json`, export/import | `Settings`, `ConfigStore`, `Migrations`, `ConfigDir`, `ConfigExporter`, `ConfigImport` |
+| `config` | Versioned `settings.json`, export/import | `Settings`, `ConfigStore`, `Migrations`, `ConfigDir`, `ConfigExporter`, `ConfigImport`, `ConfigFiles` (every config file written whole: a temporary file, then a move) |
 | `command` | Commands and key bindings, pure | `CommandRegistry`, `Command`, `KeyStroke`, `Keymap`, `Keybindings`, `FuzzyMatch` |
 | `i18n` | The string catalogs | `Messages` (`tr`) |
 | `instance` | One app per config folder | `SingleInstance` (Unix-domain socket) |
@@ -29,8 +29,10 @@ class with a unit test; the toolkit code around it stays thin.**
 4. `App.start` calls `Startup.start`: fonts (and the UI-font listener on every window), theme,
    `AppServices`, `MainWindow`. After the first frame has painted: the deferred fonts, the keymaps, the
    update check (once per session, at most daily, 5 s later) and Settings Sync's automatic runs.
-5. At exit, `Startup.Running.close` waits for the last settings save on a thread of its own
-   (`ConfigStore.flushOnExit`), never on the FX thread.
+5. At exit, the quit method (`MainWindow.quit`) asks before unsaved typing is lost, then waits for the
+   last settings save and the Debug Log's last lines off the FX thread; `Startup.Running.close`, which
+   `App.stop` calls, makes the last save again on the FX thread, the one wait Pauta's PERF-01 allows there,
+   and closes the single-instance socket in the background. Every thread the app starts is a daemon.
 
 The tests start the app through the same `Startup.prepare` and `Startup.start`, with a `FakeHost`.
 
@@ -69,7 +71,21 @@ The tests start the app through the same `Startup.prepare` and `Startup.start`, 
   text. A `ToolWindow` builds its content on first open; `ToolWindowVisibility` and `ToolWindowDock` are
   its pure decisions. The three windows' content is `SamplePanels` (Documents, Outline, Output).
   The class comments map each rule to the code that meets it.
-- `Commands`: every command, in one place. Menus, buttons, the palette and keys all run them by id.
+- `Commands`: every command, in one place. Menus, buttons, the palette and keys all run them by id. The
+  text commands (`edit.cut`, `edit.copy`, `edit.paste`, `edit.selectAll`) act on the text that has the
+  keyboard; every editor and console has a `CommandMenu` of them in place of JavaFX's stock one.
+- `FindBar`: one find bar over a text area, in the window: each document's (`find.show`, `C-s` /
+  `Ctrl/Cmd+F`), the Output's (`output.find`) and the Debug Log's (`debugLog.find`). Each searches off the
+  FX thread and steps through its own commands.
+- `Dialogs.styled`: every dialog goes through it: the stylesheets, one button order with Cancel first on
+  every OS, and JavaFX's stock buttons worded from the catalog. `Confirm` asks before anything is lost,
+  with Cancel as the default; `MainWindow.quit` is the one quit method and asks before typing is lost.
+- `UiZoom` and `Themes.zoom`: the UI zoom. The stylesheets are written at 100 % in pixels; at another zoom
+  every window gets a copy with each pixel size scaled (made off the FX thread), and the few sizes the code
+  fixes are bound to `UiZoom.factor`. **Size new controls in the stylesheet, or bind them with
+  `UiZoom.bind`, never in plain pixels.**
+- `MacAppMenu`: About and Settings in macOS's application menu, through Glass (only macOS's JavaFX has
+  it; the launchers export `com.sun.glass.ui.mac` to the app on macOS alone).
 - `Picker`: the one list chooser; the Command Palette is a `Picker` over commands, and the theme,
   keymap and language pickers are `Picker`s too.
 - `KeyDispatcher`: key presses to commands through the active bindings, with `C-x`-style prefixes

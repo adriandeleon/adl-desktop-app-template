@@ -50,6 +50,107 @@ public final class Icons {
             "M1.8 2.6h12.4a1 1 0 0 1 1 1v8.8a1 1 0 0 1 -1 1h-12.4a1 1 0 0 1 -1 -1v-8.8a1 1 0 0 1 1 -1z"
                     + "M1.0 5.6h14M4.4 5.6v7.8M2.6 8.2h0.6M2.6 10.2h0.6";
 
+    /** UI zoom: a magnifier, with a plus, a minus, or a square for the actual size. */
+    public static final String ZOOM_IN = "M2.5 7a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0 -9 0M10.3 10.3l3.7 3.7M5 7h4M7 5v4";
+
+    public static final String ZOOM_OUT = "M2.5 7a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0 -9 0M10.3 10.3l3.7 3.7M5 7h4";
+
+    public static final String ZOOM_RESET =
+            "M2.5 7a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0 -9 0M10.3 10.3l3.7 3.7M5.3 5.3h3.4v3.4h-3.4z";
+
+    /** Quit: a door frame and an arrow out of it. */
+    public static final String QUIT = "M9.5 2.5H3v11h6.5M6.5 8h8M12 5.5L14.5 8L12 10.5";
+
+    /** Refresh: a circle's arc with its arrowhead. */
+    public static final String REFRESH = "M13 8a5 5 0 1 1 -1.5 -3.6M11.8 1.8v2.8h-2.8";
+
+    /** Check for Updates: a circle with an arrow down into it. */
+    public static final String UPDATE = "M2 8a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M8 4.5v6.5M5.5 8.5L8 11l2.5 -2.5";
+
+    /** Documentation: an open book. */
+    public static final String BOOK =
+            "M8 4.2c-1.6 -1.3 -3.8 -1.6 -6 -1.2v9.8c2.2 -0.4 4.4 -0.1 6 1.2c1.6 -1.3 3.8 -1.6 6 -1.2V3c-2.2 -0.4 -4.4 -0.1 -6 1.2zM8 4.2v9.8";
+
+    /** Report a Problem: a flag on its pole. */
+    public static final String FLAG = "M3.5 14.5V2M3.5 2.5h9l-2 3l2 3h-9";
+
+    /** A key binding: a single key cap with a pencil stroke across its corner. */
+    public static final String BIND_KEY = "M2 4.5h8.5v8.5H2zM5 8.5h2.5M9 14.5l5 -5l-1.5 -1.5l-5 5z";
+
+    /** Reset: an arc turning back, its arrowhead at the start. */
+    public static final String RESET = "M3 8a5 5 0 1 0 1.5 -3.6M4.2 1.8v2.8h2.8";
+
+    /** Language: a globe, its meridian and two parallels. */
+    public static final String GLOBE =
+            "M2 8a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M2 8h12M8 2c-2 1.8 -2 10.2 0 12M8 2c2 1.8 2 10.2 0 12M3 5h10M3 11h10";
+
+    /** The update check: a bell. */
+    public static final String BELL = "M4 11.5V7.5a4 4 0 0 1 8 0v4l1.2 1.2H2.8zM6.6 14h2.8";
+
+    /** A Git branch: two commits on a line and one off it. */
+    public static final String BRANCH =
+            "M4.5 2.5v11M4.5 9.5c0 -3 7 -2 7 -5M2.8 13.5a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0 -3.4 0"
+                    + "M2.8 2.5a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0 -3.4 0M9.8 3a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0 -3.4 0";
+
+    /** The sync interval: a clock. */
+    public static final String CLOCK = "M2 8a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M8 4.5V8l2.5 1.5";
+
+    /** The sync repository: a box of stacked sheets. */
+    public static final String REPOSITORY = "M3 2.5h10v11H3zM3 6h10M3 9.5h10M6.5 4.25h3M6.5 7.75h3M6.5 11.25h3";
+
+    /** Automatic sync: two arrows in a circle round the letter A's crossbar. */
+    public static final String AUTO_SYNC = "M13 6.5a5.2 5.2 0 0 0 -9.6 -1.5M3 9.5a5.2 5.2 0 0 0 9.6 1.5M3.2 2.6v2.6h2.6"
+            + "M12.8 13.4v-2.6h-2.6M6.2 10.5L8 5.5l1.8 5M6.8 9h2.4";
+
+    /** Restore stripe buttons: a window with its side rails and a plus. */
+    public static final String STRIPES = "M1.8 2.6h12.4v10.8H1.8zM4.4 2.6v10.8M11.6 2.6v10.8M6.2 8h3.6M8 6.2v3.6";
+
+    /** The status bar: a window with a bar along its foot. */
+    public static final String STATUS_BAR = "M1.8 2.6h12.4v10.8H1.8zM1.8 10.8h12.4M3.6 12.1h4";
+
+    /** Menus in the title bar: a window whose top bar holds short lines. */
+    public static final String TITLE_BAR = "M1.8 2.6h12.4v10.8H1.8zM1.8 5.4h12.4M3.4 4h1.6M6.2 4h1.6M9 4h1.6";
+
+    /** A text file: a sheet with lines of text on it. */
+    public static final String FILE_TEXT = "M4 1.75h5.5l3 3v9.5H4zM9.5 1.75v3h3M6 8h4.5M6 10.25h4.5M6 12.5h3";
+
+    /**
+     * A file's glyph from its name alone (ICON-23): the types the app knows get their own, and any other the
+     * generic document glyph, so a new type never draws a blank. Pure: unit-tested without the toolkit.
+     */
+    public static String forFileName(String name) {
+        int dot = name.lastIndexOf('.');
+        String extension = dot < 0 ? "" : name.substring(dot + 1).toLowerCase(java.util.Locale.ROOT);
+        return switch (extension) {
+            case "md", "markdown", "txt", "text" -> FILE_TEXT;
+            default -> FILE;
+        };
+    }
+
+    /** The text commands: scissors, two sheets, a clipboard, a dashed frame round lines. */
+    public static final String CUT =
+            "M3 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M9 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M6.4 10.4L11.5 2M9.6 10.4L4.5 2";
+
+    public static final String COPY = "M5.5 5.5h8v8.5h-8zM3 11V2.5h7.5";
+
+    public static final String PASTE = "M3.5 3h2M10.5 3h2v11h-9V3M5.5 2h5v2.5h-5zM6 8h4M6 10.5h4";
+
+    public static final String SELECT_ALL =
+            "M2 2h2M6 2h4M12 2h2v2M14 6v4M14 12v2h-2M10 14H6M4 14H2v-2M2 10V6M2 4V2M5 6h6M5 8h6M5 10h4";
+
+    /** Clear: a sheet with a line struck out. */
+    public static final String CLEAR = "M3 2h10v12H3zM5.5 6.5l5 5M10.5 6.5l-5 5";
+
+    /** Open a file: a sheet and an arrow into it. */
+    public static final String OPEN_FILE = "M6 1.75h5.5l3 3v9.5H6v-3M11.5 1.75v3h3M1 8h7M5.5 5.5L8 8l-2.5 2.5";
+
+    /** Find: a magnifier; next and previous: an arrow down and up beside a short line of text. */
+    public static final String FIND = "M2.5 6.5a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M9.4 9.4l4.6 4.6";
+
+    public static final String FIND_NEXT = "M2 4h7M2 7.5h5M12 3v9M9.5 9.5L12 12l2.5 -2.5";
+
+    public static final String FIND_PREVIOUS = "M2 12h7M2 8.5h5M12 13V4M9.5 6.5L12 4l2.5 2.5";
+
     /** General settings: three sliders. */
     public static final String SLIDERS = "M2 4.5h12M2 8h12M2 11.5h12M5 3v3M10.5 6.5v3M7 10v3";
 
@@ -192,6 +293,9 @@ public final class Icons {
             Map.entry("view.toggleToolbar", TOOLBAR),
             Map.entry("view.toggleTabBar", TAB_BAR),
             Map.entry("view.toggleSimpleMode", SIMPLE_MODE),
+            Map.entry("view.uiZoomIn", ZOOM_IN),
+            Map.entry("view.uiZoomOut", ZOOM_OUT),
+            Map.entry("view.uiZoomReset", ZOOM_RESET),
             Map.entry("help.welcome", HOME),
             Map.entry("buffer.close", CLOSE),
             Map.entry("buffer.closeOthers", CLOSE_OTHERS),
@@ -208,6 +312,42 @@ public final class Icons {
             Map.entry("tool.outline", OUTLINE),
             Map.entry("tool.output", OUTPUT),
             Map.entry("output.runSample", RUN),
+            Map.entry("app.quit", QUIT),
+            Map.entry("help.keyboardShortcuts", KEYBOARD),
+            Map.entry("debugLog.refresh", REFRESH),
+            Map.entry("debugLog.copy", COPY),
+            Map.entry("debugLog.clear", CLEAR),
+            Map.entry("debugLog.export", EXPORT),
+            Map.entry("debugLog.find", FIND),
+            Map.entry("messageLog.copy", COPY),
+            Map.entry("messageLog.clear", CLEAR),
+            Map.entry("help.checkForUpdates", UPDATE),
+            Map.entry("help.documentation", BOOK),
+            Map.entry("help.reportProblem", FLAG),
+            Map.entry("keymap.changeBinding", BIND_KEY),
+            Map.entry("settings.bindKey", BIND_KEY),
+            Map.entry("keymap.resetBinding", RESET),
+            Map.entry("settings.language", GLOBE),
+            Map.entry("settings.toggleUpdateCheck", BELL),
+            Map.entry("sync.setBranch", BRANCH),
+            Map.entry("sync.setInterval", CLOCK),
+            Map.entry("sync.setRepository", REPOSITORY),
+            Map.entry("sync.toggleAuto", AUTO_SYNC),
+            Map.entry("view.restoreStripeButtons", STRIPES),
+            Map.entry("view.toggleStatusBar", STATUS_BAR),
+            Map.entry("view.toggleTitleBarMenus", TITLE_BAR),
+            Map.entry("edit.cut", CUT),
+            Map.entry("edit.copy", COPY),
+            Map.entry("edit.paste", PASTE),
+            Map.entry("edit.selectAll", SELECT_ALL),
+            Map.entry("documents.open", OPEN_FILE),
+            Map.entry("output.clear", CLEAR),
+            Map.entry("find.show", FIND),
+            Map.entry("find.next", FIND_NEXT),
+            Map.entry("find.previous", FIND_PREVIOUS),
+            Map.entry("output.find", FIND),
+            Map.entry("output.findNext", FIND_NEXT),
+            Map.entry("output.findPrevious", FIND_PREVIOUS),
             Map.entry("toolWindow.openInSplit", SPLIT),
             Map.entry("toolWindow.hide", HIDE),
             Map.entry("view.floatToolWindow", FLOAT),
@@ -224,7 +364,7 @@ public final class Icons {
     /** A glyph on a toolbar button: inside the 28 px button with its 3 px padding (TBAR spec). */
     static final double TOOLBAR_SIZE = 20;
 
-    /** How long the pointer rests before a tooltip shows: one delay for every tooltip (TBAR-14, Pauta 5.0.0). */
+    /** How long the pointer rests before a tooltip shows: one delay for every tooltip (TBAR-14). */
     static final Duration TOOLTIP_DELAY = Duration.millis(400);
 
     private Icons() {}
@@ -329,12 +469,15 @@ public final class Icons {
         svg.setContent(path);
         svg.setFillRule(FillRule.EVEN_ODD);
         svg.getStyleClass().add(family);
-        svg.setScaleX(scale);
-        svg.setScaleY(scale);
         StackPane box = new StackPane(svg);
         box.getStyleClass().add("icon-box");
-        box.setMinSize(size, size);
-        box.setPrefSize(size, size);
+        // Sized from the UI zoom, never as plain pixels (WIN-12): every glyph follows a zoom at once.
+        svg.scaleXProperty().bind(UiZoom.times(scale));
+        svg.scaleYProperty().bind(UiZoom.times(scale));
+        UiZoom.bind(box.minWidthProperty(), size);
+        UiZoom.bind(box.minHeightProperty(), size);
+        UiZoom.bind(box.prefWidthProperty(), size);
+        UiZoom.bind(box.prefHeightProperty(), size);
         return box;
     }
 }

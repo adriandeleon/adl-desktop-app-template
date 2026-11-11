@@ -60,6 +60,10 @@ class PureUiTest {
         assertEquals(MessageLog.Severity.WARNING, MessageLog.severityOf("status.config.cannotReadNewer"));
         assertEquals(MessageLog.Severity.WARNING, MessageLog.severityOf("status.sync.invalidUrl"));
         assertEquals(MessageLog.Severity.INFO, MessageLog.severityOf("status.ready"));
+        // MLOG-05: the last segment of a status.* key decides; nothing else does.
+        assertEquals(MessageLog.Severity.ERROR, MessageLog.severityOf("status.sync.pushFailedTwice"));
+        assertEquals(MessageLog.Severity.INFO, MessageLog.severityOf("status.errors.cleared"));
+        assertEquals(MessageLog.Severity.INFO, MessageLog.severityOf("debuglog.exportFailed"));
     }
 
     @Test

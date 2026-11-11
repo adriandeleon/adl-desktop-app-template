@@ -25,9 +25,9 @@ import org.jspecify.annotations.Nullable;
  * and the palette, never the only way to one (TBAR-08). Every button is a command, so its glyph, its
  * name and its chord come from the registry, {@link Icons} and the active keymap.
  *
- * <p>Two containers side by side, as in Editora (TBAR-15, Pauta 5.0.0): the <b>icon cluster</b>, a
+ * <p>Two containers side by side, as in Editora (TBAR-15): the <b>icon cluster</b>, a
  * {@link ToolBar} whose last icons go into its overflow chevron when the window narrows, and the
- * <b>pinned tail</b>, which keeps Settings at the right end at any width (TBAR-16, Pauta 5.0.0).
+ * <b>pinned tail</b>, which keeps Settings at the right end at any width (TBAR-16).
  *
  * <p>What each rule asks of it, and where:
  *
@@ -44,11 +44,11 @@ import org.jspecify.annotations.Nullable;
  *       Simple mode toggle while the mode is on ({@link #setSimple}).
  *   <li>TBAR-10: one right-click menu, reused, closed by a press anywhere ({@link CommandMenu},
  *       {@link ContextMenuDismissal}).
- *   <li>TBAR-16 (Pauta 5.0.0): the tail is the Simple mode toggle, then Settings, after a 40 px gap, the
+ *   <li>TBAR-16: the tail is the Simple mode toggle, then Settings, after a 40 px gap, the
  *       same whether the mode is on or off.
- *   <li>TBAR-17 (Pauta 5.0.0): a button is disabled while its command can't run; {@link #refresh} reads
+ *   <li>TBAR-17: a button is disabled while its command can't run; {@link #refresh} reads
  *       that from the command and runs on the events that change it, never on a timer.
- *   <li>TBAR-19 (Pauta 5.0.0): the row keeps its height when a control hides ({@link #steadyHeight}), so
+ *   <li>TBAR-19: the row keeps its height when a control hides ({@link #steadyHeight}), so
  *       the tabs under it never move when Simple mode hides groups.
  * </ul>
  *
@@ -97,8 +97,8 @@ final class AppToolbar {
             }
         }
         Region gap = new Region();
-        gap.setMinWidth(TAIL_GAP);
-        gap.setPrefWidth(TAIL_GAP);
+        UiZoom.bind(gap.minWidthProperty(), TAIL_GAP); // follows the UI zoom (WIN-12)
+        UiZoom.bind(gap.prefWidthProperty(), TAIL_GAP);
         gap.getStyleClass().add("toolbar-gap");
         tail.getChildren().add(gap);
         for (String id : TAIL) tail.getChildren().add(button(id, toggles));

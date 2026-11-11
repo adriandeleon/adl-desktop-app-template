@@ -17,12 +17,17 @@ commit whose pom says exactly `X.Y.Z` releases it. `.github/workflows/release.ym
    (and start a new empty Unreleased section). The release notes are that section, after the install
    instructions in `.github/release-notes-header.md`; a tag with no section fails before publishing.
 4. **Add a `<release>`** for the version to `packaging/linux/io.github.adriandeleon.ExampleApp.metainfo.xml`.
-5. Merge, then **tag the merge commit** and push the tag:
+5. **Listen with a screen reader** on Windows and on macOS, from the dry run's builds (Pauta ACC-07): with
+   Narrator and with VoiceOver, open the Command Palette, run a command, and move through Settings, page
+   by page, hearing each control's name and role. The CI smoke test has nobody there to listen. Record the
+   pass in `pauta.json`'s `checked` list (`"rule": "ACC-07"`, the edition, the date and this `version`);
+   a control that reads as nothing is a bug to fix before the tag.
+6. Merge, then **tag the merge commit** and push the tag:
    ```bash
    git switch master && git pull
    git tag -a vX.Y.Z -m "ExampleApp X.Y.Z" && git push origin vX.Y.Z
    ```
-6. The workflow publishes the GitHub release, then opens a `chore/reopen-…` pull request setting the
+7. The workflow publishes the GitHub release, then opens a `chore/reopen-…` pull request setting the
    pom to the next patch `-SNAPSHOT`. **Close and reopen it** to run its checks (a pull request opened
    with `GITHUB_TOKEN` starts no workflows), then merge it.
 

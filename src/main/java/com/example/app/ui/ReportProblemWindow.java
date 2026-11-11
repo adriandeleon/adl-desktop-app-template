@@ -39,11 +39,12 @@ public final class ReportProblemWindow {
         report.setWrapText(true);
         report.setPrefRowCount(18);
         report.getStyleClass().add("report-text");
+        report.setAccessibleText(Messages.tr("report.title"));
         Label note = new Label(Messages.tr("report.note"));
         note.setWrapText(true);
         dialog.setTitle(Messages.tr("report.title"));
         dialog.getDialogPane().setContent(new VBox(10, note, report));
-        dialog.getDialogPane().setPrefWidth(680);
+        UiZoom.bind(dialog.getDialogPane().prefWidthProperty(), 680);
         submit = new ButtonType(Messages.tr("report.submit"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(submit, ButtonType.CANCEL);
         dialog.setResultConverter(button -> {

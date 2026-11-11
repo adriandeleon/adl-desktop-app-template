@@ -15,6 +15,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Window;
 
 import com.example.app.AppInfo;
+import com.example.app.Os;
 import com.example.app.config.ConfigStore;
 import com.example.app.config.ThemeChoice;
 import com.example.app.i18n.Messages;
@@ -142,9 +143,14 @@ class MainWindowFxTest {
         run(window::openPalette);
         run(() -> press(window.overlays().root(), KeyCode.ESCAPE, false, false, false, false));
         assertFalse(call(() -> window.overlays().isShowing()));
+        // The keymap's cancel chord closes them too: C-g in Emacs (PAL-07, QOPEN-07, MLOG-03); CUA binds none.
         run(window::openMessageLog);
         run(() -> press(window.overlays().root(), KeyCode.G, false, true, false, false));
+        assertTrue(call(() -> window.overlays().isShowing()), "CUA has no cancel chord: Ctrl+G is just a key");
+        run(() -> services.store().update(s -> s.keymap = "emacs"));
+        run(() -> press(window.overlays().root(), KeyCode.G, false, true, false, false));
         assertFalse(call(() -> window.overlays().isShowing()));
+        run(() -> services.store().update(s -> s.keymap = "cua"));
         run(window::openPalette);
         run(() -> window.overlays().root().lookup(".overlay-backdrop").fireEvent(click()));
         assertFalse(call(() -> window.overlays().isShowing()));
@@ -199,7 +205,7 @@ class MainWindowFxTest {
         assertEquals(1, call(() -> log.list().getItems().size()));
         run(() -> press(log.filter(), KeyCode.DOWN, false, false, false, false));
         assertEquals(0, call(() -> log.list().getSelectionModel().getSelectedIndex()));
-        run(() -> press(log.list(), KeyCode.C, false, !AppInfo.isMac(), false, AppInfo.isMac()));
+        run(() -> press(log.list(), KeyCode.C, false, !Os.isMac(), false, Os.isMac()));
         assertTrue(MessageLogView.asText(services.messages().entries()).contains("Export failed: disk full"));
         // The shortcut runs messageLog.copy, which copies the selection (KBD-01).
         assertTrue(call(() -> javafx.scene.input.Clipboard.getSystemClipboard().getString())
@@ -222,11 +228,11 @@ class MainWindowFxTest {
     @Test
     void menusRunCommandsAndGreyUnavailableOnes() throws Exception {
         List<Menu> menus = call(() -> List.copyOf(window.menuBar().getMenus()));
-        assertEquals(4, menus.size()); // File, View, Window, Help
+        assertEquals(5, menus.size()); // File, Edit, View, Window, Help
         run(() -> {
             for (Menu menu : menus) menu.getOnShowing().handle(null);
         });
-        MenuItem toggle = call(() -> menus.get(1).getItems().stream()
+        MenuItem toggle = call(() -> menus.get(2).getItems().stream()
                 .filter(i -> "view.toggleStatusBar".equals(i.getId()))
                 .findFirst()
                 .orElseThrow());
@@ -268,7 +274,7 @@ class MainWindowFxTest {
         // The walk and the zip write run off the FX thread (PERF-01).
         FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Exported"));
         assertTrue(Files.exists(host.saveAnswer));
-        assertTrue(echo().startsWith("Exported 1 files"), echo());
+        assertTrue(echo().startsWith("Exported 1 file to"), echo()); // one file, worded for one (INTL-12)
 
         run(() -> services.store().update(s -> s.keymap = "cua"));
         host.openAnswer = host.saveAnswer;
@@ -306,7 +312,12 @@ class MainWindowFxTest {
             window.quit();
         });
         FxTestSupport.waitUntil(() -> window.importsDropped() == 2);
-        assertEquals(asked + 1, host.questions.size(), "a dropped import asked anyway");
+        assertEquals(
+                asked + 1,
+                host.questions.stream()
+                        .filter(q -> !q.title().equals(Messages.tr("confirm.quitUnsaved.title")))
+                        .count(),
+                "a dropped import asked anyway");
 
         host.saveAnswer = dir.resolve("missing/folder/backup.zip");
         run(window::exportConfig);
@@ -318,6 +329,36 @@ class MainWindowFxTest {
         host.openAnswer = null;
         run(window::exportConfig);
         run(window::importConfig);
+    }
+
+    /** WIN-13, CONF-01: quitting with typing in the documents asks first; Cancel keeps the app running. */
+    @Test
+    void quitAsksBeforeTheSessionsTypingIsLost() throws Exception {
+        assertTrue(call(() -> window.tabs().unsavedNames()).isEmpty(), "nothing typed yet");
+        run(() -> {
+            window.tabs().tabPane().getSelectionModel().select(1);
+            window.tabs().activeDocument().text().appendText("\nmore");
+        });
+        java.util.List<String> unsaved = call(() -> window.tabs().unsavedNames());
+        assertEquals(1, unsaved.size());
+        int exits = host.exits;
+        host.confirmAnswer = false;
+        run(window::quit);
+        Confirmations.Question asked = host.questions.getLast();
+        assertEquals(Messages.tr("confirm.quitUnsaved.title"), asked.title());
+        assertTrue(asked.message().contains(unsaved.getFirst()), asked.message());
+        assertEquals("Quit Without Saving", asked.action());
+        assertTrue(call(() -> window.stage().isShowing()), "Cancel keeps the window");
+        assertEquals(exits, host.exits);
+        // The window's close button is the same quit: it asks too.
+        run(() -> window.stage()
+                .fireEvent(
+                        new javafx.stage.WindowEvent(window.stage(), javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST)));
+        assertEquals(
+                Messages.tr("confirm.quitUnsaved.title"),
+                host.questions.getLast().title());
+        assertTrue(call(() -> window.stage().isShowing()));
+        host.confirmAnswer = true;
     }
 
     @Test

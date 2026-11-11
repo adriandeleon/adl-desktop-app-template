@@ -19,8 +19,9 @@ import com.example.app.i18n.Messages;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The find bar of the Debug Log, a read-only console (Pauta's find bar template, after Editora's
- * {@code ConsoleFindBar}): a node in the window, never a popup (FIND-01). It searches as you type, once
+ * A find bar over a text area (Pauta's find bar template, after Editora's {@code ConsoleFindBar}): the
+ * documents' ({@code find.*}), the Output console's ({@code output.find*}) and the Debug Log's
+ * ({@code debugLog.find*}). A node in the window, never a popup (FIND-01). It searches as you type, once
  * typing pauses, and shows the count (FIND-02); Enter steps to the next match and Shift+Enter to the
  * previous one, wrapping (FIND-06); Escape or Close drops a pending search, clears the match and gives
  * the keyboard back to the log (FIND-07).
@@ -30,7 +31,7 @@ import org.jspecify.annotations.Nullable;
  * {@link LogSearch}). The steps use those matches; a step asked for while a search runs waits for it.
  * A Refresh or Clear changes the log's text, and the open bar searches the new text.
  */
-final class DebugLogFindBar extends HBox {
+final class FindBar extends HBox {
 
     /** More matches than this are counted as "{@value}+". */
     static final int MAX_MATCHES = LogSearch.MAX_OCCURRENCES;
@@ -51,16 +52,25 @@ final class DebugLogFindBar extends HBox {
     private final Label count = new Label();
     private final Debounce searching = new Debounce(this::refine);
 
-    /** The step commands' runner: the buttons and Enter run {@code debugLog.findNext}/{@code findPrevious}. */
-    private java.util.function.Consumer<String> run = id -> step(id.equals("debugLog.findNext"));
+    /** The commands that step this bar: Enter, Shift+Enter and the buttons run them. */
+    private final String nextId;
+
+    private final String previousId;
+
+    /** The step commands' runner; until the window hands its registry over, the bar steps itself. */
+    private java.util.function.Consumer<String> run;
 
     void runCommandsThrough(java.util.function.Consumer<String> runner) {
         this.run = runner;
     }
 
-    DebugLogFindBar(TextArea target) {
+    /** A bar over {@code target}, stepped by the commands {@code nextId} and {@code previousId}. */
+    FindBar(TextArea target, String nextId, String previousId) {
         super(6);
         this.target = target;
+        this.nextId = nextId;
+        this.previousId = previousId;
+        this.run = id -> step(id.equals(nextId));
         this.text = target.getText();
         target.textProperty().addListener((o, was, now) -> {
             text = now == null ? "" : now;
@@ -70,6 +80,7 @@ final class DebugLogFindBar extends HBox {
         getStyleClass().add("find-bar");
         setAlignment(Pos.CENTER_LEFT);
         query.setPromptText(Messages.tr("find.prompt"));
+        query.setAccessibleText(Messages.tr("find.prompt")); // the prompt goes when typing starts (ACC-01)
         query.setPrefColumnCount(22);
         count.getStyleClass().add("find-count");
         count.setMinWidth(Region.USE_PREF_SIZE);
@@ -80,15 +91,15 @@ final class DebugLogFindBar extends HBox {
             button.getStyleClass().add("flat");
             button.setFocusTraversable(false);
         }
-        previous.setOnAction(e -> run.accept("debugLog.findPrevious"));
-        next.setOnAction(e -> run.accept("debugLog.findNext"));
+        previous.setOnAction(e -> run.accept(previousId));
+        next.setOnAction(e -> run.accept(nextId));
         close.setOnAction(e -> close());
         query.textProperty().addListener((o, was, now) -> searching.request());
         matchCase.selectedProperty().addListener((o, was, now) -> searching.request());
         query.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 searching.flush();
-                run.accept(e.isShiftDown() ? "debugLog.findPrevious" : "debugLog.findNext");
+                run.accept(e.isShiftDown() ? previousId : nextId);
                 e.consume();
             } else if (e.getCode() == KeyCode.ESCAPE) {
                 close();
@@ -98,6 +109,19 @@ final class DebugLogFindBar extends HBox {
         getChildren().addAll(query, matchCase, count, previous, next, close);
         setVisible(false);
         setManaged(false);
+    }
+
+    /**
+     * The bar's command (FIND-04): opens the bar, or, run while it is open, steps to the next match with the
+     * focus kept in the field.
+     */
+    void openOrNext() {
+        if (isOpen()) {
+            step(true);
+            query.requestFocus();
+        } else {
+            open();
+        }
     }
 
     /** Shows the bar, seeding the query with a one-line selection when there is one. */

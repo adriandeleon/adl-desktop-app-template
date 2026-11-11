@@ -26,6 +26,8 @@ public final class Migrations {
             4,
             UnaryOperator.identity(),
             5,
+            UnaryOperator.identity(),
+            6,
             UnaryOperator.identity());
 
     private Migrations() {}
@@ -57,8 +59,8 @@ public final class Migrations {
     }
 
     // Version 2 to 3 added titleBarMenus, 3 to 4 showToolbar, 4 to 5 showTabBar and the tool windows' state
-    // (window.toolWindows), and 5 to 6 simpleMode: purely additive, so the identity steps above; their
-    // defaults fill in.
+    // (window.toolWindows), 5 to 6 simpleMode and 6 to 7 uiZoom: purely additive, so the identity steps
+    // above; their defaults fill in.
 
     /** Version 1 had a {@code darkMode} switch; version 2 has a three-way {@code theme}. */
     static ObjectNode v1ToV2(ObjectNode tree) {

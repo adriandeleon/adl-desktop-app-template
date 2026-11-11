@@ -157,16 +157,12 @@ public final class ConfigImport {
             done.add(part);
         }
         current.put("schemaVersion", Settings.SCHEMA_VERSION);
-        Files.createDirectories(root);
-        Files.writeString(
-                root.resolve(ConfigStore.FILE), ConfigStore.JSON.writeValueAsString(current), StandardCharsets.UTF_8);
+        ConfigFiles.writeString(root.resolve(ConfigStore.FILE), ConfigStore.JSON.writeValueAsString(current));
         if (parts.contains(Part.OTHER_FILES)) {
             for (Map.Entry<String, byte[]> file : scan.otherFiles().entrySet()) {
                 Path target = root.resolve(file.getKey()).normalize();
                 if (!target.startsWith(root) || target.equals(root)) continue; // checked in read(); kept safe here
-                Path parent = target.getParent();
-                if (parent != null) Files.createDirectories(parent);
-                Files.write(target, file.getValue());
+                ConfigFiles.write(target, file.getValue());
             }
             if (!scan.otherFiles().isEmpty()) done.add(Part.OTHER_FILES);
         }

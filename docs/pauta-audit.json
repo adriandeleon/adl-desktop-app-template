@@ -1,0 +1,2442 @@
+{
+  "$schema": "https://pauta-project.dev/6.0.0/audit.schema.json",
+  "app": "ExampleApp",
+  "commit": "d10f316",
+  "edition": "6.0.0",
+  "date": "2026-11-10",
+  "scope": [],
+  "rules": "https://pauta-project.dev/6.0.0/rules.json",
+  "results": [
+    {
+      "id": "OS-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "No command, menu row or settings row is added inside an OS check: AppMenus builds the same ids on every OS (AppMenus.java:76-181; systemMenu only picks the row type, :254), Commands.java registers view.toggleTitleBarMenus everywhere with a reason (Commands.java:38-44, Chrome.java:28-32); the Settings row stays and is disabled with its reason (SettingsWindow.java:279-285). macOS app-menu items (MacAppMenu.java:47-63) are the 'application menu' row. No Settings default reads Os."
+    },
+    {
+      "id": "OS-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "check.command exits 0: only src/main/java/com/example/app/Os.java:31,41 reads os.name; AppInfo.java:123 asks Os.description(); no separatorChar test; Executables.java:26 and Browser.java:28 ask Os."
+    },
+    {
+      "id": "OS-03",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Os.override (Os.java:64-66); src/test/java/com/example/app/ui/SameOnEveryOsFxTest.java:46-96 runs the app as each Os.Kind and asserts the command ids, menu rows and Settings pages/rows equal; @Tag(\"fx\") with no Surefire exclusion (pom.xml:253-277)."
+    },
+    {
+      "id": "OS-04",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Every OS test is a row of 'Where the OS's way wins': Keymap.java:32 and AppServices.java:63 (macOS keymap variant), KeyDispatcher.java:50,67 (chord notation), MainWindow.java:90 -> AppMenus.java:62 (system menu bar) and Chrome.java:35-38 (title-bar menus unavailable under it), MacAppMenu.java:48 (application menu), Browser.java:17-22 (OS opener), Executables.java:26-31 (binary lookup, nothing visible)."
+    },
+    {
+      "id": "PAUTA-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "check.command exits 0: pom.xml:34 <pauta.version>6.0.0</pauta.version>; src/main/resources/com/example/app/pauta.json exists."
+    },
+    {
+      "id": "PAUTA-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "PautaConformance.of (PautaConformance.java:206-214) takes only the exceptions; Partial/Core/Complete; deviation/app-only/n-a ignored; About (AboutDialog.java:56) and the Pauta window (PautaWindow.java:54) call it; README held by PautaConformanceTest.java:349-381; unit cases PautaConformanceTest.java:58-87."
+    },
+    {
+      "id": "PAUTA-03",
+      "level": "MUST",
+      "status": "limited",
+      "evidence": "Template repository (pauta.json \"template\": true): the rule is for the app made from it; no entry, as the rule asks."
+    },
+    {
+      "id": "PAUTA-04",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "judged last, from the other results: no MUST or SHOULD fails, and no entry is for a rule that passes or is limited; the by-hand rules are manual, not recorded"
+    },
+    {
+      "id": "PAUTA-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "No not-applicable entry in pauta.json (35 pending SHOULD, 10 app-only)."
+    },
+    {
+      "id": "PAUTA-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "No deviation entry in pauta.json; PautaConformanceTest.java:248-256 would hold one to a SHOULD and a decision record."
+    },
+    {
+      "id": "PAUTA-07",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "every pending entry links an open issue of adriandeleon/adl-desktop-app-template (#14-#16, #18-#24) whose body names the rule at 6.0.0"
+    },
+    {
+      "id": "PAUTA-08",
+      "level": "MUST",
+      "status": "manual",
+      "evidence": "Read each reason in Help -> Pauta Conformance as a user would; the source refutes none: every reason in pauta.json is one sentence with no rule ID or class name (held by PautaConformanceTest.java:259-261) ; not recorded"
+    },
+    {
+      "id": "PAUTA-16",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "pauta.json:2 \"template\": true; scripts/rename.sh:97 sets it to false; PautaConformanceTest.java:279-298 lists app-only entries and foreign pending links outside a template and fails on them when pauta.release is set (pom.xml:37,591)."
+    },
+    {
+      "id": "PAUTA-18",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "pauta.json has no checked list: nothing to fail."
+    },
+    {
+      "id": "PAUTA-09",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/pauta.json bundled; every entry has rule, level, url, kind, reason; every pending has a link; no rule twice; levels and urls match rules-6.0.0 (checked); template flag beside exceptions only in a template."
+    },
+    {
+      "id": "PAUTA-10",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/test/java/com/example/app/PautaConformanceTest.java: edition = pauta.version (:202-206), unknown rule, level/url, duplicate (:213-229), deviation on a MUST and missing links (:231-262), checked entries: by hand, twice, with exception, newer, stale (:302-333), inherited app-only and foreign pending reported and failed in the release build (:279-298); runs in ./mvnw verify."
+    },
+    {
+      "id": "PAUTA-11",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "The change raising pauta.version (pom.xml:34, uncommitted) also replaces src/test/resources/pauta-rules.json (identical to 6.0.0 rules.json) and .claude/skills/pauta-audit/SKILL.md (identical to the 6.0.0 skill), touches pauta.json, README.md and AGENTS.md, and leaves no checked entry; confirm it lands as one change ; not recorded"
+    },
+    {
+      "id": "PAUTA-13",
+      "level": "MUST",
+      "status": "app-only",
+      "evidence": "pauta.json: Each app's user guide has its own page listing its conformance and exceptions."
+    },
+    {
+      "id": "PAUTA-14",
+      "level": "SHOULD",
+      "status": "app-only",
+      "evidence": "pauta.json: Each app's website makes its conformance page from the app's own list of exceptions."
+    },
+    {
+      "id": "PAUTA-15",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "README.md:15 badge 'Pauta-6.0.0 · Core' (blue) and README.md:48 'Built to ... 6.0.0 ..., Pauta conformance: Core', both linking https://exampleapp-project.dev/docs/pauta/; computed Core (only SHOULDs pending); PautaConformanceTest.java:349-381."
+    },
+    {
+      "id": "PAUTA-17",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "AGENTS.md:9-12 '## Pauta' names 6.0.0 and links https://pauta-project.dev/6.0.0/llms.txt and llms-full.txt; no latest/ or other-edition link; EditionTest.java:48-60."
+    },
+    {
+      "id": "PLAT-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Command exits 0: pom.xml:26 maven.compiler.release 25, enforcer [25,) at pom.xml:150, no profile with an enforcer rule; every setup-java step sets java-version '25' (ci.yml:42,62,129; full-tests.yml:56; release.yml:38,103,502,606)."
+    },
+    {
+      "id": "PLAT-02",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "pom.xml:595-629 dist profile: jpackage app-image with jLinkOptions; build-installers.sh wraps that image (pom.xml:704-715) and release.yml:188 ships it."
+    },
+    {
+      "id": "PLAT-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Command exits 0: pom.xml:37 javafx.version 27.0.1."
+    },
+    {
+      "id": "PLAT-04",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/module-info.java:2 named module com.example.app (not open); opens only config and sync to Jackson (:14-17)."
+    },
+    {
+      "id": "PLAT-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "pom.xml:38,81-82 atlantafx-base 3.0.0."
+    },
+    {
+      "id": "PLAT-08",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Command exits 0: mvnw, mvnw.cmd and .mvn/wrapper/maven-wrapper.properties present."
+    },
+    {
+      "id": "PLAT-09",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Command exits 0: pom.xml:211 -Xep:NullAway:ERROR; every main package has an @NullMarked package-info.java."
+    },
+    {
+      "id": "PLAT-10",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Command exits 0: pom.xml:439 palantirJavaFormat; ci.yml:27-46 Format job runs only spotless:check, on pull_request (ci.yml:9)."
+    },
+    {
+      "id": "PLAT-11",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "pom.xml:262 glass.platform=Headless, no Monocle; release.yml:185-187 runs verify without xvfb (aot-train.sh:58-59 uses xvfb-run only to train the AOT cache; smoke-test.sh runs no tests)."
+    },
+    {
+      "id": "PLAT-12",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "pom.xml:293-307 jacoco-check bound to verify with BUNDLE LINE 0.90 and METHOD 0.90; os-mac/os-windows profiles (pom.xml:476-495) touch neither floors nor skip."
+    },
+    {
+      "id": "PLAT-13",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Command exits 0: no logging API other than java.util.logging is imported in src/main/java."
+    },
+    {
+      "id": "PLAT-14",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Config files go through Jackson: config/ConfigStore.java:45,148,213 (settings.json), sync/SyncData.java:37,65,86, config/ConfigImport.java:133,162; no hand-built JSON."
+    },
+    {
+      "id": "REPO-01",
+      "level": "MUST",
+      "status": "app-only",
+      "evidence": "pauta.json: Each app's README shows its own screenshots; the template's are placeholders."
+    },
+    {
+      "id": "REPO-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "CHANGELOG.md:9 '## [Unreleased]' with ### Added/Changed/Fixed (:11,:86,:110); all 59 entries open with '- **'."
+    },
+    {
+      "id": "REPO-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Command exits 0: LICENSE opens 'MIT License' with the 2026 copyright line."
+    },
+    {
+      "id": "REPO-04",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "NOTICE:1-4 name, copyright, MIT sentence; :11-50 OpenJFX, OpenJDK, AtlantaFX, Jackson, Inter, JetBrains Mono with licenses; pom.xml:130-138 packages NOTICE into the jar and pom.xml:642-651 add-notices into the app image; NoticeCoverageTest.java:64,102."
+    },
+    {
+      "id": "REPO-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "AGENTS.md:44 Essential commands, :57-59 worktree per task, :67 Change checklist; CLAUDE.md is one line pointing to AGENTS.md."
+    },
+    {
+      "id": "REPO-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "CONTRIBUTING.md:10-13 build, :24 test, :29 format, :35-44 pull requests."
+    },
+    {
+      "id": "REPO-07",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "docs/ has architecture.md, conventions.md, testing.md, gotchas.md, release.md, building-and-packaging.md and decisions/."
+    },
+    {
+      "id": "REPO-08",
+      "level": "MAY",
+      "status": "pass",
+      "evidence": "TODO.md at the root."
+    },
+    {
+      "id": "REPO-09",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": ".github/ISSUE_TEMPLATE/bug_report.yml:22,28 ids environment and report; report/ProblemReport.java:53 builds ?template=bug_report.yml&environment=...&report=...."
+    },
+    {
+      "id": "REPO-10",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "branding/exampleapp.svg; jpackage icon paths pom.xml:57,481,491 point at packaging/icons/exampleapp.{png,icns,ico}."
+    },
+    {
+      "id": "REPO-11",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Command exits 0: scripts/ holds only sh/bash and Java (Icns.java, ci/ReportFlakes.java)."
+    },
+    {
+      "id": "DOCS-01",
+      "level": "MUST",
+      "status": "app-only",
+      "evidence": "pauta.json: The user guide lives on each app's own website, which a template does not have."
+    },
+    {
+      "id": "DOCS-02",
+      "level": "MUST",
+      "status": "app-only",
+      "evidence": "pauta.json: The user guide's pages under /docs/ belong to each app's own website."
+    },
+    {
+      "id": "DOCS-03",
+      "level": "SHOULD",
+      "status": "app-only",
+      "evidence": "pauta.json: Each app's website serves its own user guide for each version."
+    },
+    {
+      "id": "DOCS-04",
+      "level": "SHOULD",
+      "status": "app-only",
+      "evidence": "pauta.json: Each app's website makes its own command and settings pages and What's new from the app."
+    },
+    {
+      "id": "DOCS-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "jreleaser.yml:54-57 takes the notes from out/release-notes.md, written by scripts/release-notes.sh from the version's CHANGELOG.md section (release.yml:504-511); no generate_release_notes; the Welcome page's What's New (MainWindow.java:211) runs help.whatsNew -> AppInfo.releaseNotesUrl() = releases/tag/v<version> (AppInfo.java:74-81). pauta.json still lists it as pending ('The website has no What's new page made from the changelog yet', which is DOCS-04's in 6.0.0): an entry for a passing rule."
+    },
+    {
+      "id": "DOCS-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "ui/Commands.java:96 help.documentation opens AppInfo.docsUrl(); Help menu row AppMenus.java:127 (full) and :162 (Simple); Welcome page row runs it through the registry (MainWindow.java:211-214)."
+    },
+    {
+      "id": "DOCS-07",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "AppMenus.java:124-136 Help rows: Command Palette, Documentation, Check for Updates, Message Log, Debug Log, Report a Problem, Pauta Conformance, About, in order; Simple mode AppMenus.java:162 Palette, Documentation, About. (No keyboard-reference row: DOCS-08; the Welcome Page row sits in the Window menu, AppMenus.java:93: WELC-03's.)"
+    },
+    {
+      "id": "DOCS-08",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Open Help -> Keyboard Shortcuts, search for a command and find its key: AppMenus.java:145,181 help.keyboardShortcuts opens Settings -> Keymap, the keybinding editor (Commands.java:100) ; not recorded"
+    },
+    {
+      "id": "DOCS-10",
+      "level": "MAY",
+      "status": "limited",
+      "evidence": "No Search Everywhere picker: no SearchEverywhere class or command in src/main/java."
+    },
+    {
+      "id": "DOCS-11",
+      "level": "MAY",
+      "status": "fail",
+      "evidence": "MAY: no 'Help for' link on Settings pages and no page-to-slug map (no such key or map in SettingsWindow.java or messages.properties)."
+    },
+    {
+      "id": "DOCS-12",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "docs/README.md:3-6 says it is for contributors and user docs live on the website; :11-19 lists every guide and decisions/."
+    },
+    {
+      "id": "DOCS-13",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "docs/decisions/0001-template-baseline.md and 0002-tabs-below-the-toolbar.md, each with Context, Decision, Consequences."
+    },
+    {
+      "id": "DOCS-14",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "CONTRIBUTING.md:25,33 link into docs/; AGENTS.md (96 lines), CONTRIBUTING.md and the guides (all under 100 lines) hold no history or exhaustive catalog, so no docs/reference/ is needed."
+    },
+    {
+      "id": "DOCS-15",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "No Javadoc comment followed by another with only blank or // lines between, in src/main or src/test (scanned every .java file). The rule's check needs no test. pauta.json still lists it as pending ('No test catches a code comment that was pasted over another'): an entry for a passing rule."
+    },
+    {
+      "id": "DOCS-16",
+      "level": "MUST",
+      "status": "manual",
+      "evidence": "Read the most recently merged feature pull requests on GitHub and check each touches CHANGELOG.md, the guides it concerns and TODO.md, and names the website's PR where a user sees the change; stated in CONTRIBUTING.md:38-41, AGENTS.md:60-62; not recorded"
+    },
+    {
+      "id": "DOCS-17",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "AGENTS.md:6 and docs/README.md:8 say the code wins and the document is fixed in the same change."
+    },
+    {
+      "id": "DOCS-18",
+      "level": "SHOULD",
+      "status": "app-only",
+      "evidence": "pauta.json: Each app captures its own screenshots from itself; the template's are placeholders."
+    },
+    {
+      "id": "QUAL-02",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "No @SuppressWarnings(\"NullAway\") in src/main."
+    },
+    {
+      "id": "QUAL-03",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "pom.xml:310-312 BUNDLE BRANCH 0.79; PACKAGE LINE floors for every package (pom.xml:317-422), including each of 300+ lines (root, command, config, sync, ui)."
+    },
+    {
+      "id": "QUAL-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "packaging/BuildHygieneTest.java:140 theCoverageFloorsQuotedInTheTestingGuideAreTheOnesTheBuildEnforces compares pom.xml with docs/testing.md:53; untagged, not excluded by surefire."
+    },
+    {
+      "id": "QUAL-05",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "ui/Chrome.java:20-60 holds enablement and visibility rules with no javafx import, tested by ChromeTest (untagged); also ToolWindowVisibility, TabStrip, ClosedTabs with pure tests (PureUiTest, TabsAndPanelsTest)."
+    },
+    {
+      "id": "QUAL-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Every test class that boots the toolkit through FxTestSupport/FxToolkit (19 *FxTest classes, e.g. CommandSweepFxTest, MainWindowFxTest) carries @Tag(\"fx\"); CONTRIBUTING.md:24 -DexcludedGroups=fx."
+    },
+    {
+      "id": "QUAL-07",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "grep -rn 'Thread.sleep' src/test finds only text inside src/test/resources/pauta-rules.json, no test code."
+    },
+    {
+      "id": "QUAL-08",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "FxTestSupport.java:89 starts each window with --config-dir <temp dir>; pom.xml:273 points exampleapp.configDir at target/test-config; exports go where FakeHost.saveAnswer points (FakeHost.java:14,30), a @TempDir in tests."
+    },
+    {
+      "id": "QUAL-09",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "ui/FxTestSupport.java:64-69 builds the real window headlessly through Startup.start, the same path App.java:28 uses."
+    },
+    {
+      "id": "QUAL-10",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Break what a drift or parity test guards (e.g. a floor in docs/testing.md for BuildHygieneTest.java:140, a NOTICE entry for NoticeCoverageTest.java:64), run it and see it fail; not recorded"
+    },
+    {
+      "id": "QUAL-11",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "ui/CommandSweepFxTest.java:27-36 iterates commands().all() and runs each in a real headless window."
+    },
+    {
+      "id": "QUAL-13",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: No test sets every control in Settings and reads them back after a restart."
+    },
+    {
+      "id": "QUAL-15",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "packaging/ReleaseSupplyChainTest.java:219 (macOS sign/notarize/staple/launch), :271 (Linux signing), :306 and :360 (attestation covers what JReleaser attaches)."
+    },
+    {
+      "id": "PERF-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/SamplePanels.java:149 the Outline scans the text off the FX thread (LatestOnly over Background); start-up reads are prepared off it (ui/Startup.java prepare), git and gh are found on first use (sync/Git.java), the Debug Log writes from its own thread (ui/DebugLog.java append), and About's and the Pauta window's images load in the background"
+    },
+    {
+      "id": "PERF-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Every task body hands results back inside Platform.runLater: src/main/java/com/example/app/ui/UpdateCoordinator.java:117-121, src/main/java/com/example/app/ui/SyncController.java:140-145,184-189, src/main/java/com/example/app/ui/MainWindow.java:589-600,624-637, src/main/java/com/example/app/ui/LatestOnly.java:47-57 (deliver = Platform::runLater); off-thread echoes go through FxBatcher (src/main/java/com/example/app/ui/AppServices.java:109-115); single-instance callback uses runLater (src/main/java/com/example/app/ui/Startup.java:83)."
+    },
+    {
+      "id": "PERF-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Repeatable requests compare a generation inside the runLater: update check src/main/java/com/example/app/ui/UpdateCoordinator.java:116-120, sync src/main/java/com/example/app/ui/SyncController.java:139-144,183-188, config import src/main/java/com/example/app/ui/MainWindow.java:588,597-598,631-632, Debug Log search via LatestOnly (src/main/java/com/example/app/ui/LatestOnly.java:53-56, src/main/java/com/example/app/ui/DebugLogFindBar.java:39). Other runLater lines hand over events or one-shot results."
+    },
+    {
+      "id": "PERF-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Every thread is named and daemon: read-ahead (Startup.java:103), settings-writer (ConfigStore.java:66-67), debug-log-writer (DebugLog.java:218-219), fx-batcher (FxBatcher.java:23-24), update-check (UpdateCoordinator.java:117), settings-sync and github-create (SyncController.java:140,184), single-instance (SingleInstance.java:86-87 setDaemon(true)); Background uses virtual threads (Background.java:16-17)."
+    },
+    {
+      "id": "PERF-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "The one supplyAsync passes its own executor (src/main/java/com/example/app/ui/Startup.java:100-102); no runAsync; no class extends Process in src/main/java."
+    },
+    {
+      "id": "PERF-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Redraw sets a pending flag and schedules one pass (Redraw.java:18-24); the status bar (StatusBar.java:79) and the Outline (MainWindow.java:250-256, via Debounce) redraw through it; MessageLogView refreshes from a debounced filter (MessageLogView.java:56-57)."
+    },
+    {
+      "id": "PERF-23",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Background search waits for typing to pause: Debug Log find bar src/main/java/com/example/app/ui/DebugLogFindBar.java:52,86 (Debounce, a PauseTransition playFromStart, src/main/java/com/example/app/ui/Debounce.java); Settings search src/main/java/com/example/app/ui/SettingsWindow.java:154, prompts src/main/java/com/example/app/ui/Prompts.java:52; the palette and Message Log filter in-memory lists."
+    },
+    {
+      "id": "PERF-07",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Off-thread messages reach the FX thread through FxBatcher, drained at most every 16 ms (src/main/java/com/example/app/ui/FxBatcher.java:21,36-42; src/main/java/com/example/app/ui/AppServices.java:36-37,114); the Debug Log window reads the log on open/Refresh only (src/main/java/com/example/app/ui/DebugLogWindow.java:90-99); the Output sample runs on a Timeline on the FX thread."
+    },
+    {
+      "id": "PERF-08",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Per-keystroke listeners do O(1) work or defer: DocumentView.java:45-48 marks dirty and debounces the whole-text compare; FindBar.java:75-79 searches off the FX thread; Picker.java:94-95 filters in memory (exempt); Outline rebuild is debounced (MainWindow.java:161,256). Node loops are fixed or bounded sets (PautaWindow rows from bundled pauta.json, toolbar, settings cards); lists are ListViews."
+    },
+    {
+      "id": "PERF-09",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The Command Palette builds new text pieces for every row as you type."
+    },
+    {
+      "id": "PERF-10",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The Command Palette draws each letter of a row as a separate piece."
+    },
+    {
+      "id": "PERF-11",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Named caps that drop the oldest: MessageLog MAX_ENTRIES 200 (MessageLog.java:25,59), DebugLog MAX_ENTRIES 2000 (DebugLog.java:43,202), Output console MAX_LINES 1000 (SamplePanels.java:170,209-217), find matches MAX_OCCURRENCES (LogSearch.java:24), closed tabs (ClosedTabs.java). (The documents' undo is JavaFX TextArea's own.)"
+    },
+    {
+      "id": "PERF-12",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "The one picked input, a config import zip, is read through named caps and refused past them: src/main/java/com/example/app/config/ConfigImport.java:37-41,116,122,204 (MAX_ENTRY_BYTES, MAX_TOTAL_BYTES, MAX_ENTRIES); nothing to step down to. Settings file also capped (src/main/java/com/example/app/config/ConfigStore.java:147)."
+    },
+    {
+      "id": "PERF-13",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "About removes its update listener on hide (src/main/java/com/example/app/ui/AboutDialog.java:86,176); Settings and the Debug Log are one per session and reused; floating tool windows clear handlers (src/main/java/com/example/app/ui/ToolWindowManager.java:431,474,499). src/test/java/com/example/app/ui/WindowLifecycleFxTest.java:76 opens and closes every window three times and finds no added listener or thread."
+    },
+    {
+      "id": "PERF-14",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Settings, Debug Log, Message Log and dialogs are built on first open (src/main/java/com/example/app/ui/MainWindow.java:519,550,760-764,533,557); tool panels are suppliers (src/main/java/com/example/app/ui/MainWindow.java:120-135). src/test/java/com/example/app/ui/StartupDeferralFxTest.java:53 asserts none is built before opening."
+    },
+    {
+      "id": "PERF-15",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Deferred fonts, keymap parsing, update check and sync start from FirstPaint.then after the first pulse (Startup.java:160-167); StartupDeferralFxTest asserts it."
+    },
+    {
+      "id": "PERF-16",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Main (not the Application subclass) starts the read on its own daemon thread before launch (Main.java:36-37, Startup.java:100-104); App.init takes it (App.java:19-22, Startup.java:110-114); start() reads no settings file."
+    },
+    {
+      "id": "PERF-17",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The stylesheets are not converted to their faster binary form for release builds."
+    },
+    {
+      "id": "PERF-18",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Read the repository's recent merged pull requests that touch a hot path and find the cost stated in each; not recorded"
+    },
+    {
+      "id": "PERF-19",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: There is no script that measures how long the app takes to start."
+    },
+    {
+      "id": "PERF-20",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: There is no switch that records what keeps the window busy."
+    },
+    {
+      "id": "PERF-21",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Hot-path fixes in CHANGELOG.md:119-123 keep headless tests: src/test/java/com/example/app/ui/DebugLogFindBarFxTest.java:107 (search off the FX thread, narrowed in place), src/test/java/com/example/app/ui/StartupDeferralFxTest.java:53,82, src/test/java/com/example/app/ui/FxPacingFxTest.java:42,63,76; @Tag(\"fx\") is not excluded by Surefire (pom.xml:245-270)."
+    },
+    {
+      "id": "PERF-22",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Read the merged pull request that fixes each suspected regression and find a before and after number; not recorded"
+    },
+    {
+      "id": "KBD-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:93-219 registers every action in the one CommandRegistry; menu rows (AppMenus.java:220), right-click rows (CommandMenu.java:54), toolbar (AppToolbar.java:137), stripe and header buttons (ToolWindowManager.java:207,872), dialog buttons (AboutDialog.java:71,115; DebugLogWindow.java:86; SettingsWindow.java:427-553) and keys (KeyDispatcher.java:60) run command ids; Settings switches write what the toggle commands write. Window-local closes (find bar Close/Esc, Settings Close) and the Pauta window's per-rule links (PautaWindow.java:126,136) have no command, read as content/dismissal, not actions."
+    },
+    {
+      "id": "KBD-02",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:95-347: every id is dotted with its area first (file-less app: palette.show, view.toggleToolbar, buffer.closeOthers, tool.documents, toolWindow.hide, help.reportProblem)."
+    },
+    {
+      "id": "KBD-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/command/Command.java:19-25 reads command.<id> and command.<id>.desc; all 52 registered ids have both keys in all six catalogs (checked by grep); held by src/test/java/com/example/app/ui/CommandSweepFxTest.java:27 (everyCommandIsLocalizedAndRuns)."
+    },
+    {
+      "id": "KBD-04",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: A grayed menu row does not say why it is unavailable."
+    },
+    {
+      "id": "KBD-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/keymaps/emacs.json:5 M-x, cua.json:5 Shortcut+Shift+P, cua.mac.json:5 Cmd+Shift+P, all to palette.show."
+    },
+    {
+      "id": "KBD-06",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The Command Palette matches a command's description and not its id."
+    },
+    {
+      "id": "KBD-07",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "The palette, pickers and switcher show their card in OverlayHost's root StackPane (OverlayHost.java:30,65-75; Picker.java:113; Switcher.java:81), which is the scene root (MainWindow.java:101,167); no javafx.stage.Popup in src/main/java."
+    },
+    {
+      "id": "KBD-09",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/keymaps/: emacs.json, cua.json and cua.mac.json present (not a terminal app)."
+    },
+    {
+      "id": "KBD-10",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: There are no IntelliJ, VS Code or Sublime keymaps."
+    },
+    {
+      "id": "KBD-21",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/keymaps/cua.json:4-20 and cua.mac.json:4-20 bind the same 15 command ids (emacs.json has no .mac variant); held by src/test/java/com/example/app/command/KeybindingsTest.java:18."
+    },
+    {
+      "id": "KBD-11",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/command/Keybindings.java:97-106: one place applies base keymap then the user's bindings on top (no plugins)."
+    },
+    {
+      "id": "KBD-12",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Open Settings > Keymap, search, and bind a chord that is taken: one row per command with its keys (SettingsWindow.java:268-300), filtered by the Settings search, conflict tooltip and invalid style (SettingsWindow.java:363-369); not recorded"
+    },
+    {
+      "id": "KBD-13",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "No catalog value names a command's chord: messages.properties:97,398 name the picker's and switcher's own fixed keys, :299 an example of the notation; chords rendered by one formatter, KeyStroke.label via Keybindings.label (Keybindings.java:148-151)."
+    },
+    {
+      "id": "KBD-14",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Press C-x in the Emacs keymap and wait: the status bar lists the next keys (KeyDispatcher.java:46-55, Keybindings.continuations); not recorded"
+    },
+    {
+      "id": "KBD-15",
+      "level": "MUST",
+      "status": "manual",
+      "evidence": "Tab through every window and dialog and work each control with Space/Enter. Source finds no mouse-only control: toolbar buttons (Icons.java:420-424), tool-window header buttons (ToolWindowManager.java:890-905) and the status bar's update link (StatusBar.java:62-64) run commands; status labels run view.messageLog (StatusBar.java:23-24,59-61); find-bar buttons (FindBar.java:91-93) per FIND-16; picker list driven from its field (Picker.java:77) ; not recorded"
+    },
+    {
+      "id": "KBD-16",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/styles/app.css:595-597 *:focus-visible { -fx-border-color: -focus-ring } is the last block and covers every control kind; nothing after it. Problem: src/main/resources/com/example/app/pauta.json:227-234 still lists it as pending (\"No test tabs through each kind of control\"; a test is no longer required), at level SHOULD where 6.0.0 has MUST, url 4.1.0."
+    },
+    {
+      "id": "KBD-22",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "app.css:613-630: buttons, toggles, menu buttons, links, combo boxes, check boxes and radio buttons get -fx-border-width: 2 and -fx-border-insets: -3; text inputs widen the focus border inside with -fx-background-insets: 0, 2px. (The check-box/radio ring goes round the whole control, not only its box.)"
+    },
+    {
+      "id": "KBD-18",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/SettingSwitch.java:12-19 (ToggleButton: focusable, Space toggles, AccessibleRole.TOGGLE_BUTTON); every on/off row uses it (SettingsWindow.java:118-128)."
+    },
+    {
+      "id": "ACC-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/test/java/com/example/app/ui/NamedControlsFxTest.java:83 opens every window, every Settings page, the palette, the switcher, a confirm question and a text prompt, and fails on a control, cell or menu row with no name; src/main/java/com/example/app/ui/Switcher.java:44"
+    },
+    {
+      "id": "ACC-02",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/StatusBar.java ButtonLabel (role BUTTON, FIRE runs the command); src/main/java/com/example/app/ui/OverlayHost.java:42 the scrim is a BUTTON whose FIRE cancels"
+    },
+    {
+      "id": "ACC-03",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "No Canvas in src/main/java: the app paints no content on a canvas."
+    },
+    {
+      "id": "ACC-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Nothing of the kind: the only Timelines and PauseTransitions (SamplePanels.java:178, SyncController.java:105, UpdateCoordinator.java:101, Debounce.java:31, Startup.java:173) are timers that move, fade or flash no part of the UI."
+    },
+    {
+      "id": "ACC-05",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: A file's Git status shows by its color alone in the tab titles and the Documents window; only a tab's tooltip says it in words."
+    },
+    {
+      "id": "ACC-06",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: There are no commands that move the keyboard to the next or previous part of the window."
+    },
+    {
+      "id": "ACC-07",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "docs/release.md:20-21 has the step naming Narrator and VoiceOver; the pass itself is a person's, recorded as a checked entry with the version ; not recorded"
+    },
+    {
+      "id": "ACC-08",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Picker.select calls list.notifyAccessibleAttributeChanged(FOCUS_ITEM) after moving the list's focus model (Picker.java:162-172), so the ListView answers FOCUS_ITEM with the selected row; an unavailable row's accessible text carries its reason (Picker.java:243-244)."
+    },
+    {
+      "id": "ACC-09",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: There is no high-contrast theme, and Windows' high-contrast setting is not followed."
+    },
+    {
+      "id": "WIN-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:147 puts the StatusBar in the window, shown unless showStatusBar is off (Settings.java:45 defaults true, MainWindow.java:191, view.toggleStatusBar Commands.java:38); src/main/java/com/example/app/ui/StatusBar.java:62-66 switches the echo label between error and warning classes, :36 a click runs view.messageLog"
+    },
+    {
+      "id": "WIN-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:110-115 builds a HeaderBar holding the menu bar on a StageStyle.EXTENDED stage when Chrome.usesHeaderBar (ui/Chrome.java:20) allows: not under a system menu bar; titleBarMenus defaults true (config/Settings.java:54); macOS: ui/AppMenus.java:62 setUseSystemMenuBar, no HeaderBar, decorated"
+    },
+    {
+      "id": "WIN-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Every Alert/Dialog goes through Dialogs.styled (Dialogs.java:42-51): Confirm.java:65, ReportProblemWindow.java:54, AboutDialog.java:83, PautaWindow.java:98, Prompts.java:55, SettingsWindow.java:521."
+    },
+    {
+      "id": "WIN-11",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Dialogs.styled sets one order on every OS, BUTTON_ORDER 'L_HE+CUYNBXIAO_R' (Dialogs.java:29,45), C before U, Y, N, B, X, I, A, O; DialogsFxTest.java:134-163 asserts it."
+    },
+    {
+      "id": "WIN-08",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The documents open when you quit are not open again at the next start."
+    },
+    {
+      "id": "WIN-09",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: There are no commands to zoom the window in and out."
+    },
+    {
+      "id": "WIN-12",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/UiZoom.java and ui/Themes.java zoom: one setting (config/Settings.java uiZoom) scales every pixel size of the stylesheets and the sizes the code binds (src/main/java/com/example/app/ui/Picker.java:75); three commands view.uiZoomIn/Out/Reset on Ctrl+Alt (src/main/resources/com/example/app/keymaps/cua.json:25), leaving Ctrl/Cmd+=, - and 0 for a content zoom; src/test/java/com/example/app/ui/MenuLookFxTest.java:221"
+    },
+    {
+      "id": "WIN-13",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "One quit method MainWindow.quit (MainWindow.java:761-776): app.quit (Commands.java:20), File -> Quit (AppMenus.java:77), the close request (MainWindow.java:186-189, which macOS's app-menu/Dock Quit reaches); asks about unsaved tabs (CONF-01), hides other windows, saves the window state and flushes."
+    },
+    {
+      "id": "WIN-14",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "app.quit registered (Commands.java:20), listed in the palette, and the File menu's last row in both menus (AppMenus.java:77,161)."
+    },
+    {
+      "id": "WIN-15",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "macOS only, read: MacAppMenu.install inserts Settings into the application menu (MacAppMenu.java:47-63,84-87) running app.settings (MainWindow.java:203-212), created with no key equivalent, title carrying the keymap's chord and rewritten on keymap change (MacAppMenu.java:58-64, MainWindow.java:213); launchers export com.sun.glass.ui.mac (pom.xml:478-479,493,657-658)."
+    },
+    {
+      "id": "WIN-10",
+      "level": "MAY",
+      "status": "fail",
+      "evidence": "MAY: only Simple mode (Settings.simpleMode, Commands.java:49-52); no Zen or Expert command and no truth table of chrome per mode."
+    },
+    {
+      "id": "ICON-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Themes.java:106-126: a listener on Window.getWindows() adds ui-font.css to each window's scene and to a new scene; app.css's .root (app.css:17-36) sets no -fx-font-family; held by StyleContrastTest.java:297."
+    },
+    {
+      "id": "ICON-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/fonts/inter/ holds the four Inter .ttf faces and OFL.txt; Fonts.load (Fonts.java:19-21,34) runs in Startup.java:131 before window.show (Startup.java:144)."
+    },
+    {
+      "id": "ICON-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "editora-light.css and editora-dark.css open with .root (after the header comment) and hold no hex after it (the one later # is inside a comment, line 4855); held by StyleContrastTest.java:306."
+    },
+    {
+      "id": "ICON-05",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/styles/editora-light.css and editora-dark.css are byte-identical to Editora's styles/atlantafx-themes/ copies (cmp)."
+    },
+    {
+      "id": "ICON-06",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/styles/app.css:35 -state-key is a ladder() of -color-bg-default; resolves to #3c4380 on Editora Light (about 9:1 on default, 8:1 on subtle) and about #bbc1e7 on Editora Dark (about 9:1 and 8:1). Note: the palette's .key-chip (app.css:133) still uses -color-accent-fg, not -state-key."
+    },
+    {
+      "id": "ICON-07",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/styles/app.css:444 every Git status and state color is a -state-* token"
+    },
+    {
+      "id": "ICON-08",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "No component rule in app.css carries a fixed color: the scrim and shadow are tokens on .root (app.css:38-39) used at :94, :102, :358; ladders hold the other literals (:30-35). (The bundled control themes editora-*.css are the theme, not app sheets.)"
+    },
+    {
+      "id": "ICON-09",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "StyleContrastTest.java:124-162 walks every rule of app.css and both themes, failing any -fx-(text-)fill: -color-fg-subtle whose selector is not on the disabled/decorative list (:42-49), and computes muted >= 4.5:1 on default, subtle and overlay grounds of both flagship themes."
+    },
+    {
+      "id": "ICON-10",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/test/java/com/example/app/ui/StyleContrastTest.java:138 (tintedTextReachesAaOnItsOwnFillAndOnBothGrounds): each role's -fg on its -subtle, bg-subtle and bg-default in both flagship themes, 4.5:1."
+    },
+    {
+      "id": "ICON-11",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/test/java/com/example/app/ui/StyleContrastTest.java:153 (inkOnAnEmphasisFillIsTheThemesOnEmphasisColor): fg-emphasis on the four roles' emphasis fills, 4.5:1, and every emphasis-filled rule uses it."
+    },
+    {
+      "id": "ICON-12",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/styles/app.css:27 -focus-ring: -color-accent-emphasis; StyleContrastTest.java:179 reads it from .root and finds 3:1 on default, subtle, inset and overlay grounds of both flagship themes."
+    },
+    {
+      "id": "ICON-13",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/styles/app.css:30-31 -state-olive and -state-violet are ladders of -color-bg-default."
+    },
+    {
+      "id": "ICON-14",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The key color's contrast is checked by a test that needs the toolkit instead of a plain one."
+    },
+    {
+      "id": "ICON-15",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Themes.java:54 calls Application.setUserAgentStylesheet on each apply; a theme change in the settings reaches it through MainWindow.java:174,185 at run time; light and dark sheets ship."
+    },
+    {
+      "id": "ICON-16",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/config/ThemeChoice.java:14 SYSTEM (the default), listed by the Settings combo (SettingsWindow.java:244) and the theme picker (MainWindow.java:323); Themes.java:49-51 re-applies on colorSchemeProperty while SYSTEM is chosen."
+    },
+    {
+      "id": "ICON-17",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/config/ThemeChoice.java:27-34: an unknown or null name returns DEFAULT, never throws."
+    },
+    {
+      "id": "ICON-18",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Amber, red and green tokens are used only for their meanings: unsaved tab, warnings, not-connected pill, partial conformance, About's update (amber); errors, conflicts, invalid (red); added, connected, up to date, complete (green): app.css:66-288,437-457."
+    },
+    {
+      "id": "ICON-19",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Icons.java:249-261,327-331: line() adds icon-line alone, of() toolbar-icon alone, and no other code adds a family class; held by IconsTest.java:32."
+    },
+    {
+      "id": "ICON-20",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Icons.java:178-241: one lookup keyed by command id serves the menu bar, right-click menus, toolbar and panel headers (AppMenus.java:244, AppToolbar.java:135, ToolWindowManager.java:869); stripes use the same constants (MainWindow.java:124-133); held by IconsTest.java:46."
+    },
+    {
+      "id": "ICON-23",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Icons.forFileName (Icons.java:121-128) is pure, unknown types get FILE; IconsTest.java:84-92 (no toolkit) asserts it; used by SamplePanels.java:67 and TabHeaders.java:60."
+    },
+    {
+      "id": "ICON-24",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "NOTICE:42-50 credits Inter and JetBrains Mono (OFL-1.1); the glyphs in Icons.java are the app's own paths, from no outside icon set."
+    },
+    {
+      "id": "TBAR-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Icons.button/toolbarButton name every icon-only button through Icons.name or bindName, tooltip and accessible text from one string (Icons.java:407-455); ToolWindowManager.java:902-904 binds the chord into both."
+    },
+    {
+      "id": "TBAR-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Toolbar buttons named Icons.withChord(command title, keymap chord) and renamed on every keymap change (src/main/java/com/example/app/ui/AppToolbar.java:128,178-185); stripe buttons bound to the tool window title (= command.tool.* title) and its chord (src/main/java/com/example/app/ui/ToolWindowManager.java:206-215), header buttons bound to command title + chord (src/main/java/com/example/app/ui/ToolWindowManager.java:887-904); refreshTooltips re-reads both on keymap change (src/main/java/com/example/app/ui/ToolWindowManager.java:147,267-270). No chord typed in a string."
+    },
+    {
+      "id": "TBAR-14",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "One factory sets 400 ms on every tooltip it makes (src/main/java/com/example/app/ui/Icons.java:367,432-436,446-450; src/main/java/com/example/app/ui/TabHeaders.java:93-97), and the stylesheet sets -fx-show-delay: 400ms on .tooltip (src/main/resources/com/example/app/styles/app.css:419-422), which covers the two tooltips made outside the factory (src/main/java/com/example/app/ui/Picker.java:240, src/main/java/com/example/app/ui/SettingsWindow.java:393-397). AppToolbarFxTest.java:124 asserts the delay."
+    },
+    {
+      "id": "TBAR-06",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Look at the top and bottom bands in light and dark: menu row and toolbar share -color-bg-subtle in .chrome-band with one rule under the whole band (app.css:327-337, src/main/java/com/example/app/ui/MainWindow.java:116-118); the tab strip below it is on the theme's -color-bg-default (editora-light.css:4291-4299), so check whether that seam reads as a second band; bottom: the status bar's top border is gone (app.css:59-64) and the bottom stripe sits on -color-bg-subtle (app.css:512-534). Not recorded; not recorded"
+    },
+    {
+      "id": "TBAR-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Icons.java:280-284 toolbarButton sets setFocusTraversable(false) for the main toolbar and stripes; panel header buttons ToolWindowManager.java:886."
+    },
+    {
+      "id": "TBAR-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/styles/app.css:396-398 .tool-bar .separator:vertical > .line transparent; the panel headers hold no Separator."
+    },
+    {
+      "id": "TBAR-05",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AppToolbar.java:192-245: setGroupVisible and refresh end in collapseSeparators, one pass over the separators."
+    },
+    {
+      "id": "TBAR-07",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AppToolbar.java:141,212 (OverlayToggles.OPEN while an overlay or Simple mode holds); app.css:400-405 .button:open fill."
+    },
+    {
+      "id": "TBAR-08",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AppToolbar.java:64-71: every button runs a registered command, each a row of the menu bar (AppMenus.java:76-135), and stripe and header buttons run tool.*/view.*ToolWindow commands listed in the Window menu. Note: in Simple mode the SIMPLE table (AppMenus.java:142-162) drops Float, Maximize and Close Tool Window while the panel headers keep their buttons."
+    },
+    {
+      "id": "TBAR-09",
+      "level": "MAY",
+      "status": "fail",
+      "evidence": "The main toolbar's layout is fixed (src/main/java/com/example/app/ui/AppToolbar.java:64-66 CLUSTER, :90-118): no reorder, remove or restore of its buttons, nothing saved in Settings. (Stripe buttons can be reordered and hidden, but the toolbar cannot.) MAY: no consequence."
+    },
+    {
+      "id": "TBAR-15",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AppToolbar.java:84-121: the cluster is a ToolBar and the tail an HBox beside it; held by AppToolbarFxTest.java:283."
+    },
+    {
+      "id": "TBAR-16",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Look at the bar's right end with Simple mode off, then on: Simple mode toggle then Settings in the tail (AppToolbar.java:71,104); not recorded"
+    },
+    {
+      "id": "TBAR-17",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AppToolbar.java:183 sets each button's disabled state from its command's availability, refreshed on keymap and settings changes (:128,130); no polling."
+    },
+    {
+      "id": "TBAR-18",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:106-109 view.toggleToolbar writes showToolbar, read back at start-up through MainWindow.apply (MainWindow.java:176,186)."
+    },
+    {
+      "id": "TBAR-19",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Turn Simple mode on and off and watch the top of the tabs: the row keeps steadyHeight (AppToolbar.java:110-121,221-231); not recorded"
+    },
+    {
+      "id": "TBAR-12",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/ToolWindowManager.java:205-217: the stripe button's name binds the window's titleProperty and its command's chord; its right-click menu is Open in Split and Hide (:144)."
+    },
+    {
+      "id": "TBAR-13",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/ToolWindowManager.java:955-974 pads the side stripes' top so the first glyph's center meets the document's first line."
+    },
+    {
+      "id": "TABS-10",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/DocumentTabs.java:300-312 sets the title to file — project — app with a \"● \" prefix for an unsaved file; TabsAndPanelsTest.theWindowTitleNamesTheFileTheProjectAndTheApp"
+    },
+    {
+      "id": "TABS-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:150-188 registers buffer.close, closeOthers, closeAll, closeUnmodified, closeLeft, closeRight, togglePin, reopenClosed, next, previous; Window menu rows ui/AppMenus.java:90-105; every tab's right-click menu ui/TabContextMenu.java:19-27 via DocumentTabs.java:192; TabsAndPanelsFxTest.everyTabOperationIsACommandWithAMenuRow"
+    },
+    {
+      "id": "TABS-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/TabHeaders.java:50-65: setText(\"\"), a graphic with the file glyph and a .tab-title label, tooltip the file's absolute path"
+    },
+    {
+      "id": "TABS-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/TabHeaders.java:53-59 adds \"• \", .dirty, .pinned with the pin glyph, .read-only; src/main/resources/com/example/app/styles/app.css:424-430 and :456-459 give bold, muted italic and amber italic"
+    },
+    {
+      "id": "TABS-04",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/TabStrip.java:17-45 every bulk close filters out pinned tabs; TabsAndPanelsTest.bulkCloseSkipsPinnedTabs"
+    },
+    {
+      "id": "TABS-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/DocumentTabs.java:241-251 togglePin then moveToPinBoundary, index = other pinned tabs (ui/TabStrip.java:52-58); TabsAndPanelsTest.pinningMovesToThePinBoundary"
+    },
+    {
+      "id": "TABS-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/ClosedTabs.java:20,34-39 newest first, bounded to 20, one entry per file with its caret; reopen restores the caret (ui/DocumentTabs.java:268-276); TabsAndPanelsTest.closedTabsKeepOrderBoundOneEntryPerFileAndTheCaret"
+    },
+    {
+      "id": "TABS-07",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Drag a tab along the strip and watch the dimmed header and the accent line: src/main/java/com/example/app/ui/TabHeaders.java:104-144, app.css:461-471; not recorded"
+    },
+    {
+      "id": "TABS-08",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/TabHeaders.java:65-68 puts the status in words in the tooltip (\"path — modified\") and the Documents rows' git-status-* class on the tab (src/main/java/com/example/app/ui/TabGitStatus.java:19-30); app.css:444-472 lets .dirty amber win; TabsAndPanelsFxTest.java:253-266."
+    },
+    {
+      "id": "TABS-09",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Open the switcher with several tabs; move with arrows and Ctrl+N/P, close with Backspace/Delete/Ctrl+D, cancel with Esc/C-g, release Ctrl to activate; width fixed per open: src/main/java/com/example/app/ui/Switcher.java:68-120 (line chords are hard-coded, not read from the keymap); not recorded"
+    },
+    {
+      "id": "TABS-12",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "view.toggleTabBar (src/main/java/com/example/app/ui/Commands.java:59-62) flips showTabBar; src/main/java/com/example/app/ui/DocumentTabs.java:322-326 and app.css:486-491 fold the header with any number of tabs; TabsAndPanelsFxTest.java:311-314."
+    },
+    {
+      "id": "TABS-13",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:199-204 tool.documents, tool.outline, tool.output toggle; stripe button runs the command (ui/ToolWindowManager.java:207-208); src/main/resources/com/example/app/keymaps/emacs.json:17-19 binds M-1..M-3"
+    },
+    {
+      "id": "TABS-15",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/config/Settings.java:195-273 keeps open, sides, order, hidden, floating, sizes, splits and maximized; ui/ToolWindowManager.java:225-237 restores them at start (kept in settings.json, see SET-08)"
+    },
+    {
+      "id": "TABS-19",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/ToolWindowManager.java:425-440 refocuses the editor on closing a focused panel; :905 keeps a weak reference to the last document focus owner, :932 focusEditor"
+    },
+    {
+      "id": "TABS-16",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/ToolWindow.java:20-23 Side LEFT, RIGHT, BOTTOM; ui/ToolWindowManager.java:75 MAX_PER_SIDE = 2"
+    },
+    {
+      "id": "TABS-17",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Drag a stripe button to the opposite stripe and watch the feedback and the dashed empty stripe: src/main/java/com/example/app/ui/ToolWindowDock.java, ui/ToolWindowVisibility.java:22; not recorded"
+    },
+    {
+      "id": "TABS-18",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:224-266 view.floatToolWindow, maximizeToolWindow, resize*, closeFocusedToolWindow; one maximized field (ui/ToolWindowManager.java:107, :523-526)"
+    },
+    {
+      "id": "TABS-20",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "User choice in state.hidden (src/main/java/com/example/app/ui/ToolWindowManager.java:374-384), context in a separate set (src/main/java/com/example/app/ui/ToolWindowManager.java:364-371, never writes hidden), button shown only when both hold (src/main/java/com/example/app/ui/ToolWindowVisibility.java:14-16, ToolWindowManager.java:680); TabsAndPanelsFxTest.hiddenIsNotUnavailable (:473)."
+    },
+    {
+      "id": "TABS-21",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/ToolWindow.java:82 firstOpenShare; ui/ToolWindowManager.java:396-399 grants it only while no size is saved; ui/MainWindow.java:139; TabsAndPanelsFxTest.anOutputWindowAsksForMoreOnItsFirstOpen"
+    },
+    {
+      "id": "TABS-22",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/ToolWindow.java:29 busy property; ui/ToolWindowManager.java:240-254 spinner badge bound to it; TabsAndPanelsFxTest.aBusyWindowBadgesItsButtonWithoutResizingIt"
+    },
+    {
+      "id": "TABS-23",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Switch between tabs with the Outline open and see it follow; no Git window in the template: src/main/java/com/example/app/ui/MainWindow.java:143-144, :196-200; not recorded"
+    },
+    {
+      "id": "MENU-14",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Every row of every menu the app draws is built by AppMenus.inWindowRow with Icons.commandGlyph (src/main/java/com/example/app/ui/AppMenus.java:262-285; CommandMenu.java:51), and every command id in the menu bar tables (AppMenus.java:75-185), the tab, editor, Output, Debug Log, Documents, Message Log, Settings page and binding menus, the toolbar and stripe menus has an entry in Icons.BY_COMMAND (src/main/java/com/example/app/ui/Icons.java:281-355); no check/radio rows. Shared glyphs are the same action in another scope (COPY, CLEAR, FIND, EXPORT) or close kin (KEYBOARD for settings.keymap and help.keyboardShortcuts, SYNC for sync.setup and sync.now); NamedControlsFxTest.java:138."
+    },
+    {
+      "id": "MENU-15",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:250-276 and CommandMenu.java:65-73 fill each row's own chord label from Keybindings.label (empty when unbound), again on each showing and keymap change; app.css:361-366 draws it in -state-key at 11 px; held by MenuLookFxTest.java:119."
+    },
+    {
+      "id": "MENU-16",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "app.css:363-377 pins Inter 14px on .context-menu, its rows and labels and 11px on .menu-item-chord, in px; Themes.zoom swaps in an app.css whose px values UiZoom.scale multiplies (src/main/java/com/example/app/ui/Themes.java:167-182, UiZoom.java:67-81), and popups copy the owner scene's sheets."
+    },
+    {
+      "id": "MENU-18",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:277 a 22 px icon column, 8 px to the title, the chord 18 px after; app.css .context-menu radius 8, shadow 16 at Y 16, rows padded 8 × 12"
+    },
+    {
+      "id": "MENU-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:76-162 lists command ids and separators only; each row runs its id through the registry (:220), with the command's title, chord (:266-281) and gate (:225-228)."
+    },
+    {
+      "id": "MENU-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "No setAccelerator in src/main/java; in-window rows are CustomMenuItems of glyph, title, spacer, chord (src/main/java/com/example/app/ui/AppMenus.java:262-285); system-menu rows are plain MenuItems with the chord appended and no graphic (src/main/java/com/example/app/ui/AppMenus.java:253-255, 304-305)."
+    },
+    {
+      "id": "MENU-03",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:225-228 re-reads enablement on showing; :64,266-281 rewrite titles and chords on a keymap change (a language change needs a restart). Problem: src/main/resources/com/example/app/pauta.json:235-242 still lists it as pending (\"No test checks ... availability follows a change\"; a test is not required), url 4.1.0."
+    },
+    {
+      "id": "MENU-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:182-187 setSimple rebuilds only when the flag changes."
+    },
+    {
+      "id": "MENU-17",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "On Windows or Linux, in CUA and Emacs, reach the first menu with F10 or a lone Alt and walk the bar with the arrows; no keymap binds F10 (keymaps/cua.json, emacs.json); menu bar in the HeaderBar (MainWindow.java:109-115); not recorded"
+    },
+    {
+      "id": "MENU-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Right-click menus of commands on the tabs (src/main/java/com/example/app/ui/DocumentTabs.java:55,208-216), the editor (src/main/java/com/example/app/ui/DocumentTabs.java:57-60,171), the Output console (src/main/java/com/example/app/ui/MainWindow.java:140-151), the Debug Log text (src/main/java/com/example/app/ui/DebugLogWindow.java:42-52), the Documents list (src/main/java/com/example/app/ui/MainWindow.java:125, SamplePanels.java:55), the Message Log rows (src/main/java/com/example/app/ui/MessageLogView.java:75-76), the key-binding rows and Settings pages (src/main/java/com/example/app/ui/SettingsWindow.java:168,311-312); every row runs its command through the registry (src/main/java/com/example/app/ui/CommandMenu.java:51-54). The Outline list only navigates (a click moves the caret, SamplePanels.java:117-126), and the Switcher and Picker lists are overlays."
+    },
+    {
+      "id": "MENU-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/ContextMenuDismissal.java:76-87 hides every open right-click menu on the press that opens the next, in every window; held by RightClickMenusFxTest.java:113."
+    },
+    {
+      "id": "MENU-07",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/ContextMenuDismissal.java:44-87: a MOUSE_PRESSED filter on every window hides an open right-click menu, owner control included, without consuming the press; installed at Startup.java:142; held by RightClickMenusFxTest.java:127."
+    },
+    {
+      "id": "MENU-08",
+      "level": "MUST",
+      "status": "manual",
+      "evidence": "Open a right-click menu, press Escape and type: the keys reach the control that had focus (stock ContextMenu, CommandMenu.java:81-84); not recorded"
+    },
+    {
+      "id": "MENU-09",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/RowContextMenu.java:133-169 answers the keyboard ContextMenuEvent by scrolling the selected row in and re-firing at that row; installed on every list with row menus (MessageLogView.java:74, SettingsWindow.java:161,285); the Debug Log console's setContextMenu answers the same keys; no macOS branch; held by RightClickMenusFxTest.java:157."
+    },
+    {
+      "id": "MENU-10",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "In a list, select one row and right-click another: its menu acts on the clicked row (CommandMenu.java:91-95; tabs DocumentTabs.java:196); in the editor (stock TextArea menu, DocumentView.java:19) check the caret moves to a right-click outside the selection; not recorded"
+    },
+    {
+      "id": "MENU-11",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/CommandMenu.java:41-62: the tabs' one shared menu (DocumentTabs.java:52) is built on its first request and refreshed on each showing (:58,65-73); its rows never hide, so no separator needs collapsing."
+    },
+    {
+      "id": "MENU-12",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: Rows that clear a log or reset a binding are not marked as destructive."
+    },
+    {
+      "id": "MENU-13",
+      "level": "MAY",
+      "status": "limited",
+      "evidence": "No terminal view: the rule is for a terminal view, and the app has none."
+    },
+    {
+      "id": "TRAY-01",
+      "level": "MUST",
+      "status": "limited",
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+    },
+    {
+      "id": "TRAY-02",
+      "level": "MUST",
+      "status": "limited",
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+    },
+    {
+      "id": "TRAY-03",
+      "level": "MUST",
+      "status": "limited",
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+    },
+    {
+      "id": "TRAY-04",
+      "level": "MUST",
+      "status": "limited",
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+    },
+    {
+      "id": "TRAY-05",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+    },
+    {
+      "id": "TRAY-06",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+    },
+    {
+      "id": "TRAY-07",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+    },
+    {
+      "id": "TRAY-12",
+      "level": "MAY",
+      "status": "limited",
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+    },
+    {
+      "id": "TRAY-13",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+    },
+    {
+      "id": "TRAY-14",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+    },
+    {
+      "id": "TRAY-09",
+      "level": "MUST",
+      "status": "limited",
+      "evidence": "sends no desktop notifications: no notify-send, osascript or PowerShell toast anywhere in src/main"
+    },
+    {
+      "id": "TRAY-10",
+      "level": "MUST",
+      "status": "limited",
+      "evidence": "sends no desktop notifications: no notify-send, osascript or PowerShell toast anywhere in src/main"
+    },
+    {
+      "id": "TRAY-11",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "sends no desktop notifications: no notify-send, osascript or PowerShell toast anywhere in src/main"
+    },
+    {
+      "id": "SET-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:19 app.settings; src/main/resources/com/example/app/keymaps/cua.json:6 \"Shortcut+,\" (Ctrl+, off macOS), cua.mac.json:6 \"Cmd+,\""
+    },
+    {
+      "id": "SET-02",
+      "level": "MUST",
+      "status": "manual",
+      "evidence": "Open Settings: sidebar of pages with icons left, page right, search on top: src/main/java/com/example/app/ui/SettingsWindow.java:166-186, page icons :793 (search sits over the sidebar column, as in Editora); not recorded"
+    },
+    {
+      "id": "SET-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/SettingsSearch.java:24-51 scores title x4 over description/visible text x2 over heading, page and keywords, whole word 3 > start 2; ui/SettingsWindow.java:630-670 hides rows and cards and opens the best page"
+    },
+    {
+      "id": "SET-04",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "no Save/Apply button (ui/SettingsWindow.java:174-183 only Close); controls write on change; text fields commit on Enter and blur, invalid marked (:469-480 and the branch and interval commits after it); restart named in rows: messages.properties:252, :324"
+    },
+    {
+      "id": "SET-05",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "one ConfigStore announces every change (config/ConfigStore.java:106-127); the main window (ui/MainWindow.java:174) and Settings (ui/SettingsWindow.java:197) listen and apply"
+    },
+    {
+      "id": "SET-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Each Settings row's setting has a command: language, update check, toolbar, tab bar, status bar, Simple mode, theme, UI zoom (view.uiZoomIn/Out/Reset), title-bar menus, keymap, bindings (settings.bindKey, keymap.changeBinding), sync URL/branch/interval/auto (src/main/java/com/example/app/ui/SettingsWindow.java:70-89, 236-301, 442-484; src/main/java/com/example/app/ui/Commands.java:25-62); folder and backup rows are actions. SettingsWindowFxTest.java:246."
+    },
+    {
+      "id": "SET-07",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "One resolver: --config-dir, then --dev (<home>/.<app>-dev), then EXAMPLEAPP_CONFIG_DIR, then the property, then <home>/.<app>, no OS branch (src/main/java/com/example/app/config/ConfigDir.java:25-33); used by src/main/java/com/example/app/Main.java:68 and src/main/java/com/example/app/ui/Startup.java:119."
+    },
+    {
+      "id": "SET-08",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The window's size and position are kept in the settings file instead of a file of their own."
+    },
+    {
+      "id": "SET-09",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "settings.json: SCHEMA_VERSION 7 (src/main/java/com/example/app/config/Settings.java:21) with steps 1-6 (src/main/java/com/example/app/config/Migrations.java:19-31); base.json/keybindings.json: SyncData.SCHEMA_VERSION 2 with step 1 (src/main/java/com/example/app/sync/SyncData.java:30,40,125-134)."
+    },
+    {
+      "id": "SET-10",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Newer settings.json is copied to settings.json.v<n>.bak and defaults load (src/main/java/com/example/app/config/ConfigStore.java:150-153); a newer base.json is copied to base.json.v<n>.bak and the sync goes on from an empty base (src/main/java/com/example/app/sync/SyncData.java:98-106, SyncEngine.java:117)."
+    },
+    {
+      "id": "SET-11",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Values clamped/defaulted on read (src/main/java/com/example/app/config/Settings.java:108-136, 191-201, 237-252, 313-318; unknown theme -> default, ThemeChoice.java:25-33); undecodable file (IOException or RuntimeException) -> settings.json.broken.bak and defaults (src/main/java/com/example/app/config/ConfigStore.java:159-162); base.json likewise (src/main/java/com/example/app/sync/SyncData.java:98-106)."
+    },
+    {
+      "id": "SET-22",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Every whole-file config write goes through ConfigFiles.write: temp file in the same folder, then Files.move with ATOMIC_MOVE (src/main/java/com/example/app/config/ConfigFiles.java:20-34): settings (src/main/java/com/example/app/config/ConfigStore.java:204), import (src/main/java/com/example/app/config/ConfigImport.java:160,165), base.json (src/main/java/com/example/app/sync/SyncData.java:90). Other writes are a report, an export and the smoke-test marker."
+    },
+    {
+      "id": "SET-12",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/config/ConfigExporter.java:27-28 names the zip with a timestamp; config/ConfigImport.java:148-172 restores; tests ConfigExporterTest, ConfigImportTest"
+    },
+    {
+      "id": "SET-13",
+      "level": "MUST",
+      "status": "limited",
+      "evidence": "keeps no secret: no password, token or key field in config/Settings.java; Sync uses git's own credentials (sync/Git.java)"
+    },
+    {
+      "id": "SET-14",
+      "level": "MUST",
+      "status": "limited",
+      "evidence": "asks for no credential: no login or password prompt in src/main. src/main/resources/com/example/app/pauta.json has a not-applicable entry (\"ExampleApp never asks for a password or token\"), which a limited rule does not take"
+    },
+    {
+      "id": "SET-15",
+      "level": "MUST",
+      "status": "manual",
+      "evidence": "Paste https://user:token@host/repo.git into Settings → Sync: refused with the credential-helper/SSH message: src/main/java/com/example/app/sync/SyncEngine.java:62-83, ui/SettingsWindow.java:469-480, messages.properties:293; not recorded"
+    },
+    {
+      "id": "SET-16",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "no setting switches off a check or question: Settings fields are theme, language, keymap, bindings, update check, bars, title-bar menus, simple mode, window and sync (src/main/java/com/example/app/config/Settings.java:23-65)"
+    },
+    {
+      "id": "SET-18",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: Settings Sync does not remember which GitHub account each copy uses."
+    },
+    {
+      "id": "SET-19",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "sync after startup (ui/Startup.java:163 → ui/SyncController.java:102-110), after a local change (:59-65), sync.now (ui/Commands.java:87); only keybindings sync, never window or paths (sync/SyncEngine.java:18-25). src/main/resources/com/example/app/pauta.json still lists it as pending: stale"
+    },
+    {
+      "id": "SET-20",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: Settings Sync replaces your key bindings without keeping a copy of the old ones first."
+    },
+    {
+      "id": "SET-21",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Point Sync at a missing repository: pill, echo and Message Log show the failure: src/main/java/com/example/app/ui/SettingsWindow.java:527-528 (pill), ui/SyncController.java:163 echo (AppServices.echo writes to the Message Log); not recorded"
+    },
+    {
+      "id": "DIAG-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Every echo goes into one in-memory log (src/main/java/com/example/app/ui/AppServices.java:104-115), capped at 200, newest first (src/main/java/com/example/app/ui/MessageLog.java:25,48-63), shown with HH:mm:ss (src/main/java/com/example/app/ui/MessageLogView.java:34,165); Esc closes (src/main/java/com/example/app/ui/OverlayHost.java:35-40); Clear empties (src/main/java/com/example/app/ui/MainWindow.java:440-445, src/main/java/com/example/app/ui/MessageLog.java:84-88). Test: src/test/java/com/example/app/ui/PureUiTest.java:21."
+    },
+    {
+      "id": "DIAG-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Root handler and uncaught handler feed a 2,000-line buffer and the session file in the config folder (src/main/java/com/example/app/ui/DebugLog.java:40-43,94,97,181-188); the previous session is kept as exampleapp-session.prev.log before truncation (src/main/java/com/example/app/ui/DebugLog.java:142-155). Tests: src/test/java/com/example/app/ui/DebugLogTest.java:56,96."
+    },
+    {
+      "id": "DIAG-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "A plain Stage, no initModality (src/main/java/com/example/app/ui/DebugLogWindow.java:30,79-81) with Refresh, Copy, Clear, Export and Report a Problem buttons, each a command (src/main/java/com/example/app/ui/DebugLogWindow.java:55-66)."
+    },
+    {
+      "id": "DIAG-04",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/Main.java:33 DebugLog.install() before argument handling (:34) and launch (:38); the handler logs and posts an ERROR echo (src/main/java/com/example/app/ui/DebugLog.java:101-105, src/main/java/com/example/app/ui/Startup.java:140-141); no dialog."
+    },
+    {
+      "id": "DIAG-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Automatic check after first paint plus a 5 s PauseTransition (src/main/java/com/example/app/ui/Startup.java:162, src/main/java/com/example/app/ui/UpdateCoordinator.java:38,97-108), once per process (scheduled flag), skipped within a day (persisted lastUpdateCheck, src/main/java/com/example/app/update/UpdateCheck.java:77-79) or when off (src/main/java/com/example/app/ui/UpdateCoordinator.java:93); asks releases/latest (src/main/java/com/example/app/update/UpdateService.java:47-60) and only shows the result. Test: StartupDeferralFxTest.java:103."
+    },
+    {
+      "id": "DIAG-09",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "A status-bar Hyperlink names the version and runs help.openNewRelease (src/main/java/com/example/app/ui/StatusBar.java:41,78-83)."
+    },
+    {
+      "id": "DIAG-10",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "help.checkForUpdates registered (src/main/java/com/example/app/ui/Commands.java:119-123) and in the Help menu (src/main/java/com/example/app/ui/AppMenus.java:129); Settings switch (src/main/java/com/example/app/ui/SettingsWindow.java:227); the scheduler skips while off (src/main/java/com/example/app/ui/UpdateCoordinator.java:93,98)."
+    },
+    {
+      "id": "DIAG-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "help.reportProblem registered (src/main/java/com/example/app/ui/Commands.java:141) and in the Help menu (src/main/java/com/example/app/ui/AppMenus.java:132); the report carries version, OS, Java and JavaFX (src/main/java/com/example/app/AppInfo.java:118-125), a settings summary and the log tail (src/main/java/com/example/app/report/ProblemReport.java:24-35)."
+    },
+    {
+      "id": "DIAG-11",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "The window shows redacted text (src/main/java/com/example/app/ui/ReportProblemWindow.java:37-38); Redactor replaces home, user, e-mail, URL credentials and tokens (src/main/java/com/example/app/report/Redactor.java:16-24,44,47). Test: src/test/java/com/example/app/report/ReportTest.java:27,100."
+    },
+    {
+      "id": "DIAG-12",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Editable TextArea (src/main/java/com/example/app/ui/ReportProblemWindow.java:27,38); submit copies the edited text and opens ?template=bug_report.yml&environment=…&report=… (src/main/java/com/example/app/ui/ReportProblemWindow.java:62-67, src/main/java/com/example/app/report/ProblemReport.java:53); field ids match .github/ISSUE_TEMPLATE/bug_report.yml:22,28; no network request of its own."
+    },
+    {
+      "id": "DIAG-13",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "MAX_URL 7500; past it the report field gets the paste hint (src/main/java/com/example/app/report/ProblemReport.java:16,41-45). Test: src/test/java/com/example/app/report/ReportTest.java:65."
+    },
+    {
+      "id": "DIAG-07",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: There is no page that checks the outside tools the app uses, such as git and gh."
+    },
+    {
+      "id": "DIAG-08",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "no user documents: tabs hold built-in sample texts (src/main/java/com/example/app/ui/SampleFiles.java, src/main/java/com/example/app/ui/DocumentTabs.java:69-71) and nothing opens or saves a user's file."
+    },
+    {
+      "id": "CLI-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/Main.java:54-61 handles --help/--version and returns before launch, printing fixed English (src/main/java/com/example/app/cli/CommandLine.java:75-93, src/main/java/com/example/app/AppInfo.java:108-112)."
+    },
+    {
+      "id": "CLI-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Both flags parsed and resolved before any config read (src/main/java/com/example/app/Main.java:53,68; DebugLog.install reads nothing); --dev gives Path.of(home, \".exampleapp-dev\") with no OS branch (src/main/java/com/example/app/config/ConfigDir.java:27)."
+    },
+    {
+      "id": "CLI-03",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "--new-instance skips the hand-off (src/main/java/com/example/app/Main.java:67) and the listener (src/main/java/com/example/app/ui/Startup.java:124)."
+    },
+    {
+      "id": "CLI-04",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "reopens nothing from the last session: the tabs always open the same samples (src/main/java/com/example/app/ui/DocumentTabs.java:69-71); only window geometry and tool-window layout return (src/main/java/com/example/app/ui/MainWindow.java:157-166, src/main/java/com/example/app/ui/ToolWindowManager.java:225). pauta.json still has a pending entry (\"window still comes back at its last size\"), a problem: no entry is needed for a limited rule."
+    },
+    {
+      "id": "CLI-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "main handles --report before launch (src/main/java/com/example/app/Main.java:69): writes problem-report.txt in the current folder, falls back to java.io.tmpdir, prints the path and opens the issue (src/main/java/com/example/app/report/ReportCommand.java:39-56)."
+    },
+    {
+      "id": "CLI-12",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Unknown one- or two-dash options refused (src/main/java/com/example/app/cli/CommandLine.java:61-67), printed with the help hint and exit 2 before launch (src/main/java/com/example/app/Main.java:53-58, 34); - and args after -- are files (:39-44); --add-exports, --add-opens, -p skipped with the next argument and the =-forms skipped (:47-49, 62)."
+    },
+    {
+      "id": "CLI-13",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "-h, -v and -V are taken (src/main/java/com/example/app/cli/CommandLine.java:45-46)."
+    },
+    {
+      "id": "CLI-11",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "The os-windows profile adds a second jpackage launcher exampleapp-cli to the app-image execution (pom.xml:509-526) from packaging/windows/exampleapp-cli.properties:4 (win-console=true), running the same main class; BuildHygieneTest.java:101-109. (packaging/windows/ is untracked: commit it.)"
+    },
+    {
+      "id": "CLI-06",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "opens no files: files named on the command line are parsed (src/main/java/com/example/app/cli/CommandLine.java:39-41) but no code opens a user file (only a config import zip, src/main/java/com/example/app/ui/MainWindow.java:585). pauta.json has a pending entry (\"Files named on the command line are accepted but not opened\"), a problem for a limited rule."
+    },
+    {
+      "id": "CLI-07",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "First launch listens on a Unix socket in the config folder (src/main/java/com/example/app/ui/Startup.java:126, src/main/java/com/example/app/instance/SingleInstance.java:74-90); a second launch without --new-instance hands off and exits (src/main/java/com/example/app/Main.java:73-76). The app opens no files from its command line (MainWindow.handOff ignores them, src/main/java/com/example/app/ui/MainWindow.java:743-748), so no macOS open-files handler is asked for."
+    },
+    {
+      "id": "CLI-08",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/DebugLog.java:136 the advisory lock in the config folder tells a second copy that another holds the session log"
+    },
+    {
+      "id": "CLI-09",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/Main.java:32 sets java.awt.headless=true as its first statement; the app has no tray, badge, open-file handler or AWT trash."
+    },
+    {
+      "id": "CLI-10",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: Tools such as git are looked for in a fixed list of folders instead of your login shell's path."
+    },
+    {
+      "id": "INTL-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/i18n/messages.properties and messages_es, _pt, _fr, _it, _de.properties."
+    },
+    {
+      "id": "INTL-02",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "LANGUAGES lists six codes (src/main/java/com/example/app/i18n/Messages.java:31-38); the Settings picker shows Messages.available() (src/main/java/com/example/app/ui/SettingsWindow.java:216); the parity test walks the same list (src/test/java/com/example/app/i18n/MessagesTest.java:36)."
+    },
+    {
+      "id": "INTL-03",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Values identical to English are terms or bare patterns (es General; pt Branch/Status; fr Documentation/Messages/Version/Documents/minutes; it File/Repository/Branch/Output; de Version/Details/Repository/Branch/Status; {0}: {1}; Pauta {0}); no untranslated sentence found."
+    },
+    {
+      "id": "INTL-04",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Run each language at 1024 px wide, open each window and Settings page, find no row cut off: src/main/java/com/example/app/ui/SettingsWindow.java:607-650 (rows), messages_de.properties. Not recorded; not recorded"
+    },
+    {
+      "id": "INTL-05",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "No Chinese, Japanese or Korean catalog."
+    },
+    {
+      "id": "INTL-06",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "No Arabic or Hebrew catalog."
+    },
+    {
+      "id": "INTL-07",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/SettingsWindow.java:437 the sync URL's prompt comes from the catalog; the tagline is app.tagline"
+    },
+    {
+      "id": "INTL-08",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "All five catalogs have exactly the 413 base keys and no empty value; held by src/test/java/com/example/app/i18n/MessagesTest.java:34 (missing/extra) and :58-62 (blank)."
+    },
+    {
+      "id": "INTL-09",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "No lone apostrophe in a value with a placeholder and no doubled one without, in any catalog; the choice limbs hold no apostrophe. Test: src/test/java/com/example/app/i18n/MessagesTest.java:58."
+    },
+    {
+      "id": "INTL-10",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "No catalog placeholder takes an identifier (line, port): numeric ones are counts (src/main/resources/com/example/app/i18n/messages.properties:110,143,159,162-164,172,403), and versions/decision numbers are passed as strings. pauta.json still has a pending INTL-10 entry (\"No test checks … without digit grouping\"): an entry for a rule that passes."
+    },
+    {
+      "id": "INTL-11",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "settings.json, gh auth setup-git, gh auth login, SSH, GitHub and the command-line names in base values appear unchanged in all five translations."
+    },
+    {
+      "id": "INTL-12",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "No value writes (s); count messages use {0,choice,...} (messages.properties:145,161,174,212-219,251) in every catalog; MessagesTest.java:120-135 fails a (s) and parses every choice pattern."
+    },
+    {
+      "id": "INTL-13",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Chords are written from constants (Ctrl+, Alt+, Shift+, macOS glyphs: src/main/java/com/example/app/command/KeyStroke.java:122-125); no catalog writes a translated modifier (Maiuscole/Mayúsculas are \"match case\", not keys); MessagesTest.java:140 checks Strg|Umschalt|Maj|Mayús|Maiusc followed by +."
+    },
+    {
+      "id": "INTL-14",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Messages.locale gives the four cases (system locale whole with no or system language chosen, bare language otherwise) and start() sets it as the JVM default when it differs (src/main/java/com/example/app/i18n/Messages.java:57-71), called at start (src/main/java/com/example/app/ui/Startup.java:121); render formats with new MessageFormat(value), the default locale (Messages.java:113-117)."
+    },
+    {
+      "id": "PAL-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:18 registers palette.show -> MainWindow.openPalette (src/main/java/com/example/app/ui/MainWindow.java:302), one Picker per main window's OverlayHost (built fresh on each open rather than once, still one palette per window)"
+    },
+    {
+      "id": "PAL-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:304 rows from services.commands().all() with title, description and unavailableReason; unavailable rows stay listed, grayed (src/main/java/com/example/app/ui/Picker.java:232); description line under the list follows the selection (Picker.java:98-105)"
+    },
+    {
+      "id": "PAL-10",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Picker.java:48-50 WIDTH 620, ROW_HEIGHT 36, VISIBLE_ROWS 8; prompt from catalog palette.prompt=Run command… (src/main/resources/com/example/app/i18n/messages.properties:96, used at MainWindow.java:315)"
+    },
+    {
+      "id": "PAL-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:313 builds a new Picker on every open, so the query starts empty and Picker.java:106 filters on it before show()"
+    },
+    {
+      "id": "PAL-05",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Picker.java:146-149 refresh() selects enabledFrom(0, 1), the first enabled row, after each filter; src/test/java/com/example/app/ui/PickerFxTest.java:37 covers skipping an unavailable row. pauta.json has a pending entry for a rule that passes (\"No test covers an unavailable command at the top…\"): a test is not required by 6.0.0"
+    },
+    {
+      "id": "PAL-06",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The Command Palette moves on fixed keys instead of your keymap's line and page keys."
+    },
+    {
+      "id": "PAL-07",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "OverlayHost hides on Esc and on the active keymap's edit.cancel chord (src/main/java/com/example/app/ui/OverlayHost.java:35-48; src/main/java/com/example/app/ui/MainWindow.java:102; emacs.json:33 C-g, CUA binds none), on a press on the scrim (:34), and gives focus back (:66, 87-89); the edit.cancel command hides too (src/main/java/com/example/app/ui/Commands.java:318-321)."
+    },
+    {
+      "id": "PAL-08",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The Command Palette has no key that opens a command's help."
+    },
+    {
+      "id": "PAL-09",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The Command Palette's key legend does not follow a keymap change while it is open."
+    },
+    {
+      "id": "QOPEN-01",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Picker.java:36 one generic Picker<T> for the palette, theme, keymap, language and key-binding choices (MainWindow.java:313, 327, 339, 352, 407); no ChoiceDialog in src/main"
+    },
+    {
+      "id": "QOPEN-02",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: Pickers have no title naming what you are choosing."
+    },
+    {
+      "id": "QOPEN-03",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:323-353 each picker command reads its items fresh and Picker.java:62 snapshots them (List.copyOf); no source answers late, so no reload is needed. pauta.json has a pending entry for a rule that passes (\"A picker's list cannot be reloaded while it is open.\")"
+    },
+    {
+      "id": "QOPEN-04",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The theme, keymap and language pickers do not open on the current choice."
+    },
+    {
+      "id": "QOPEN-05",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Picker.java:142 sorts by score with List.sort, which is stable, so ties keep the supplier's order"
+    },
+    {
+      "id": "QOPEN-06",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: Pickers use fixed keys instead of your keymap's, and lack Ctrl+Home and Ctrl+End."
+    },
+    {
+      "id": "QOPEN-07",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Esc, the keymap's edit.cancel chord and a scrim press hide every picker through the shared OverlayHost and focus returns (src/main/java/com/example/app/ui/OverlayHost.java:34-48, 64-90; MainWindow.java:102); no picker previews anything, so there is nothing to undo."
+    },
+    {
+      "id": "QOPEN-08",
+      "level": "MAY",
+      "status": "pass",
+      "evidence": "no previewing picker: Picker.java has no preview hook and no picker in MainWindow.java previews"
+    },
+    {
+      "id": "QOPEN-09",
+      "level": "MAY",
+      "status": "pass",
+      "evidence": "no picker row action in src/main/java/com/example/app/ui/Picker.java (the Switcher's close-row key, Switcher.java:139-147, keeps it open and the cursor in place)"
+    },
+    {
+      "id": "QOPEN-10",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "no picker source can be empty: commands, ThemeChoice values, Keymap.PRESETS, and the language list that always holds System (src/main/java/com/example/app/ui/MainWindow.java:304-353)"
+    },
+    {
+      "id": "QOPEN-11",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/OverlayHost.java:57-60 show() hides the previous card first, then records the focus owner (restored by that hide) for the new card"
+    },
+    {
+      "id": "QOPEN-12",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The tab switcher has no Page Up and Page Down, which the pickers have."
+    },
+    {
+      "id": "WELC-01",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/DocumentTabs.java:58-72 opens the Welcome tab and selects it at every start (nothing is restored)"
+    },
+    {
+      "id": "WELC-02",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "the window is not its content: it holds document tabs with a Welcome page (WELC-01). src/main/resources/com/example/app/pauta.json has a pending entry (\"The empty window's ways in... do not show their keys\"), which a limited rule does not take; its reason describes WELC-04"
+    },
+    {
+      "id": "WELC-03",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The Welcome page is opened from the Window menu, not Help, by a command named for help instead of view."
+    },
+    {
+      "id": "WELC-04",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: Closing the last tab leaves an empty window with no hint of what to do next."
+    },
+    {
+      "id": "WELC-05",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The Welcome page is not built again each time it is shown, keeping the keyboard where it was."
+    },
+    {
+      "id": "WELC-06",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "no recent lists on the Welcome page (src/main/java/com/example/app/ui/MainWindow.java:203-223): nothing to judge"
+    },
+    {
+      "id": "WELC-07",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "no recent files and no remove action on the Welcome page (src/main/java/com/example/app/ui/MainWindow.java:203-223): nothing to judge"
+    },
+    {
+      "id": "WELC-08",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "no numbered entries on the Welcome page (src/main/java/com/example/app/ui/MainWindow.java:203-223): nothing to judge"
+    },
+    {
+      "id": "WELC-09",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "no saved remote sites in src/main"
+    },
+    {
+      "id": "WELC-10",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "no Customize links on the Welcome page (src/main/java/com/example/app/ui/MainWindow.java:211 lists palette, settings, documentation, what's new): nothing to judge"
+    },
+    {
+      "id": "WELC-11",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The Welcome tab offers the whole tab menu and is pinned, instead of only closing."
+    },
+    {
+      "id": "ABOUT-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "help.about registered (src/main/java/com/example/app/ui/Commands.java:116), rows in the Help menu of both tables (src/main/java/com/example/app/ui/AppMenus.java:153,181); on macOS MacAppMenu inserts About (and Settings) into Glass's application menu running help.about (src/main/java/com/example/app/ui/MacAppMenu.java:47-89, src/main/java/com/example/app/ui/MainWindow.java:198-214), with the mac launchers exporting com.sun.glass.ui.mac (pom.xml:493). macOS path read only."
+    },
+    {
+      "id": "ABOUT-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AboutDialog.java:45, 68 version and build/commit, Java and JavaFX (AppInfo.java:108-121); license, homepage (repository, no website linked) and releases links (AboutDialog.java:61-63 -> Commands.java:107-109); every update state shown (AboutDialog.java:130-144)"
+    },
+    {
+      "id": "ABOUT-03",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AboutDialog.java:71-75 Copy details in the content runs help.copyDetails (environment block, MainWindow.java:448) and relabels to about.copied"
+    },
+    {
+      "id": "ABOUT-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AboutDialog.java:143 with no answer falls back to about.notChecked (or the last-checked time), never up to date"
+    },
+    {
+      "id": "ABOUT-10",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/styles/app.css:259-269 .about-update-available bold -state-amber (no other About style uses amber), current green, failed red; last-checked line .muted (AboutDialog.java:143, 149)"
+    },
+    {
+      "id": "ABOUT-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/AboutDialog.java:64 edition link from about.pauta/about.pautaWorkingToward (messages.properties:198-199); Pauta: line right after Commit (src/main/java/com/example/app/AppInfo.java:110)"
+    },
+    {
+      "id": "ABOUT-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/AppInfo.java:92-94 pautaUrl() = https://pauta-project.dev/<PAUTA_EDITION>/, no latest"
+    },
+    {
+      "id": "ABOUT-07",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "About says \"Built to Pauta 6.0.0\": pauta.json has no pending MUST, so the helper gives Core (src/main/java/com/example/app/ui/AboutDialog.java:55,61,102-104; PautaConformance.java:200-210). Judged from this 72-rule scope only: no MUST here is fail or pending (REL-19 is app-only, PWIN-02 manual). The full audit's MUSTs settle it."
+    },
+    {
+      "id": "ABOUT-08",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "pom.xml:34 pauta.version, filtered into src/main/resources/com/example/app/build-info.properties:5 (pom.xml:116-119), read by src/main/java/com/example/app/AppInfo.java:47; no edition literal in src/main/java"
+    },
+    {
+      "id": "ABOUT-09",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "About takes the conformance from PautaConformance.conformance() (src/main/java/com/example/app/ui/AboutDialog.java:55,62) with no name of its own; the link runs help.pauta (:62); the edition link reads about.pautaWorkingToward at Partial (:102-104); environment block has \"Pauta conformance: ...\" right after \"Pauta:\" (src/main/java/com/example/app/AppInfo.java:111-112, PautaConformance.java:247-251)."
+    },
+    {
+      "id": "PWIN-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:111 help.pauta -> openPauta; row in the Help menu (src/main/java/com/example/app/ui/AppMenus.java:134); Simple mode's Help menu drops it, as DOCS-07 allows"
+    },
+    {
+      "id": "PWIN-02",
+      "level": "MUST",
+      "status": "manual",
+      "evidence": "Open the Pauta window and compare it with pauta.json entry by entry (edition, conformance sentence, counts by kind incl. app-only, ID, level, kind, reason, link): src/main/java/com/example/app/ui/PautaWindow.java:53-144. Not recorded; not recorded"
+    },
+    {
+      "id": "PWIN-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/PautaWindow.java:49 PautaConformance.exceptions() (the one loader), :58 AppInfo.PAUTA_EDITION, :55 PautaConformance.of; no rule ID, edition or conformance name in its code"
+    },
+    {
+      "id": "PWIN-04",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:112 help.pautaRules opens AppInfo.pautaUrl(); run by the edition links in PautaWindow.java:83 and AboutDialog.java:64; each rule ID opens its entry's url (PautaWindow.java:126)"
+    },
+    {
+      "id": "PWIN-05",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "PautaConformance.sorted orders by Kind (pending, deviation, app-only, not-applicable), then MUST before SHOULD, then ID (src/main/java/com/example/app/PautaConformance.java:52-56, 226-240); PautaWindow uses it (src/main/java/com/example/app/ui/PautaWindow.java:53); PautaConformanceTest.java:102-113 includes app-only."
+    },
+    {
+      "id": "PWIN-06",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Copy as text sits in the content, runs help.copyPauta (Markdown: edition, conformance, one line per exception) and relabels to pauta.copied (src/main/java/com/example/app/ui/PautaWindow.java:84-88, 199-240)."
+    },
+    {
+      "id": "PWIN-07",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:113 help.pautaDocs opens AppInfo.pautaDocsUrl() = docsUrl() + /pauta/ (AppInfo.java:100-102), the same base as help.documentation (Commands.java:96)"
+    },
+    {
+      "id": "PWIN-08",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "With an empty exceptions array, open the Pauta window: src/main/java/com/example/app/ui/PautaWindow.java:104-108 pauta.none names the app and edition; copy still works (:213-217); not recorded"
+    },
+    {
+      "id": "CONF-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "reset binding asks first (src/main/java/com/example/app/ui/SettingsWindow.java:380), import asks first (src/main/java/com/example/app/ui/MainWindow.java:618); closing a tab keeps its edits for Reopen Closed Tab (src/main/java/com/example/app/ui/DocumentTabs.java:207-208, 268)"
+    },
+    {
+      "id": "CONF-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Each question names the thing and what happens: import (file, parts overwritten), reset binding (command, chords), quit unsaved (names, lost): messages.properties:239-252, built in src/main/java/com/example/app/ui/Confirmations.java:55-94."
+    },
+    {
+      "id": "CONF-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Confirm.java:32 action ButtonType named by the question's verb (Overwrite, Reset), :58 danger style class"
+    },
+    {
+      "id": "CONF-14",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Every dialog goes through Dialogs.styled, which words the stock OK/Cancel/Yes/No/Apply/Close from the catalog before show and on any later change (src/main/java/com/example/app/ui/Dialogs.java:31-60): the TextInputDialogs (src/main/java/com/example/app/ui/Prompts.java:34-53, SettingsWindow.java:516-521), Report a Problem's Cancel (ReportProblemWindow.java:49,54); Confirm builds both buttons from the catalog (Confirm.java:33-35)."
+    },
+    {
+      "id": "CONF-04",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Confirm.java:33 Cancel has CANCEL_CLOSE; :68 answer.orElse(cancel); tested at src/test/java/com/example/app/ui/DialogsFxTest.java:111"
+    },
+    {
+      "id": "CONF-13",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Every destructive question goes through Confirm (Host.confirm -> FxHost.java:45): it sets setDefaultButton(false) on the red action and true on Cancel before the dialog is returned and shown (src/main/java/com/example/app/ui/Confirm.java:58-64)."
+    },
+    {
+      "id": "CONF-05",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Nothing to judge: no question offers Save (the template has no save; the quit question is Cancel/Quit Without Saving, Confirmations.java:80-85), so no unsaved-changes alert with three answers exists."
+    },
+    {
+      "id": "CONF-06",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "no close-running-program question in src/main (the Output sample task is not asked about)"
+    },
+    {
+      "id": "CONF-07",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Close a clean tab and reopen it with Reopen Closed Tab: src/main/java/com/example/app/ui/DocumentTabs.java:204, 268; not recorded"
+    },
+    {
+      "id": "CONF-08",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Confirm.java:63-69 true only on OK_DONE; callers act only on true (SettingsWindow.java:380, MainWindow.java:618); no other confirmation question"
+    },
+    {
+      "id": "CONF-09",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "no bulk question to judge: close-all and the other bulk closes lose nothing (DocumentTabs.java:216-237 keep edits) and ask nothing. pauta.json has a not-applicable entry for a rule that passes (\"ExampleApp has no action that works on many things at once.\", also inaccurate: buffer.closeAll exists)"
+    },
+    {
+      "id": "CONF-10",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "no delete in the template and no \"cannot be undone\" string in src/main/resources/com/example/app/i18n/messages.properties"
+    },
+    {
+      "id": "CONF-11",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "no dangerous alternative (no force path) in src/main/java. pauta.json has a not-applicable entry for a rule that passes (\"ExampleApp offers no riskier way to finish an action that failed.\")"
+    },
+    {
+      "id": "CONF-12",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/Confirmations.java:131, 152 pure question builders; Host.confirm hook (src/main/java/com/example/app/ui/Host.java:30) answered by src/test/java/com/example/app/ui/FakeHost.java:39; src/test/java/com/example/app/ui/ConfirmationsTest.java:31"
+    },
+    {
+      "id": "FIND-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Find bars as nodes in the window over each searchable text: documents (src/main/java/com/example/app/ui/DocumentView.java:26-28), Output console (src/main/java/com/example/app/ui/SamplePanels.java:174,188), Debug Log (src/main/java/com/example/app/ui/DebugLogWindow.java:32,70-71); no Popup or Stage. Message Log is a ListView; Report a Problem's text area is a dialog field."
+    },
+    {
+      "id": "FIND-02",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "The query's text listener requests the debounced search (src/main/java/com/example/app/ui/FindBar.java:96), which applies and sets the count label (src/main/java/com/example/app/ui/FindBar.java:160-178, 253-264), in each of the three bars."
+    },
+    {
+      "id": "FIND-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "the Message Log, a log shown as a list, has a filter field that narrows it as typed (src/main/java/com/example/app/ui/MessageLogView.java:39, 54-56); the main content is not a list"
+    },
+    {
+      "id": "FIND-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/resources/com/example/app/keymaps/cua.json:20 find.show is Shortcut+F and F3 (Cmd+F and Cmd+G on macOS, C-s in Emacs); src/test/java/com/example/app/ui/FindBarFxTest.java:208; each find bar's command finds the next match when run again (FindBar.openOrNext)"
+    },
+    {
+      "id": "FIND-05",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: Changing the search starts from the current match, not from where the caret was when the find bar opened."
+    },
+    {
+      "id": "FIND-06",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Enter steps next and Shift+Enter previous through the step commands (src/main/java/com/example/app/ui/FindBar.java:99-103), and step() wraps both ways (src/main/java/com/example/app/ui/FindBar.java:207-241), in every bar."
+    },
+    {
+      "id": "FIND-07",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Escape in the field and the Close button both run close(): cancels the debounce and the running search, drops the pending step, clears the selected match and focuses the searched text (src/main/java/com/example/app/ui/FindBar.java:93,104-106,139-147)."
+    },
+    {
+      "id": "FIND-08",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "no terminal: the rule covers a terminal with a find bar, and the template has none"
+    },
+    {
+      "id": "FIND-09",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The find field does not use your keymap's text-editing keys."
+    },
+    {
+      "id": "FIND-10",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/DebugLogFindBar.java:235 no match shows the count find.none (No matches); nothing opens"
+    },
+    {
+      "id": "FIND-11",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "no find bar that replaces (the Debug Log's is read-only). pauta.json has a not-applicable entry for a limited rule (\"ExampleApp's only find bar is over the read-only Debug Log, so it has no replace.\"), a PAUTA-05 problem"
+    },
+    {
+      "id": "FIND-12",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "no find bar that replaces. pauta.json has a not-applicable entry for a limited rule (\"ExampleApp's only find bar does not search with regular expressions…\"; the rule is about Replace's time budget), a PAUTA-05 problem"
+    },
+    {
+      "id": "FIND-13",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "main content is documents in tabs, not a list (src/main/java/com/example/app/ui/DocumentTabs.java)"
+    },
+    {
+      "id": "FIND-14",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "main content is not a list (src/main/java/com/example/app/ui/DocumentTabs.java)"
+    },
+    {
+      "id": "FIND-15",
+      "level": "SHOULD",
+      "status": "limited",
+      "evidence": "main content is not a list (src/main/java/com/example/app/ui/DocumentTabs.java)"
+    },
+    {
+      "id": "FIND-16",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/ui/DebugLogFindBar.java:79-82 only Previous/Next/Close leave the Tab order, matched by Shift+Enter/Enter/Escape in the field (:88-96) and debugLog.findNext/findPrevious; Match case stays traversable; the Message Log filter is traversable"
+    },
+    {
+      "id": "MLOG-08",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "In-scene card on the overlay host, no Stage (src/main/java/com/example/app/ui/MessageLogView.java:109), WIDTH 773, LIST_HEIGHT 336 (src/main/java/com/example/app/ui/MessageLogView.java:32-33), cap 200 (src/main/java/com/example/app/ui/MessageLog.java:25)."
+    },
+    {
+      "id": "MLOG-02",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "The unread count runs view.messageLog on click (src/main/java/com/example/app/ui/StatusBar.java:38); registered at src/main/java/com/example/app/ui/Commands.java:22."
+    },
+    {
+      "id": "MLOG-03",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "The Message Log is shown through OverlayHost (src/main/java/com/example/app/ui/MessageLogView.java:112), which closes on Esc, on the keymap's edit.cancel chord (not a fixed Ctrl+G) and on a scrim press (src/main/java/com/example/app/ui/OverlayHost.java:34-48; src/main/java/com/example/app/ui/MainWindow.java:102)."
+    },
+    {
+      "id": "MLOG-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Shortcut+C copies the selected entries (src/main/java/com/example/app/ui/MessageLogView.java:76-79 -> src/main/java/com/example/app/ui/MainWindow.java:432-436); no keymap binds a copy command, so there is no second chord to honor."
+    },
+    {
+      "id": "MLOG-05",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "One function: MessageLog.severityOf takes a status.* key's last segment, fail/error -> ERROR, cannot/invalid -> WARNING (src/main/java/com/example/app/ui/MessageLog.java:37-44), used by AppServices.echo (AppServices.java:105); PureUiTest.java:58-60."
+    },
+    {
+      "id": "MLOG-06",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Opening marks read (src/main/java/com/example/app/ui/MessageLogView.java:105); Clear zeroes the count (src/main/java/com/example/app/ui/MessageLog.java:84-88, src/main/java/com/example/app/ui/MainWindow.java:440-445)."
+    },
+    {
+      "id": "MLOG-07",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "unreadErrors is kept apart from the entries; eviction does not touch it (src/main/java/com/example/app/ui/MessageLog.java:57-61). Test: src/test/java/com/example/app/ui/PureUiTest.java:39-42."
+    },
+    {
+      "id": "SYNC-01",
+      "level": "SHOULD",
+      "status": "manual",
+      "evidence": "Open Settings, search \"sync\", land on the Sync page (key bindings are the data carried): src/main/java/com/example/app/ui/SettingsWindow.java:54,404-454, messages.properties:249; not recorded"
+    },
+    {
+      "id": "SYNC-02",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "src/main/java/com/example/app/sync/SyncEngine.java:108-137 runs git (sync/Git.java:27-41) against the user's URL with their own credentials; Create on GitHub uses their gh (sync/GitHubCli.java:69-77); no server of the app's"
+    },
+    {
+      "id": "REL-01",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "release.yml:83-88 matrix linux-x64 (ubuntu-latest), linux-arm64 (ubuntu-24.04-arm), macos-arm64 (macos-15), macos-x64 (macos-15-intel), windows-x64 (windows-latest); each runs -Pdist (release.yml:188; pom.xml:551)."
+    },
+    {
+      "id": "REL-02",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "release.yml:283-297 names files ExampleApp-$VERSION-$TARGET.$ext; the asset check builds the same names (release.yml:431-439)."
+    },
+    {
+      "id": "REL-03",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "jreleaser.yml:1-3,62-132 builds nothing, attaches the matrix's files (checksums file by default, :59-60) and its brew/winget take the same dmg/msi; the publish job needs check-assets -> sign-linux -> build (release.yml:473,409,327)."
+    },
+    {
+      "id": "REL-04",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "release.yml:504-511 scripts/release-notes.sh writes the version's CHANGELOG.md section to out/release-notes.md, which jreleaser.yml:54-57 uses as the notes."
+    },
+    {
+      "id": "REL-05",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "release.yml:52-57 fails when the tag differs from the pom version."
+    },
+    {
+      "id": "REL-06",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "pom.xml:9 0.1.0-SNAPSHOT; release.yml:584-645 bump job opens the next-snapshot pull request."
+    },
+    {
+      "id": "REL-07",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "release.yml:407-456 check-assets compares downloads with the expected list before publish (needs at :473)."
+    },
+    {
+      "id": "REL-08",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "packaging/linux/ExampleApp.desktop StartupWMClass=com.example.app.App, the class that extends Application (App.java:12)."
+    },
+    {
+      "id": "REL-09",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "packaging/linux/io.github.adriandeleon.ExampleApp.metainfo.xml:3 <id>io.github.adriandeleon.ExampleApp</id>."
+    },
+    {
+      "id": "REL-10",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "pom.xml:660-670 aot-train in the dist profile runs scripts/aot-train.sh with -XX:AOTCacheOutput (aot-train.sh:34); Linux legs install xvfb (release.yml:117)."
+    },
+    {
+      "id": "REL-11",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "jreleaser.yml:68,91 (arm64 dmg, msi) and :126-132 (x64 dmg, deb, rpm, AppImage, tar.gz, jar, asc); JReleaser's checksums file (checksum, :59-60)."
+    },
+    {
+      "id": "REL-12",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "jreleaser.yml:70-83 brew cask to adriandeleon/homebrew-tap."
+    },
+    {
+      "id": "REL-13",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "jreleaser.yml:93-117 winget, identifier AdrianDeLeon.ExampleApp, moniker exampleapp, adriandeleon fork."
+    },
+    {
+      "id": "REL-14",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "release.yml:535-563 passes PACKAGES_TOKEN as the brew and winget token and excludes both packagers without it."
+    },
+    {
+      "id": "REL-15",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "release.yml:130-175 imports MACOS_CERT_P12/MACOS_CERT_PASSWORD; scripts/sign-mac-app.sh:23-26 hardened runtime and entitlements; release.yml:218-271 notarytool with APPLE_API_KEY_P8/_ID/APPLE_API_ISSUER, staple, spctl, then launches the notarized app."
+    },
+    {
+      "id": "REL-16",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "release.yml:325-401 sign-linux job apart from the build legs reads LINUX_GPG_KEY/LINUX_GPG_PASSPHRASE, scripts/sign-linux-packages.sh signs rpm (rpmsign), deb (debsigs origin) and writes .asc beside every file; packaging/linux/signing-key.asc committed; attached as exampleapp-signing-key.asc (jreleaser.yml:132)."
+    },
+    {
+      "id": "REL-17",
+      "level": "SHOULD",
+      "status": "pending",
+      "evidence": "pauta.json: The Windows installer is not signed yet, though the release could sign it from a certificate each app supplies, as it signs the other systems' builds."
+    },
+    {
+      "id": "REL-18",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "release.yml:518-530 actions/attest-build-provenance over the dmg, msi, deb, rpm, AppImage, tar.gz, jar and asc patterns, the same files jreleaser.yml attaches (ReleaseSupplyChainTest.java:360 keeps them equal)."
+    },
+    {
+      "id": "REL-19",
+      "level": "MUST",
+      "status": "app-only",
+      "evidence": "pauta.json: Each app's repository requires its own format and test checks before a change is merged."
+    },
+    {
+      "id": "REL-20",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "full-tests.yml:12-13 daily schedule runs the whole suite (pure and FX) on ubuntu-latest, macos-15 and windows-latest (:44, :64); release.yml:69-76 calls it before build."
+    },
+    {
+      "id": "REL-21",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "release.yml:11-14 tag 'v*' and workflow_dispatch; a dispatch runs JReleaser with --dry-run (:541-543) and skips bump (:587)."
+    },
+    {
+      "id": "REL-30",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "release.yml:69-72 full-tests job calls full-tests.yml (verify on three OSes) and build needs it (:76); build also runs verify with tests (:188); publish needs check-assets -> sign-linux -> build."
+    },
+    {
+      "id": "REL-22",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Command exits 0: every uses: is pinned to a 40-character SHA with a version comment."
+    },
+    {
+      "id": "REL-23",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": ".github/dependabot.yml:6-16 maven and github-actions, interval weekly."
+    },
+    {
+      "id": "REL-24",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "ci.yml:17-18, full-tests.yml:21-22, release.yml:18-19 permissions contents: read; writes only in the publish (release.yml:477-480) and bump (:590-592) jobs."
+    },
+    {
+      "id": "REL-25",
+      "level": "SHOULD",
+      "status": "pass",
+      "evidence": "Every actions/setup-java step has cache: maven: ci.yml:39-43,59-63,126-130, full-tests.yml:53-57, release.yml:35-39,100-104,498-502,603-607 (8 of 8)."
+    },
+    {
+      "id": "REL-26",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "Every job with steps sets timeout-minutes: ci.yml:30,51,103,118; full-tests.yml:40; release.yml:25,78,329,411,475,589; the full-tests job (release.yml:69-72) calls a workflow and is not judged."
+    },
+    {
+      "id": "REL-31",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "ci.yml:22-24 group keyed by PR number or sha, cancel-in-progress only for pull_request; full-tests.yml:27-31 likewise (PR number, run_id for other labels, event+sha otherwise)."
+    },
+    {
+      "id": "REL-27",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "ci.yml:82-89 uploads surefire reports under if: always(); :91-98 uploads the JaCoCo report; :70-79 writes coverage totals to $GITHUB_STEP_SUMMARY."
+    },
+    {
+      "id": "REL-28",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "release.yml:141-148 macOS signing checks its secrets, skips on a dry run, fails on a tag; release.yml:356-370 the same for Linux; sign-mac-app.sh is a no-op without the identity (pom.xml:688-689)."
+    },
+    {
+      "id": "REL-29",
+      "level": "MUST",
+      "status": "pass",
+      "evidence": "release.yml:190-199 runs the packaged launcher (scripts/smoke-test.sh) on every leg (Linux, macOS, Windows) before publish; :203-209 the AppImage too."
+    }
+  ],
+  "problems": []
+}

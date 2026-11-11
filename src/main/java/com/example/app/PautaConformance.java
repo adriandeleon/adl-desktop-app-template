@@ -19,8 +19,9 @@ import org.jspecify.annotations.Nullable;
  * {@code pauta.json}, never stored. About, the Pauta window and {@code --version} take it from here; the
  * README is held to it by {@code PautaConformanceTest}.
  *
- * <p>Partial when a MUST is pending, Core when a SHOULD is pending, Complete otherwise. A deviation or a
- * not-applicable entry leaves the result alone, and so does a MAY: MAYs never count.
+ * <p>Partial when a MUST is pending, Core when a SHOULD is pending, Complete otherwise. A deviation, an
+ * app-only or a not-applicable entry leaves the result alone, and so does a MAY: MAYs never count. The
+ * {@code checked} list (PAUTA-18) is a record and never enters it.
  */
 public final class PautaConformance {
 
@@ -44,10 +45,14 @@ public final class PautaConformance {
         }
     }
 
-    /** The three kinds of exception, in the order the Pauta window lists them (PWIN-05). */
+    /**
+     * The four kinds of exception, in the order the Pauta window lists them (PWIN-05). {@code app-only} is a
+     * template's alone (PAUTA-16): a rule only an app made from it can meet, such as its website.
+     */
     public enum Kind {
         PENDING("pending", "pending"),
         DEVIATION("deviation", "deviation"),
+        APP_ONLY("app-only", "appOnly"),
         NOT_APPLICABLE("not-applicable", "notApplicable");
 
         private final String json;
@@ -96,25 +101,61 @@ public final class PautaConformance {
         }
     }
 
+    /**
+     * One rule a person checked by hand in the running app and found met (PAUTA-18): the rule, the edition it
+     * was checked against, the date and, for a rule checked again with each release, the app's version. A
+     * record only: it never changes the conformance.
+     */
+    public record Checked(
+            String rule,
+            String edition,
+            String date,
+            @Nullable String version) {}
+
     private static final ObjectMapper JSON = new ObjectMapper();
 
-    private static @Nullable List<Entry> bundled;
+    private static @Nullable JsonNode bundled;
 
     private PautaConformance() {}
 
-    /** The app's own exceptions, read once from the bundled {@code pauta.json}. */
-    public static synchronized List<Entry> exceptions() {
-        List<Entry> entries = bundled;
-        if (entries == null) {
+    /** The bundled {@code pauta.json}, read once. */
+    private static synchronized JsonNode file() {
+        JsonNode root = bundled;
+        if (root == null) {
             try (InputStream in = PautaConformance.class.getResourceAsStream(RESOURCE)) {
                 if (in == null) throw new IllegalStateException(RESOURCE + " is not bundled");
-                entries = parse(JSON.readTree(in));
+                root = JSON.readTree(in);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
-            bundled = entries;
+            bundled = root;
         }
-        return entries;
+        return root;
+    }
+
+    private static volatile @Nullable List<Entry> exceptions;
+
+    /**
+     * The app's own exceptions, from the bundled {@code pauta.json}: read and parsed once, at start-up off the
+     * FX thread, so About and the Pauta window parse nothing (PERF-01).
+     */
+    public static List<Entry> exceptions() {
+        List<Entry> parsed = exceptions;
+        if (parsed == null) {
+            parsed = parse(file());
+            exceptions = parsed;
+        }
+        return parsed;
+    }
+
+    /** The by-hand checks the app records (PAUTA-18); empty when it records none. */
+    public static List<Checked> checked() {
+        return parseChecked(file());
+    }
+
+    /** Whether this is the template repository, which new apps are made from (PAUTA-16). */
+    public static boolean isTemplate() {
+        return isTemplate(file());
     }
 
     /** The app's own conformance. */
@@ -136,6 +177,25 @@ public final class PautaConformance {
                     link == null || link.isNull() ? null : link.asText()));
         }
         return List.copyOf(entries);
+    }
+
+    /** Reads {@code pauta.json}'s {@code checked} array; a file without one records nothing. */
+    static List<Checked> parseChecked(JsonNode root) {
+        List<Checked> checked = new ArrayList<>();
+        for (JsonNode node : root.path("checked")) {
+            JsonNode version = node.get("version");
+            checked.add(new Checked(
+                    node.path("rule").asText(),
+                    node.path("edition").asText(),
+                    node.path("date").asText(),
+                    version == null || version.isNull() ? null : version.asText()));
+        }
+        return List.copyOf(checked);
+    }
+
+    /** {@code "template": true}; an app made from the template has {@code false}, and one never made from it none. */
+    static boolean isTemplate(JsonNode root) {
+        return root.path("template").asBoolean(false);
     }
 
     /** Partial when any MUST is pending, Core when any SHOULD is pending, Complete otherwise. */
@@ -163,7 +223,7 @@ public final class PautaConformance {
         return counts;
     }
 
-    /** Pending first, then deviations, then not applicable; within a kind MUSTs before SHOULDs, then by ID (PWIN-05). */
+    /** Pending first, then deviations, then app-only, then not applicable; within a kind MUSTs before SHOULDs, then by ID (PWIN-05). */
     public static List<Entry> sorted(List<Entry> exceptions) {
         return exceptions.stream()
                 .sorted(Comparator.comparing(Entry::kind)

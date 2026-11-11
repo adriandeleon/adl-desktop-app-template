@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -47,5 +48,20 @@ class EditionTest {
         assertTrue(read("AGENTS.md").contains("edition [" + edition + "](" + page + ")"), "AGENTS.md");
         Matcher other = Pattern.compile("Pauta[- ](\\d+\\.\\d+\\.\\d+)").matcher(readme);
         while (other.find()) assertEquals(edition, other.group(1), "README names another edition");
+    }
+
+    /** PAUTA-17: the agent reads the edition's own rules at its numbered address, never latest/. */
+    @Test
+    void agentsLinksTheEditionsRulesForCodingAgents() throws Exception {
+        String edition = pomEdition();
+        String agents = read("AGENTS.md");
+        assertTrue(agents.contains("\n## Pauta\n"), "AGENTS.md has a Pauta section");
+        String base = "https://pauta-project.dev/" + edition + "/";
+        assertTrue(agents.contains(base + "llms.txt"), "AGENTS.md links " + base + "llms.txt");
+        assertTrue(agents.contains(base + "llms-full.txt"), "AGENTS.md links " + base + "llms-full.txt");
+        assertFalse(agents.contains("pauta-project.dev/latest/"), "AGENTS.md links latest/");
+        Matcher other =
+                Pattern.compile("pauta-project\\.dev/(\\d+\\.\\d+\\.\\d+)/").matcher(agents);
+        while (other.find()) assertEquals(edition, other.group(1), "AGENTS.md links another edition");
     }
 }

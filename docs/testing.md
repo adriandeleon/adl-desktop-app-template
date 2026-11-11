@@ -44,7 +44,12 @@
 | `ConfigStoreTest#outOfRangeAndUnknownValuesAreCorrectedAsTheFileIsRead` | Every value read from `settings.json` is clamped or falls back to its default |
 | `MigrationsTest`, `SyncTest#theSyncFilesCarryAVersionAndAnOldBareFileIsMigrated` | Every schema version of `settings.json` and of Settings Sync's files has a migration step |
 | `StartupDeferralFxTest` | The start's file work runs off the FX thread; nothing nobody waits for, Settings Sync included, starts before the first paint |
-| `LogSearchTest`, `DebugLogFindBarFxTest` | The Debug Log's find runs off the FX thread, applies only its latest search, and narrows a growing query without searching the log again |
+| `LogSearchTest`, `FindBarFxTest` | Every find bar (the documents', the Output's, the Debug Log's) is in its window, searches as you type off the FX thread, applies only its latest search, narrows a growing query without searching again, steps with Enter and Shift+Enter, and gives the focus back on Escape; its command, run again, finds the next match, and every keymap binds `find.show` |
+| `NamedControlsFxTest` | Every control in every window and dialog, every Settings page and the palette has a name a screen reader says, and every menu row reads as its title and wears a glyph (ACC-01, MENU-14) |
+| `SameOnEveryOsFxTest`, `OsTest` | Run as Windows, macOS and Linux through `Os.override`, the app has the same commands, menu rows and Settings (OS-01, OS-03); `Os` is the one reader of `os.name` (OS-02) |
+| `UiZoomTest`, `MenuLookFxTest#theUiZoomScalesEveryMenu` | The UI zoom's steps and range, the stylesheets it scales, and every menu at the zoomed size (WIN-12, MENU-16) |
+| `DialogsFxTest` | Cancel is the confirm question's default; every dialog has one button order with Cancel first and its stock buttons worded from the catalog (CONF-13, WIN-11, CONF-14) |
+| `PautaConformanceTest`, `EditionTest` | `pauta.json` against the edition's `rules.json`: levels, addresses, kinds, `app-only` in a template only, what an app inherited (a failure in the release build), and the `checked` list's entries against each rule's `changed`; the README's badge, color and line; `AGENTS.md` links the edition's `llms.txt` and `llms-full.txt` (PAUTA-09, PAUTA-10, PAUTA-15 to PAUTA-18) |
 | `ReportTest#theReportCommandWritesAReportWithNothingPrivateLeftInIt` | `--report` writes a report and a link with nothing private left in them |
 | `NoticeCoverageTest` | Every runtime dependency in the pom has a `NOTICE` entry; the jar carries `LICENSE` and `NOTICE` |
 | `BuildHygieneTest` | The jar, the app image and the installers are handed `LICENSE` and `NOTICE`; the coverage floors below match the pom |
