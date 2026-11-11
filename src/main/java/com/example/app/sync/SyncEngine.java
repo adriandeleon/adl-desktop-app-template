@@ -44,10 +44,17 @@ public final class SyncEngine {
 
     private final Path syncDir;
     private final Git git;
+    private final @org.jspecify.annotations.Nullable GitHubCli gh;
 
     public SyncEngine(Path syncDir, Git git) {
+        this(syncDir, git, null);
+    }
+
+    /** With {@code gh}, an HTTPS github.com remote uses the account pinned to the clone (SET-18). */
+    public SyncEngine(Path syncDir, Git git, @org.jspecify.annotations.Nullable GitHubCli gh) {
         this.syncDir = syncDir;
         this.git = git;
+        this.gh = gh;
     }
 
     public Path repoDir() {
@@ -110,7 +117,11 @@ public final class SyncEngine {
         if (refused != null) return new Result(null, "url." + refused);
         try {
             Path repo = repoDir();
-            Git.Result step = prepare(repo, url.trim(), branch);
+            // The account pinned to this clone, for an HTTPS github.com remote (SET-18).
+            GitHubCli cli = gh;
+            java.util.Map<String, String> env =
+                    cli == null ? java.util.Map.of() : AccountPin.env(syncDir, url.trim(), cli);
+            Git.Result step = prepare(repo, url.trim(), branch, env);
             if (!step.ok()) return new Result(null, step.output());
 
             Map<String, String> remote = SyncData.read(repo.resolve(DATA_FILE));
@@ -131,7 +142,7 @@ public final class SyncEngine {
                         "-m",
                         "Sync from " + hostName());
                 if (!step.ok()) return new Result(null, step.output());
-                step = git.run(repo, "push", "-q", "origin", "HEAD:refs/heads/" + branch);
+                step = git.run(env, repo, "push", "-q", "origin", "HEAD:refs/heads/" + branch);
                 if (!step.ok()) return new Result(null, step.output());
             }
             SyncData.write(syncDir.resolve(BASE_FILE), merged);
@@ -145,7 +156,8 @@ public final class SyncEngine {
     }
 
     /** Clones on first use, then brings the clone to the remote branch (an empty remote is fine). */
-    private Git.Result prepare(Path repo, String url, String branch) throws IOException {
+    private Git.Result prepare(Path repo, String url, String branch, java.util.Map<String, String> env)
+            throws IOException {
         if (!Files.isDirectory(repo.resolve(".git"))) {
             Files.createDirectories(repo);
             Git.Result init = git.run(repo, "init", "-q");
@@ -154,7 +166,7 @@ public final class SyncEngine {
         } else {
             git.run(repo, "remote", "set-url", "origin", url);
         }
-        Git.Result fetch = git.run(repo, "fetch", "-q", "origin");
+        Git.Result fetch = git.run(env, repo, "fetch", "-q", "origin");
         if (!fetch.ok()) return fetch;
         boolean remoteBranch =
                 git.run(repo, "rev-parse", "--verify", "-q", "origin/" + branch).ok();

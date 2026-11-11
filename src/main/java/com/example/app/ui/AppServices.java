@@ -40,7 +40,12 @@ public final class AppServices {
     private String keymapState = "";
 
     public AppServices(ConfigStore store, Host host) {
-        this(store, host, new UpdateService(), new SyncEngine(store.dir().resolve("sync"), new Git()), new GitHubCli());
+        this(store, host, new UpdateService(), new GitHubCli());
+    }
+
+    private AppServices(ConfigStore store, Host host, UpdateService updates, GitHubCli gh) {
+        // The sync engine asks gh which account can read the repository, and keeps it (SET-18).
+        this(store, host, updates, new SyncEngine(store.dir().resolve("sync"), new Git(), gh), gh);
     }
 
     AppServices(ConfigStore store, Host host, UpdateService updateService, SyncEngine syncEngine, GitHubCli gitHub) {

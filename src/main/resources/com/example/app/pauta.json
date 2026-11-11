@@ -66,22 +66,6 @@
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/14"
     },
     {
-      "rule": "SET-18",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/settings/#set-18",
-      "kind": "pending",
-      "reason": "Settings Sync does not remember which GitHub account each copy uses.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
-    },
-    {
-      "rule": "SET-20",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/settings/#set-20",
-      "kind": "pending",
-      "reason": "Settings Sync replaces your key bindings without keeping a copy of the old ones first.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
-    },
-    {
       "rule": "DOCS-01",
       "level": "MUST",
       "url": "https://pauta-project.dev/6.0.0/documentation/#docs-01",

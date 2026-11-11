@@ -113,12 +113,46 @@ public final class GitHubCli {
         return "";
     }
 
-    /** Runs gh with prompts off and nothing on its terminal; exit -1 when it could not start or hung. */
+    /** {@code Logged in to github.com account NAME} (gh 2.40 on) or {@code ... as NAME} (before). */
+    private static final Pattern ACCOUNT = Pattern.compile("Logged in to (\\S+) (?:account|as) ([\\w.-]+)");
+
+    /** The github.com accounts gh is signed in to, the active one first as gh lists them. */
+    public List<String> accounts() {
+        Result status = run(QUICK, "auth", "status", "--hostname", "github.com");
+        return accounts(status.output());
+    }
+
+    /** The accounts in {@code gh auth status}'s output. Pure. */
+    static List<String> accounts(String output) {
+        List<String> accounts = new ArrayList<>();
+        Matcher m = ACCOUNT.matcher(output);
+        while (m.find()) if (!accounts.contains(m.group(2))) accounts.add(m.group(2));
+        return accounts;
+    }
+
+    /** {@code account}'s token, or null when gh has none for it. Never logged, never shown. */
+    public @org.jspecify.annotations.Nullable String token(String account) {
+        Result token = run(QUICK, "auth", "token", "--hostname", "github.com", "--user", account);
+        return token.ok() && !token.output().isBlank() ? token.output().strip() : null;
+    }
+
+    /** Whether the account behind {@code token} can read {@code ownerRepo} ({@code owner/name}). */
+    public boolean canRead(String token, String ownerRepo) {
+        return run(java.util.Map.of("GH_TOKEN", token), QUICK, "api", "repos/" + ownerRepo, "--silent")
+                .ok();
+    }
+
     private Result run(Duration timeout, String... args) {
+        return run(java.util.Map.of(), timeout, args);
+    }
+
+    /** Runs gh with prompts off and nothing on its terminal; exit -1 when it could not start or hung. */
+    private Result run(java.util.Map<String, String> env, Duration timeout, String... args) {
         List<String> argv = new ArrayList<>();
         argv.add(gh());
         argv.addAll(List.of(args));
         ProcessBuilder builder = new ProcessBuilder(argv).redirectErrorStream(true);
+        builder.environment().putAll(env);
         builder.environment().put("GH_PROMPT_DISABLED", "1");
         builder.environment().put("GH_NO_UPDATE_NOTIFIER", "1");
         builder.environment().put("NO_COLOR", "1");
