@@ -73,6 +73,7 @@ public final class SettingsWindow {
                             "settings.language",
                             "settings.toggleUpdateCheck",
                             "view.toggleToolbar",
+                            "view.toggleTabBar",
                             "view.toggleStatusBar"),
             Page.APPEARANCE, java.util.Arrays.asList("settings.theme", "view.toggleTitleBarMenus"),
             Page.KEYMAP, java.util.Arrays.asList("settings.keymap", "settings.bindKey"),
@@ -115,6 +116,7 @@ public final class SettingsWindow {
     private final ComboBox<String> language = new ComboBox<>();
     private final SettingSwitch updates = new SettingSwitch(Messages.tr("settings.updates.title"));
     private final SettingSwitch toolbar = new SettingSwitch(Messages.tr("settings.toolbar.title"));
+    private final SettingSwitch tabBar = new SettingSwitch(Messages.tr("settings.tabBar.title"));
     private final SettingSwitch statusBar = new SettingSwitch(Messages.tr("settings.statusBar.title"));
     private final ComboBox<ThemeChoice> theme = new ComboBox<>();
     private final SettingSwitch titleBar = new SettingSwitch(Messages.tr("settings.titleBar.title"));
@@ -224,6 +226,8 @@ public final class SettingsWindow {
         row(card, Page.GENERAL, "settings.updates", updates, "release version network");
         toolbar.setOnAction(e -> services.store().update(s -> s.showToolbar = toolbar.isSelected()));
         row(card, Page.GENERAL, "settings.toolbar", toolbar, "buttons icons");
+        tabBar.setOnAction(e -> services.store().update(s -> s.showTabBar = tabBar.isSelected()));
+        row(card, Page.GENERAL, "settings.tabBar", tabBar, "tabs documents strip");
         statusBar.setOnAction(e -> services.store().update(s -> s.showStatusBar = statusBar.isSelected()));
         row(card, Page.GENERAL, "settings.statusBar", statusBar, "echo messages");
         loaders.add(() -> {
@@ -231,6 +235,7 @@ public final class SettingsWindow {
             language.setValue(s.language);
             updates.setSelected(s.checkForUpdates);
             toolbar.setSelected(s.showToolbar);
+            tabBar.setSelected(s.showTabBar);
             statusBar.setSelected(s.showStatusBar);
         });
     }
@@ -734,6 +739,10 @@ public final class SettingsWindow {
 
     SettingSwitch toolbarSwitch() {
         return toolbar;
+    }
+
+    SettingSwitch tabBarSwitch() {
+        return tabBar;
     }
 
     SettingSwitch statusBarSwitch() {

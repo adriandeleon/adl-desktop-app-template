@@ -599,62 +599,6 @@
       "reason": "ExampleApp never asks for a password or token: Settings Sync uses the credentials git already has."
     },
     {
-      "rule": "TABS-01",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-01",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-02",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-02",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-03",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-03",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-04",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-04",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-05",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-05",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-06",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-06",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-13",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-13",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TABS-14",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-14",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
       "rule": "CONF-09",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/4.1.0/templates/confirm-dialog/#conf-09",
@@ -711,123 +655,12 @@
       "reason": "ExampleApp has one kind of picker, the Command Palette's."
     },
     {
-      "rule": "TABS-07",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-07",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-08",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-08",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-09",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-09",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-10",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-10",
-      "kind": "not-applicable",
-      "reason": "ExampleApp opens no files or projects, so its title is its name alone."
-    },
-    {
       "rule": "TABS-11",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-11",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-12",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-12",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tabs: it shows one view in one window."
-    },
-    {
-      "rule": "TABS-15",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-15",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TABS-16",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-16",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TABS-17",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-17",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TABS-18",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-18",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TABS-19",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-19",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TABS-20",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-20",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TABS-21",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-21",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TABS-22",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-22",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TABS-23",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/tabs-and-panels/#tabs-23",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool panels."
-    },
-    {
-      "rule": "TBAR-12",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-12",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool windows."
-    },
-    {
-      "rule": "TBAR-13",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/toolbars-and-tooltips/#tbar-13",
-      "kind": "not-applicable",
-      "reason": "ExampleApp has no tool windows."
+      "kind": "deviation",
+      "reason": "The tab strip sits over the documents, under the menus and the toolbar, so the toolbar never comes between the tabs and what they label.",
+      "link": "https://github.com/adriandeleon/adl-desktop-app-template/blob/master/docs/decisions/0002-tabs-below-the-toolbar.md"
     }
   ]
 }

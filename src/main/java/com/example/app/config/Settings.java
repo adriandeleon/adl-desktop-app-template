@@ -1,5 +1,7 @@
 package com.example.app.config;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -16,7 +18,7 @@ import org.jspecify.annotations.Nullable;
 public final class Settings {
 
     /** Bump with every change to the shape of this file, and add the matching {@link Migrations} step. */
-    public static final int SCHEMA_VERSION = 4;
+    public static final int SCHEMA_VERSION = 5;
 
     public int schemaVersion = SCHEMA_VERSION;
 
@@ -41,6 +43,9 @@ public final class Settings {
     public boolean showToolbar = true;
 
     public boolean showStatusBar = true;
+
+    /** The strip of document tabs (TABS-12). */
+    public boolean showTabBar = true;
 
     /**
      * The menus and the title in one bar drawn by the app (JavaFX's {@code HeaderBar}), where the
@@ -68,12 +73,14 @@ public final class Settings {
         c.lastUpdateCheck = lastUpdateCheck;
         c.showToolbar = showToolbar;
         c.showStatusBar = showStatusBar;
+        c.showTabBar = showTabBar;
         c.titleBarMenus = titleBarMenus;
         c.window.x = window.x;
         c.window.y = window.y;
         c.window.width = window.width;
         c.window.height = window.height;
         c.window.maximized = window.maximized;
+        c.window.toolWindows = window.toolWindows.copy();
         c.sync.repoUrl = sync.repoUrl;
         c.sync.branch = sync.branch;
         c.sync.auto = sync.auto;
@@ -92,6 +99,52 @@ public final class Settings {
         public double width = 960;
         public double height = 640;
         public boolean maximized;
+
+        /** The tool windows' arrangement, restored on the next launch (TABS-15). */
+        public ToolWindows toolWindows = new ToolWindows();
+    }
+
+    /**
+     * The workspace state of the tool windows (TABS-15): which are open, on which side, in what order,
+     * hidden or shown, floating, and every size. Machine-local, with the window it belongs to.
+     */
+    public static final class ToolWindows {
+        /** The windows open, docked or floating, in the order they opened. */
+        public List<String> open = new ArrayList<>();
+
+        /** A window's side where the user moved it from its home: {@code LEFT}, {@code RIGHT} or {@code BOTTOM}. */
+        public Map<String, String> sides = new TreeMap<>();
+
+        /** The stripe buttons' order, one list across the three stripes; empty for the app's own order. */
+        public List<String> order = new ArrayList<>();
+
+        /** The stripe buttons the user hid. */
+        public List<String> hidden = new ArrayList<>();
+
+        /** The windows that float in a window of their own. */
+        public List<String> floating = new ArrayList<>();
+
+        /** Each window's share of the window's width (left, right) or height (bottom), once it has one. */
+        public Map<String, Double> sizes = new TreeMap<>();
+
+        /** Each side's split between its two stacked windows, by side. */
+        public Map<String, Double> splits = new TreeMap<>();
+
+        /** The maximized window's id, or blank. */
+        public String maximized = "";
+
+        public ToolWindows copy() {
+            ToolWindows c = new ToolWindows();
+            c.open = new ArrayList<>(open);
+            c.sides = new TreeMap<>(sides);
+            c.order = new ArrayList<>(order);
+            c.hidden = new ArrayList<>(hidden);
+            c.floating = new ArrayList<>(floating);
+            c.sizes = new TreeMap<>(sizes);
+            c.splits = new TreeMap<>(splits);
+            c.maximized = maximized;
+            return c;
+        }
     }
 
     /** Settings Sync through a Git repository the user owns. */

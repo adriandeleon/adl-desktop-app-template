@@ -30,7 +30,8 @@
 > `rename.sh` turns every `ExampleApp` / `exampleapp` / `EXAMPLEAPP` / `com.example.app` into your
 > names, moves the package folders, gives the Windows installer its own upgrade code, and deletes
 > this box, the rename check in CI and itself. Then replace the icon (`branding/`, then
-> `scripts/make-icons.sh`) and the screenshots, and write your app in `MainWindow`'s placeholder.
+> `scripts/make-icons.sh`) and the screenshots, and write your app in tabs and tool windows in place of
+> the samples (`SampleFiles`, `SamplePanels`).
 > Most of what Pauta 4.1.0 marks MUST is already here and tested; see
 > [docs/architecture.md](docs/architecture.md) for where each piece lives. The rest is listed, rule by
 > rule, in [`pauta.json`](src/main/resources/com/example/app/pauta.json) and in the app's Pauta window
@@ -59,6 +60,8 @@ Working toward [Pauta (the adl desktop apps guidelines)](https://pauta-project.d
 - **Keyboard first.** A Command Palette (`Ctrl/Cmd+Shift+P`, or `M-x` in the Emacs keymap) finds and
   runs every command. CUA and Emacs keymaps, with your own bindings on top. A toolbar puts the everyday
   ones a click away, each button naming its key.
+- **Tabs and tool windows.** Documents in tabs you can pin, reorder, switch between and reopen, and tool
+  windows docked on three sides that you can move, float, maximize and resize, every action a command.
 - **Settings that apply as you change them.** A searchable Settings window, a palette command for
   every setting, and a versioned config folder that older versions never overwrite.
 - **Light and dark**, following your system: Caret & Ink, the Pauta family palette, with the Inter

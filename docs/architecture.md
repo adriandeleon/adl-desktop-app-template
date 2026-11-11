@@ -42,9 +42,23 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
   `CLUSTER`.**
 - `MainWindow`: the top band (the title bar, a JavaFX `HeaderBar` holding the menus and the title, where
   the platform supports extended windows and the menus are in the window; a plain menu row otherwise,
-  and the screen menu bar on macOS; then the toolbar), the content placeholder, `StatusBar`, and an
-  `OverlayHost` (the root
-  `StackPane`) that carries the in-scene overlays. **Put your app's content in `placeholder()`.**
+  and the screen menu bar on macOS; then the toolbar), the tool windows round the document tabs,
+  `StatusBar`, and an `OverlayHost` (the root `StackPane`) that carries the in-scene overlays. The
+  Welcome tab's page is `placeholder()`. **Put your app's documents in tabs, and its panels in tool
+  windows.**
+- The tabs (Pauta's Tabs and tool panels, after Editora): `DocumentTabs` owns the `TabPane`, the pinned
+  group, the closed list and the window title; `TabStrip` is the pure arithmetic (bulk closes skip pinned
+  tabs, the pin boundary, where a dragged tab lands); `TabHeaders` draws each header (the header is the
+  title, carrying the unsaved, pinned and read-only states, and is the drag handle); `ClosedTabs` is
+  Reopen Closed Tab's list; `TabContextMenu` the per-tab commands; `Switcher` the tab switcher;
+  `TabGitStatus` the Git colors. The documents are `SampleFiles` in a `DocumentView`: placeholders that
+  exist only in memory. **Replace them with your files.**
+- The tool windows: `ToolWindowManager` lays out a stripe on each of three sides and the open windows
+  (at most two a side) between the stripes and the tabs, keeps the arrangement in `settings.json`
+  (`window.toolWindows`), and lines the side stripes' first icon up with the documents' first line of
+  text. A `ToolWindow` builds its content on first open; `ToolWindowVisibility` and `ToolWindowDock` are
+  its pure decisions. The three windows' content is `SamplePanels` (Documents, Outline, Output).
+  The class comments map each rule to the code that meets it.
 - `Commands`: every command, in one place. Menus, buttons, the palette and keys all run them by id.
 - `Picker`: the one list chooser; the Command Palette is a `Picker` over commands, and the theme,
   keymap and language pickers are `Picker`s too.
@@ -58,7 +72,7 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
 - **A command**: `CommandRegistry.run(id)` → the action. Its title and description come from
   `command.<id>` / `command.<id>.desc`. An unavailable command explains itself in the palette.
 - **A setting**: a control or a command calls `store.update(s -> …)`, which saves `settings.json`
-  atomically and notifies every listener: `MainWindow` re-applies theme, toolbar and status bar, the Settings
+  atomically and notifies every listener: `MainWindow` re-applies theme, toolbar, tab bar and status bar, the Settings
   window reloads its controls, `AppServices` rebuilds the key bindings.
 - **A message**: `services.echo("status.key", args)` → `MessageLog` → the status bar's echo line.
   Severity comes from the key's name. Logging goes to `DebugLog` (memory + session file).
