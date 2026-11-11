@@ -17,7 +17,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The tab switcher (TABS-09), after Editora's: the open files in tab order, the current one highlighted.
- * {@code C-n} / {@code C-p}, the arrows or Tab move; Enter, or releasing Ctrl (Cmd on macOS) after moving
+ * The pickers' keys move it ({@link PickerKeys}: the arrows, the page keys and the keymap's line chords, {@code C-n} / {@code C-p} in Emacs), Tab too; Enter, or releasing Ctrl (Cmd on macOS) after moving
  * with it held, activates; {@code C-g} or Esc cancels ({@link OverlayHost}); {@code C-d}, Backspace or Delete closes the
  * highlighted file. Its width is fixed to the longest path on each open, so it never resizes while you move.
  */
@@ -102,16 +102,42 @@ final class Switcher {
         return document == null ? tabs.title(tab) : document.path().toString();
     }
 
+    private java.util.function.@Nullable Supplier<com.example.app.command.Keybindings> keys;
+    private boolean mac;
+
+    /** The keymap the moves come from: the pickers' keys, the same helper (QOPEN-12). */
+    void keymap(java.util.function.Supplier<com.example.app.command.Keybindings> keys, boolean mac) {
+        this.keys = keys;
+        this.mac = mac;
+    }
+
     private void onKey(KeyEvent e) {
         boolean ctrl = e.isControlDown();
         KeyCode code = e.getCode();
         boolean held = ctrl || e.isMetaDown();
-        if (code == KeyCode.DOWN || (ctrl && code == KeyCode.N) || (code == KeyCode.TAB && !e.isShiftDown())) {
+        PickerKeys.Move move = PickerKeys.resolve(e, keys == null ? null : keys.get(), mac);
+        int size = list.getItems().size();
+        if (move == PickerKeys.Move.LINE_DOWN || (code == KeyCode.TAB && !e.isShiftDown())) {
             move(1);
             armed |= held;
-        } else if (code == KeyCode.UP || (ctrl && code == KeyCode.P) || code == KeyCode.TAB) {
+        } else if (move == PickerKeys.Move.LINE_UP || code == KeyCode.TAB) {
             move(-1);
             armed |= held;
+        } else if (move == PickerKeys.Move.PAGE_DOWN || move == PickerKeys.Move.LAST) {
+            list.getSelectionModel()
+                    .select(
+                            move == PickerKeys.Move.LAST
+                                    ? size - 1
+                                    : Math.min(
+                                            size - 1, list.getSelectionModel().getSelectedIndex() + MAX_VISIBLE));
+            list.scrollTo(list.getSelectionModel().getSelectedIndex());
+        } else if (move == PickerKeys.Move.PAGE_UP || move == PickerKeys.Move.FIRST) {
+            list.getSelectionModel()
+                    .select(
+                            move == PickerKeys.Move.FIRST
+                                    ? 0
+                                    : Math.max(0, list.getSelectionModel().getSelectedIndex() - MAX_VISIBLE));
+            list.scrollTo(list.getSelectionModel().getSelectedIndex());
         } else if (code == KeyCode.ENTER) {
             commit();
         } else if (code == KeyCode.BACK_SPACE || code == KeyCode.DELETE || (ctrl && code == KeyCode.D)) {

@@ -269,6 +269,8 @@ class TabsAndPanelsFxTest {
     /** TABS-09: the switcher moves, closes the highlighted file, and keeps its width. */
     @Test
     void theSwitcherMovesClosesAndKeepsItsWidth() throws Exception {
+        // C-n is the Emacs keymap's line chord; the switcher moves on it as the pickers do (QOPEN-12).
+        run(() -> services.store().update(st -> st.keymap = "emacs"));
         assertTrue(runCommand("switcher.show"));
         Switcher switcher = Objects.requireNonNull(window.switcher());
         assertTrue(call(() -> window.overlays().isShowing()));
@@ -291,6 +293,7 @@ class TabsAndPanelsFxTest {
                 new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.CONTROL, false, false, false, false)));
         assertFalse(call(() -> window.overlays().isShowing()));
         assertSame(highlighted, call(tabs::selected));
+        run(() -> services.store().update(st -> st.keymap = "cua"));
     }
 
     /** TABS-09: opened with C-x C-b, letting go of Ctrl does not close the list. */

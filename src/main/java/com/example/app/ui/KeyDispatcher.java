@@ -62,6 +62,9 @@ public final class KeyDispatcher {
             return;
         }
         pending.clear();
+        // A keymap's chord for something that is no command here (the nav.* moves of a list overlay) is the
+        // key's own again: it reaches the focused control.
+        if (id != null && services.commands().get(id) == null) return;
         if (id != null) {
             event.consume();
             if (!services.commands().run(id)) {

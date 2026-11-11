@@ -26,54 +26,6 @@
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/19"
     },
     {
-      "rule": "KBD-06",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/keyboard/#kbd-06",
-      "kind": "pending",
-      "reason": "The Command Palette matches a command's description and not its id.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
-    },
-    {
-      "rule": "PAL-06",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/command-palette/#pal-06",
-      "kind": "pending",
-      "reason": "The Command Palette moves on fixed keys instead of your keymap's line and page keys.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
-    },
-    {
-      "rule": "PAL-08",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/command-palette/#pal-08",
-      "kind": "pending",
-      "reason": "The Command Palette has no key that opens a command's help.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
-    },
-    {
-      "rule": "PAL-09",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/command-palette/#pal-09",
-      "kind": "pending",
-      "reason": "The Command Palette's key legend does not follow a keymap change while it is open.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
-    },
-    {
-      "rule": "PERF-09",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/performance/#perf-09",
-      "kind": "pending",
-      "reason": "The Command Palette builds new text pieces for every row as you type.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
-      "rule": "PERF-10",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/performance/#perf-10",
-      "kind": "pending",
-      "reason": "The Command Palette draws each letter of a row as a separate piece.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
       "rule": "PERF-17",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/6.0.0/performance/#perf-17",
@@ -96,38 +48,6 @@
       "kind": "pending",
       "reason": "There is no switch that records what keeps the window busy.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
-      "rule": "QOPEN-02",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/quick-open/#qopen-02",
-      "kind": "pending",
-      "reason": "Pickers have no title naming what you are choosing.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
-    },
-    {
-      "rule": "QOPEN-04",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/quick-open/#qopen-04",
-      "kind": "pending",
-      "reason": "The theme, keymap and language pickers do not open on the current choice.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
-    },
-    {
-      "rule": "QOPEN-06",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/quick-open/#qopen-06",
-      "kind": "pending",
-      "reason": "Pickers use fixed keys instead of your keymap's, and lack Ctrl+Home and Ctrl+End.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
-    },
-    {
-      "rule": "QOPEN-12",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/quick-open/#qopen-12",
-      "kind": "pending",
-      "reason": "The tab switcher has no Page Up and Page Down, which the pickers have.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/23"
     },
     {
       "rule": "QUAL-13",

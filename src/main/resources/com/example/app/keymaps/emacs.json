@@ -29,6 +29,10 @@
     "find.previous": "C-r",
     "edit.cancel": "C-g",
     "window.focusNextRegion": "C-x o",
-    "window.focusPreviousRegion": "C-x S-o"
+    "window.focusPreviousRegion": "C-x S-o",
+    "nav.lineDown": "C-n",
+    "nav.lineUp": "C-p",
+    "nav.pageDown": "C-v",
+    "nav.pageUp": "M-v"
   }
 }

@@ -342,6 +342,7 @@ public final class MainWindow {
         Switcher built = switcher;
         if (built == null) {
             built = new Switcher(tabs, overlays);
+            built.keymap(services::keybindings, Os.isMac()); // the pickers' keys (QOPEN-12)
             switcher = built;
         }
         built.show();
@@ -403,23 +404,51 @@ public final class MainWindow {
     }
 
     void openPalette() {
-        // Every registered command (PAL-02): one that cannot run now stays listed, grayed with the reason.
-        List<Picker.Item<String>> items = services.commands().all().stream()
+        Picker<String> palette = new Picker<>(
+                        overlays,
+                        Messages.tr("palette.prompt"),
+                        services.keybindings().label("palette.show"),
+                        paletteItems(),
+                        services.commands()::run)
+                .keymap(services::keybindings, Os.isMac())
+                // PAL-08: the help chord opens the selected command's page in this version's docs.
+                .help(id -> services.host().openUrl(AppInfo.docsUrl() + "/commands/#" + id));
+        palette.hint().setText(legend(palette));
+        // PAL-09: a keymap switch while it is open draws its chips and its legend again.
+        Runnable rebind =
+                () -> palette.rebind(services.keybindings().label("palette.show"), paletteItems(), legend(palette));
+        services.onKeybindingsChanged(rebind);
+        palette.onHidden(() -> services.offKeybindingsChanged(rebind)).show();
+    }
+
+    /** Every registered command (PAL-02): one that cannot run now stays listed, grayed with the reason. */
+    private List<Picker.Item<String>> paletteItems() {
+        return services.commands().all().stream()
                 .sorted(java.util.Comparator.comparing(Command::title))
                 .map(c -> new Picker.Item<>(
                         c.id(),
                         c.title(),
                         c.description(),
                         services.keybindings().label(c.id()),
-                        c.unavailableReason()))
+                        c.unavailableReason(),
+                        Picker.idWords(c.id())))
                 .toList();
-        new Picker<>(
-                        overlays,
-                        Messages.tr("palette.prompt"),
-                        services.keybindings().label("palette.show"),
-                        items,
-                        services.commands()::run)
-                .show();
+    }
+
+    /** The palette's key legend in the active keymap: its moves, run, cancel and help (PAL-06, PAL-08). */
+    private String legend(Picker<String> palette) {
+        var keys = services.keybindings();
+        String moves = java.util.stream.Stream.of("nav.lineDown", "nav.lineUp")
+                .map(keys::label)
+                .filter(l -> !l.isEmpty())
+                .collect(java.util.stream.Collectors.joining(" "));
+        String cancel = keys.label("edit.cancel");
+        String help = palette.helpLabel(keys);
+        String legend = Messages.tr(
+                "palette.legend",
+                moves.isEmpty() ? "↑↓" : "↑↓ / " + moves,
+                cancel.isEmpty() ? "Esc" : "Esc / " + cancel);
+        return help.isEmpty() ? legend : legend + " · " + Messages.tr("palette.legendHelp", help);
     }
 
     void chooseTheme() {
@@ -432,6 +461,9 @@ public final class MainWindow {
                     services.echo(
                             "status.theme", Messages.tr("theme." + t.name().toLowerCase(java.util.Locale.ROOT)));
                 })
+                .titled(Messages.tr("command.settings.theme")) // QOPEN-02
+                .keymap(services::keybindings, Os.isMac())
+                .current(services.settings().theme) // QOPEN-04
                 .show();
     }
 
@@ -443,6 +475,9 @@ public final class MainWindow {
                     services.store().update(s -> s.keymap = id);
                     services.echo("status.keymap", Keymap.load(id).name());
                 })
+                .titled(Messages.tr("command.settings.keymap"))
+                .keymap(services::keybindings, Os.isMac())
+                .current(services.settings().keymap)
                 .show();
     }
 
@@ -456,6 +491,9 @@ public final class MainWindow {
                     services.store().update(s -> s.language = code);
                     services.echo("status.languageRestart");
                 })
+                .titled(Messages.tr("command.settings.language"))
+                .keymap(services::keybindings, Os.isMac())
+                .current(services.settings().language)
                 .show();
     }
 

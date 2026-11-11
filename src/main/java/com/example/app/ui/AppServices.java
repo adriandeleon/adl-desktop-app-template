@@ -100,6 +100,11 @@ public final class AppServices {
         keybindingListeners.add(listener);
     }
 
+    /** Stops telling {@code listener} about keymap changes: an overlay that closed. */
+    public void offKeybindingsChanged(Runnable listener) {
+        keybindingListeners.remove(listener);
+    }
+
     /** Shows a catalog message in the status bar and the Message Log; severity comes from the key. */
     public void echo(String key, @Nullable Object... args) {
         echoText(Messages.tr(key, args), MessageLog.severityOf(key));

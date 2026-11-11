@@ -41,7 +41,19 @@ public final class Picker<T> {
             String title,
             String description,
             String chip,
-            @Nullable String unavailable) {}
+            @Nullable String unavailable,
+            String keywords) {
+
+        /** A row with no words to match beyond its title. */
+        public Item(T value, String title, String description, String chip, @Nullable String unavailable) {
+            this(value, title, description, chip, unavailable, "");
+        }
+    }
+
+    /** A command id's words, matched as well as its title (KBD-06): {@code view.toggleStatusBar} gives "view toggle status bar". */
+    static String idWords(String id) {
+        return id.replace('.', ' ').replaceAll("([a-z0-9])([A-Z])", "$1 $2").toLowerCase(java.util.Locale.ROOT);
+    }
 
     record Ranked<T>(Item<T> item, int[] positions, int score) {}
 
@@ -50,7 +62,15 @@ public final class Picker<T> {
     static final int VISIBLE_ROWS = 8;
 
     private final OverlayHost host;
-    private final List<Item<T>> items;
+    private List<Item<T>> items;
+    private final Label title = new Label();
+    private final HBox inputRow;
+    private final Label hint = new Label();
+    private java.util.function.@Nullable Supplier<com.example.app.command.Keybindings> keys;
+    private boolean mac;
+    private @Nullable Consumer<T> onHelp;
+    private com.example.app.command.@Nullable KeyStroke helpChord;
+    private @Nullable T current;
     private final Consumer<T> onChoose;
     private final TextField query = new TextField();
     private final ListView<Ranked<T>> list = new ListView<>();
@@ -67,7 +87,7 @@ public final class Picker<T> {
         list.setAccessibleText(prompt);
         query.getStyleClass().add("palette-query");
         HBox.setHgrow(query, Priority.ALWAYS);
-        HBox inputRow = new HBox(8, query);
+        inputRow = new HBox(8, query);
         inputRow.setAlignment(Pos.CENTER_LEFT);
         if (!opener.isEmpty()) inputRow.getChildren().addFirst(chip(opener, "opener-chip"));
 
@@ -81,10 +101,13 @@ public final class Picker<T> {
 
         description.getStyleClass().add("palette-description");
         description.setMinHeight(Region.USE_PREF_SIZE);
-        Label hint = new Label(Messages.tr("palette.hint"));
+        hint.setText(Messages.tr("palette.hint"));
         hint.getStyleClass().add("palette-hint");
+        title.getStyleClass().add("picker-title");
+        title.setVisible(false);
+        title.setManaged(false);
 
-        card = new VBox(6, inputRow, list, description, hint);
+        card = new VBox(6, title, inputRow, list, description, hint);
         card.getStyleClass().add("command-palette");
         UiZoom.bind(card.prefWidthProperty(), WIDTH);
         UiZoom.bind(card.maxWidthProperty(), WIDTH);
@@ -110,8 +133,74 @@ public final class Picker<T> {
 
     /** Opens the picker over the window. */
     public void show() {
-        host.show(card, Pos.TOP_CENTER, new Insets(60, 0, 0, 0), null);
+        host.show(card, Pos.TOP_CENTER, new Insets(60, 0, 0, 0), onHidden);
         query.requestFocus();
+    }
+
+    private @Nullable Runnable onHidden;
+
+    /** Runs {@code action} when the picker closes, however it closes. */
+    public Picker<T> onHidden(Runnable action) {
+        this.onHidden = action;
+        return this;
+    }
+
+    /** A picker's title over its field, naming the command that opened it (QOPEN-02). */
+    public Picker<T> titled(String text) {
+        title.setText(text);
+        title.setVisible(!text.isEmpty());
+        title.setManaged(!text.isEmpty());
+        return this;
+    }
+
+    /**
+     * The keymap the keys come from (PAL-06, QOPEN-06): its line and page chords move the selection, as the
+     * fixed keys always do.
+     */
+    public Picker<T> keymap(java.util.function.Supplier<com.example.app.command.Keybindings> keys, boolean mac) {
+        this.keys = keys;
+        this.mac = mac;
+        return this;
+    }
+
+    /** What the help chord opens for the selected row (PAL-08); the chord is the first the keymap leaves free. */
+    public Picker<T> help(Consumer<T> onHelp) {
+        this.onHelp = onHelp;
+        return this;
+    }
+
+    /** With nothing typed, the value in force is the one selected (QOPEN-04). */
+    public Picker<T> current(@Nullable T value) {
+        this.current = value;
+        refresh();
+        return this;
+    }
+
+    /**
+     * A keymap switch while the picker is open (PAL-09): the opener chip, the key legend and the rows' chips are
+     * drawn again for the new keymap; the query and the selection stay.
+     */
+    public void rebind(String opener, List<Item<T>> fresh, String legend) {
+        T selected = list.getSelectionModel().getSelectedItem() == null
+                ? null
+                : list.getSelectionModel().getSelectedItem().item().value();
+        inputRow.getChildren().removeIf(n -> n.getStyleClass().contains("opener-chip"));
+        if (!opener.isEmpty()) inputRow.getChildren().addFirst(chip(opener, "opener-chip"));
+        hint.setText(legend);
+        items = List.copyOf(fresh);
+        list.getItems().setAll(rank(items, query.getText()));
+        for (int i = 0; i < list.getItems().size(); i++) {
+            if (list.getItems().get(i).item().value().equals(selected)) select(i);
+        }
+        helpChord = null;
+    }
+
+    Label hint() {
+        return hint;
+    }
+
+    Label title() {
+        return title;
     }
 
     TextField query() {
@@ -130,15 +219,22 @@ public final class Picker<T> {
                 out.add(new Ranked<>(item, new int[0], 0));
                 continue;
             }
+            // KBD-06: the title, fuzzily, and the words of the id or the keywords; the description is drawn,
+            // never matched. A query that spells the title outranks every fuzzy hit.
             FuzzyMatch.Match title = FuzzyMatch.match(query, item.title());
-            FuzzyMatch.Match desc = FuzzyMatch.match(query, item.description());
+            FuzzyMatch.Match words = item.keywords().isEmpty() ? null : FuzzyMatch.match(query, item.keywords());
             int score = Integer.MIN_VALUE;
             int[] positions = new int[0];
             if (title != null) {
                 score = title.score() * 3 + FuzzyMatch.phraseBonus(query, item.title());
                 positions = title.positions();
+                if (item.title()
+                        .toLowerCase(java.util.Locale.ROOT)
+                        .contains(query.strip().toLowerCase(java.util.Locale.ROOT))) {
+                    score += 1_000_000;
+                }
             }
-            if (desc != null) score = Math.max(score, desc.score());
+            if (words != null) score = Math.max(score, words.score());
             if (score != Integer.MIN_VALUE) out.add(new Ranked<>(item, positions, score));
         }
         if (!query.isBlank()) out.sort(Comparator.comparingInt((Ranked<T> r) -> -r.score()));
@@ -147,6 +243,14 @@ public final class Picker<T> {
 
     private void refresh() {
         list.getItems().setAll(rank(items, query.getText()));
+        if (query.getText().isBlank() && current != null) {
+            for (int i = 0; i < list.getItems().size(); i++) {
+                if (list.getItems().get(i).item().value().equals(current)) {
+                    select(i);
+                    return;
+                }
+            }
+        }
         select(enabledFrom(0, 1));
     }
 
@@ -181,15 +285,36 @@ public final class Picker<T> {
     }
 
     private void onKey(KeyEvent e) {
-        boolean ctrl = e.isControlDown();
-        KeyCode code = e.getCode();
-        if (code == KeyCode.DOWN || (ctrl && code == KeyCode.N)) move(1);
-        else if (code == KeyCode.UP || (ctrl && code == KeyCode.P)) move(-1);
-        else if (code == KeyCode.PAGE_DOWN) move(VISIBLE_ROWS);
-        else if (code == KeyCode.PAGE_UP) move(-VISIBLE_ROWS);
-        else if (code == KeyCode.ENTER) choose();
-        else return;
+        var bindings = keys == null ? null : keys.get();
+        Consumer<T> help = onHelp;
+        if (help != null && bindings != null) {
+            if (helpChord == null) helpChord = PickerKeys.helpChord(bindings, mac);
+            if (PickerKeys.isHelp(e, helpChord)) {
+                Ranked<T> row = list.getSelectionModel().getSelectedItem();
+                if (row != null) help.accept(row.item().value());
+                e.consume();
+                return;
+            }
+        }
+        switch (PickerKeys.resolve(e, bindings, mac)) {
+            case LINE_DOWN -> move(1);
+            case LINE_UP -> move(-1);
+            case PAGE_DOWN -> move(VISIBLE_ROWS);
+            case PAGE_UP -> move(-VISIBLE_ROWS);
+            case FIRST -> select(enabledFrom(0, 1));
+            case LAST -> select(enabledFrom(list.getItems().size() - 1, -1));
+            case NONE -> {
+                if (e.getCode() != KeyCode.ENTER) return;
+                choose();
+            }
+        }
         e.consume();
+    }
+
+    /** The help chord's label for the legend, or empty when the keymap takes all three (PAL-08). */
+    String helpLabel(com.example.app.command.Keybindings bindings) {
+        var chord = PickerKeys.helpChord(bindings, mac);
+        return chord == null ? "" : chord.label(bindings.keymap().emacs(), mac);
     }
 
     /** Runs the selected row: the picker closes first, then the choice runs. */
@@ -209,6 +334,19 @@ public final class Picker<T> {
 
     /** A row: the title with the matched characters bold in the accent colour, then the key chip. */
     private final class Row extends ListCell<Ranked<T>> {
+        // Built once per cell and reused as the cell shows other rows (PERF-09): a query typed into the palette
+        // re-labels these nodes, it does not make new ones.
+        private final TextFlow title = new TextFlow();
+        private final List<Text> runs = new ArrayList<>();
+        private final Label rowChip = chip("", "row-chip");
+        private final HBox line = new HBox(8, title, rowChip);
+        private final Tooltip tip = new Tooltip();
+
+        Row() {
+            HBox.setHgrow(title, Priority.ALWAYS);
+            line.setAlignment(Pos.CENTER_LEFT);
+        }
+
         @Override
         protected void updateItem(@Nullable Ranked<T> row, boolean empty) {
             super.updateItem(row, empty);
@@ -219,31 +357,48 @@ public final class Picker<T> {
                 setText(null);
                 return;
             }
-            TextFlow title = new TextFlow();
             String text = row.item().title();
-            int next = 0;
-            for (int i = 0; i < text.length(); i++) {
-                boolean hit = next < row.positions().length && row.positions()[next] == i;
-                if (hit) next++;
-                Text piece = new Text(String.valueOf(text.charAt(i)));
-                piece.getStyleClass().add(hit ? "match" : "plain");
-                title.getChildren().add(piece);
-            }
-            HBox.setHgrow(title, Priority.ALWAYS);
-            HBox line = new HBox(8, title);
-            line.setAlignment(Pos.CENTER_LEFT);
-            if (!row.item().chip().isEmpty())
-                line.getChildren().add(chip(row.item().chip(), "row-chip"));
+            fill(text, row.positions());
+            rowChip.setText(row.item().chip());
+            rowChip.setVisible(!row.item().chip().isEmpty());
+            rowChip.setManaged(!row.item().chip().isEmpty());
             String unavailable = row.item().unavailable();
             if (unavailable != null) {
                 getStyleClass().add("unavailable");
-                setTooltip(new Tooltip(unavailable));
+                tip.setText(unavailable);
+                setTooltip(tip);
             }
             // The row reads as its title, its keys, and why it can't run when it can't (ACC-08).
             line.setAccessibleText(
                     Icons.withChord(text, row.item().chip()) + (unavailable == null ? "" : ". " + unavailable));
             setText(null);
             setGraphic(line);
+        }
+
+        /**
+         * The title as runs of matched and plain text, a run per change of style, never a node per letter
+         * (PERF-10); the Text nodes are kept and reused.
+         */
+        private void fill(String text, int[] positions) {
+            int used = 0;
+            int start = 0;
+            int next = 0;
+            while (start < text.length()) {
+                boolean hit = next < positions.length && positions[next] == start;
+                int end = start;
+                while (end < text.length()) {
+                    boolean endHit = next < positions.length && positions[next] == end;
+                    if (endHit != hit) break;
+                    if (endHit) next++;
+                    end++;
+                }
+                if (used == runs.size()) runs.add(new Text());
+                Text run = runs.get(used++);
+                run.setText(text.substring(start, end));
+                run.getStyleClass().setAll(hit ? "match" : "plain");
+                start = end;
+            }
+            if (title.getChildren().size() != used) title.getChildren().setAll(runs.subList(0, used));
         }
     }
 }
