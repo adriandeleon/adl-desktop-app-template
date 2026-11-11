@@ -201,8 +201,9 @@ one-line summary written for users.
   keybindings end their lines in `\n` on every OS, and the sync clone checks files out as they were pushed,
   whatever the user's `core.autocrlf`.
 - **The three-OS tests pass on macOS and Windows again.** The menu tests check the in-window menu bar only
-  where the app draws one (on macOS the screen's menu bar is the system's), and the tests that read files
-  accept a Windows checkout's line ends.
+  where the app draws one (on macOS the screen's menu bar is the system's), the tests that read files
+  accept a Windows checkout's line ends, and the account-pinning test's fake `gh` is a Java program, so it
+  runs on Windows too.
 - **The window no longer waits on files while you work.** Logging, the extra font, the About and Pauta
   windows' images and the lookup of `git` and `gh` all moved off the window's thread; the outline is
   re-read once typing pauses instead of on every key, and the Output keeps its newest 1,000 lines
