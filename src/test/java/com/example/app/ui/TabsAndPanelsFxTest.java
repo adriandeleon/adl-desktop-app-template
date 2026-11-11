@@ -196,19 +196,20 @@ class TabsAndPanelsFxTest {
     void pinnedTabsSurviveBulkCloses() throws Exception {
         assertEquals(List.of("Welcome", "README.md", "notes.md", "LICENSE"), titles());
         select(tab("LICENSE"));
-        assertTrue(runCommand("buffer.togglePin")); // to the end of the pinned group: after Welcome
-        assertEquals(List.of("Welcome", "LICENSE", "README.md", "notes.md"), titles());
+        assertTrue(runCommand("buffer.togglePin")); // to the end of the pinned group: the front
+        assertEquals(List.of("LICENSE", "Welcome", "README.md", "notes.md"), titles());
 
+        // The Welcome page is no document and not pinned (WELC-11): a bulk close closes it too.
         select(tab("notes.md"));
         assertTrue(runCommand("buffer.closeLeft"));
-        assertEquals(List.of("Welcome", "LICENSE", "notes.md"), titles());
+        assertEquals(List.of("LICENSE", "notes.md"), titles());
         assertTrue(runCommand("buffer.closeAll"));
-        assertEquals(List.of("Welcome", "LICENSE"), titles());
+        assertEquals(List.of("LICENSE"), titles());
         assertFalse(runCommand("buffer.closeAll"), "nothing left to close but pinned tabs");
 
         select(tab("LICENSE"));
         assertTrue(runCommand("buffer.togglePin")); // unpinned: just after the pinned group
-        assertEquals(List.of("Welcome", "LICENSE"), titles());
+        assertEquals(List.of("LICENSE"), titles());
         assertFalse(call(() -> header(tab("LICENSE")).getStyleClass().contains("pinned")));
     }
 
@@ -242,8 +243,8 @@ class TabsAndPanelsFxTest {
         Tab welcome = tab("Welcome");
         run(() -> tabs.moveBeside(readme, license, true));
         assertEquals(List.of("Welcome", "notes.md", "LICENSE", "README.md"), titles());
-        run(() -> tabs.moveBeside(readme, welcome, false)); // not ahead of a pinned tab
-        assertEquals(List.of("Welcome", "README.md", "notes.md", "LICENSE"), titles());
+        run(() -> tabs.moveBeside(readme, welcome, false)); // the Welcome tab is not pinned (WELC-11)
+        assertEquals(List.of("README.md", "Welcome", "notes.md", "LICENSE"), titles());
     }
 
     /** TABS-08: a changed file's tab wears the class its Documents row wears. */
@@ -329,7 +330,7 @@ class TabsAndPanelsFxTest {
         assertEquals("Welcome", call(() -> tabs.title(Objects.requireNonNull(tabs.selected()))));
         assertTrue(runCommand("buffer.close"));
         assertFalse(titles().contains("Welcome"));
-        assertTrue(runCommand("help.welcome"));
+        assertTrue(runCommand("view.welcome"));
         assertEquals("Welcome", titles().getFirst());
     }
 
@@ -835,9 +836,17 @@ class TabsAndPanelsFxTest {
         assertTrue(runCommand("buffer.reopenClosed"));
         select(tab("notes.md"));
         assertTrue(runCommand("buffer.closeOthers"));
-        assertEquals(List.of("Welcome", "notes.md"), titles());
+        assertEquals(List.of("notes.md"), titles());
         assertTrue(runCommand("buffer.closeUnmodified"));
-        assertEquals(List.of("Welcome"), titles());
+        assertEquals(List.of(), titles());
+        // WELC-04: the last tab closed leaves the empty area's hint, with the ways in, and the keyboard.
+        assertTrue(call(() -> tabs.emptyHint().isVisible()));
+        assertTrue(call(
+                () -> tabs.emptyHint().getText().contains(services.keybindings().label("palette.show"))));
+        settle();
+        assertTrue(call(() -> window.stage().getScene().getFocusOwner() == tabs.emptyHint()), "it has the keyboard");
+        assertTrue(runCommand("view.welcome"));
+        assertFalse(call(() -> tabs.emptyHint().isVisible()), "a tab hides it");
         assertFalse(runCommand("buffer.next"), "one tab: nothing to cycle");
 
         assertTrue(runCommand("buffer.reopenClosed"));

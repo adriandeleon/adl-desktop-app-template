@@ -296,7 +296,7 @@ public final class Icons {
             Map.entry("view.uiZoomIn", ZOOM_IN),
             Map.entry("view.uiZoomOut", ZOOM_OUT),
             Map.entry("view.uiZoomReset", ZOOM_RESET),
-            Map.entry("help.welcome", HOME),
+            Map.entry("view.welcome", HOME),
             Map.entry("buffer.close", CLOSE),
             Map.entry("buffer.closeOthers", CLOSE_OTHERS),
             Map.entry("buffer.closeAll", CLOSE_ALL),

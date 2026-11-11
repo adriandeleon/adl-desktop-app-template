@@ -38,6 +38,11 @@ final class DocumentTabs {
     /** What a closed document held when it differed from its file, by path. */
     private final Map<Path, String> edits = new HashMap<>();
 
+    private final CommandMenu welcomeMenu;
+    private final javafx.scene.layout.StackPane node = new javafx.scene.layout.StackPane();
+    private final javafx.scene.control.Label emptyHint = new javafx.scene.control.Label();
+    private final List<Runnable> welcomeShown = new ArrayList<>();
+
     private final CommandMenu editorMenu;
 
     private final ClosedTabs closedTabs = new ClosedTabs();
@@ -49,6 +54,15 @@ final class DocumentTabs {
     private final List<Runnable> textListeners = new ArrayList<>();
 
     DocumentTabs(AppServices services, Node welcomeContent, Consumer<String> setTitle) {
+        this(services, welcomeContent, setTitle, false);
+    }
+
+    /**
+     * With {@code restore}, the documents open at the last quit open again, the one that was selected selected
+     * (WIN-08); without (a first run, or {@code --no-session}: CLI-04), the Welcome page and the samples
+     * (WELC-03).
+     */
+    DocumentTabs(AppServices services, Node welcomeContent, Consumer<String> setTitle, boolean restore) {
         this.services = services;
         this.setTitle = setTitle;
         this.headers = new TabHeaders(pinned::contains, this::moveBeside);
@@ -66,23 +80,118 @@ final class DocumentTabs {
         welcome = new Tab();
         welcome.setContent(welcomeContent);
         install(welcome);
-        tabPane.getTabs().add(welcome);
-        pinned.add(welcome); // the start page stays at the front through every bulk close
-        render(welcome);
+        // The Welcome tab is not a document (WELC-11): not pinned, and its menu is Close alone.
+        this.welcomeMenu = new CommandMenu(services, java.util.Arrays.asList("buffer.close"));
+
+        // The empty content area's own hint (WELC-04): when the last tab closes, the ways in and their keys.
+        emptyHint.getStyleClass().add("empty-hint");
+        emptyHint.setFocusTraversable(true);
+        emptyHint.setAccessibleRole(javafx.scene.AccessibleRole.TEXT);
+        emptyHint.setVisible(false);
+        node.getChildren().setAll(tabPane, emptyHint);
+        tabPane.getTabs().addListener((javafx.collections.ListChangeListener<Tab>) c -> showEmptyHint());
+        services.onKeybindingsChanged(this::refreshEmptyHint);
 
         tabPane.getSelectionModel().selectedItemProperty().addListener((o, was, now) -> {
             updateWindowTitle();
             activeListeners.forEach(Runnable::run);
+            if (now == welcome) welcomeShown.forEach(Runnable::run); // rebuilt on every show (WELC-05)
         });
-        // Three of the samples open at start: one modified, one clean, one read-only.
         List<SampleFiles.Sample> samples = SampleFiles.all();
-        for (SampleFiles.Sample sample : List.of(samples.get(0), samples.get(1), samples.getLast())) open(sample);
-        tabPane.getSelectionModel().select(welcome);
+        java.util.List<String> last = services.settings().window.documents;
+        if (restore && last != null && !last.isEmpty()) {
+            // WIN-08: the last session's documents, in their order, the selected one selected.
+            String active = services.settings().window.activeDocument;
+            Tab selected = null;
+            for (String path : last) {
+                for (SampleFiles.Sample sample : samples) {
+                    if (!sample.path().toString().equals(path)) continue;
+                    Tab tab = open(sample);
+                    if (path.equals(active)) selected = tab;
+                }
+            }
+            if (selected != null) tabPane.getSelectionModel().select(selected);
+            else showWelcome();
+        } else {
+            // No session to restore: the Welcome page (WELC-03), beside three samples: one modified, one
+            // clean, one read-only.
+            tabPane.getTabs().add(welcome);
+            render(welcome);
+            for (SampleFiles.Sample sample : List.of(samples.get(0), samples.get(1), samples.getLast())) open(sample);
+            tabPane.getSelectionModel().select(welcome);
+        }
         updateWindowTitle();
+        showEmptyHint();
     }
 
     TabPane tabPane() {
         return tabPane;
+    }
+
+    /** What the window shows: the tabs, and over them the empty area's hint when none is open (WELC-04). */
+    javafx.scene.layout.StackPane node() {
+        return node;
+    }
+
+    javafx.scene.control.Label emptyHint() {
+        return emptyHint;
+    }
+
+    /** The documents open now, in tab order, by path: what the next launch reopens (WIN-08). */
+    List<String> openPaths() {
+        List<String> paths = new ArrayList<>();
+        for (Tab tab : tabPane.getTabs()) {
+            DocumentView document = documents.get(tab);
+            if (document != null) paths.add(document.path().toString());
+        }
+        return paths;
+    }
+
+    /** The selected document's path, or null on the Welcome page. */
+    @Nullable
+    String activePath() {
+        DocumentView document = activeDocument();
+        return document == null ? null : document.path().toString();
+    }
+
+    private void showEmptyHint() {
+        boolean empty = tabPane.getTabs().isEmpty();
+        if (empty) refreshEmptyHint();
+        emptyHint.setVisible(empty);
+        // It takes the keyboard, so the window's chords still reach it (WELC-04).
+        if (empty) javafx.application.Platform.runLater(emptyHint::requestFocus);
+    }
+
+    /** The documents' text size, in percent (WIN-09): relative to the window's own, so it follows the UI zoom. */
+    void textZoom(int percent) {
+        textZoom = percent;
+        for (DocumentView document : documents.values()) applyTextZoom(document);
+    }
+
+    private int textZoom = com.example.app.config.Settings.DEFAULT_TEXT_ZOOM;
+
+    private void applyTextZoom(DocumentView document) {
+        document.text()
+                .setStyle(
+                        textZoom == com.example.app.config.Settings.DEFAULT_TEXT_ZOOM
+                                ? ""
+                                : "-fx-font-size: " + (textZoom / 100.0) + "em;");
+    }
+
+    /** The ways in, each with its chord in the active keymap (WELC-04). */
+    private void refreshEmptyHint() {
+        StringBuilder text = new StringBuilder(Messages.tr("empty.title"));
+        for (String id : List.of("palette.show", "tool.documents", "switcher.show", "view.welcome")) {
+            String chord = services.keybindings().label(id);
+            text.append("\n").append(Messages.tr("command." + id));
+            if (!chord.isEmpty()) text.append("   ").append(chord);
+        }
+        emptyHint.setText(text.toString());
+    }
+
+    /** Runs {@code listener} each time the Welcome page is shown, so it is rebuilt current (WELC-05). */
+    void onWelcomeShown(Runnable listener) {
+        welcomeShown.add(listener);
     }
 
     List<Tab> tabs() {
@@ -170,6 +279,7 @@ final class DocumentTabs {
         tab.setContent(document.node());
         CommandMenu.onConsole(document.text(), editorMenu);
         document.findBar().editingKeys(() -> services.keybindings().keymap().emacs());
+        applyTextZoom(document);
         documents.put(tab, document);
         install(tab);
         document.dirtyProperty().addListener((o, was, now) -> {
@@ -185,12 +295,14 @@ final class DocumentTabs {
         return tab;
     }
 
-    /** Selects the Welcome tab, bringing it back when it was closed. */
+    /** Selects the Welcome tab, bringing it back when it was closed; it is rebuilt each time (WELC-05). */
     void showWelcome() {
         if (!tabPane.getTabs().contains(welcome)) {
             tabPane.getTabs().add(TabStrip.moveToPinBoundary(tabs(), welcome, pinned::contains), welcome);
+            render(welcome);
         }
         tabPane.getSelectionModel().select(welcome);
+        welcomeShown.forEach(Runnable::run);
     }
 
     private void install(Tab tab) {
@@ -214,7 +326,12 @@ final class DocumentTabs {
     void showMenu(Tab tab, ContextMenuEvent event) {
         tabPane.getSelectionModel().select(tab);
         Node header = tab.getGraphic();
-        if (header != null) menu.show(header, event);
+        if (header != null) (tab == welcome ? welcomeMenu : menu).show(header, event);
+    }
+
+    /** The Welcome tab's menu: Close alone (WELC-11). */
+    CommandMenu welcomeMenu() {
+        return welcomeMenu;
     }
 
     /**
@@ -245,7 +362,7 @@ final class DocumentTabs {
         }
         pinned.remove(tab);
         tabPane.getTabs().remove(tab);
-        if (tab == welcome) pinned.add(welcome); // it comes back pinned
+
         updateWindowTitle();
     }
 

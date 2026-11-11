@@ -66,14 +66,6 @@
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/14"
     },
     {
-      "rule": "SET-08",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/settings/#set-08",
-      "kind": "pending",
-      "reason": "The window's size and position are kept in the settings file instead of a file of their own.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
-    },
-    {
       "rule": "SET-18",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/6.0.0/settings/#set-18",
@@ -88,54 +80,6 @@
       "kind": "pending",
       "reason": "Settings Sync replaces your key bindings without keeping a copy of the old ones first.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
-    },
-    {
-      "rule": "WELC-03",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/welcome/#welc-03",
-      "kind": "pending",
-      "reason": "The Welcome page is opened from the Window menu, not Help, by a command named for help instead of view.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
-    },
-    {
-      "rule": "WELC-04",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/welcome/#welc-04",
-      "kind": "pending",
-      "reason": "Closing the last tab leaves an empty window with no hint of what to do next.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
-    },
-    {
-      "rule": "WELC-05",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/welcome/#welc-05",
-      "kind": "pending",
-      "reason": "The Welcome page is not built again each time it is shown, keeping the keyboard where it was.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
-    },
-    {
-      "rule": "WELC-11",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/templates/welcome/#welc-11",
-      "kind": "pending",
-      "reason": "The Welcome tab offers the whole tab menu and is pinned, instead of only closing.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
-    },
-    {
-      "rule": "WIN-08",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/window-shell/#win-08",
-      "kind": "pending",
-      "reason": "The documents open when you quit are not open again at the next start.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
-    },
-    {
-      "rule": "WIN-09",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/window-shell/#win-09",
-      "kind": "pending",
-      "reason": "There are no commands to zoom the window in and out.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/20"
     },
     {
       "rule": "DOCS-01",

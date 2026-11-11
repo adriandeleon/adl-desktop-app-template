@@ -33,6 +33,9 @@
     "nav.lineDown": "C-n",
     "nav.lineUp": "C-p",
     "nav.pageDown": "C-v",
-    "nav.pageUp": "M-v"
+    "nav.pageUp": "M-v",
+    "view.zoomIn": "C-x C-=",
+    "view.zoomOut": "C-x C--",
+    "view.zoomReset": "C-x C-0"
   }
 }

@@ -22,6 +22,9 @@
     "view.uiZoomOut": "Shortcut+Alt+-",
     "view.uiZoomReset": "Shortcut+Alt+0",
     "window.focusNextRegion": "F6",
-    "window.focusPreviousRegion": "Shift+F6"
+    "window.focusPreviousRegion": "Shift+F6",
+    "view.zoomIn": "Shortcut+=",
+    "view.zoomOut": "Shortcut+-",
+    "view.zoomReset": "Shortcut+0"
   }
 }

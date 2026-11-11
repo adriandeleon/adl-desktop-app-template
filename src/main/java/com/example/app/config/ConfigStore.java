@@ -87,6 +87,16 @@ public final class ConfigStore {
         return dir.resolve(FILE);
     }
 
+    /** Session state: the window's place and the open documents (SET-08, WIN-08), apart from the settings. */
+    public static final String SESSION_FILE = "session.json";
+
+    /** The session file's own schema, apart from the settings'. */
+    static final int SESSION_SCHEMA = 1;
+
+    public Path sessionFile() {
+        return dir.resolve(SESSION_FILE);
+    }
+
     /** The live settings. Change them through {@link #update}, so they are saved and announced. */
     public Settings settings() {
         return settings;
@@ -141,24 +151,38 @@ public final class ConfigStore {
     public Loaded read() {
         flush();
         Path file = file();
-        if (!Files.isRegularFile(file)) return new Loaded(new Settings(), LoadResult.DEFAULTS, null);
+        if (!Files.isRegularFile(file)) {
+            Settings fresh = new Settings();
+            fresh.window = readSession(null);
+            return new Loaded(fresh.clamped(), LoadResult.DEFAULTS, null);
+        }
         try {
             if (Files.size(file) > MAX_FILE_BYTES) throw new IOException("larger than " + MAX_FILE_BYTES + " bytes");
             JsonNode tree = JSON.readTree(Files.readString(file, StandardCharsets.UTF_8));
             if (!(tree instanceof ObjectNode object)) throw new IOException("not a JSON object");
             int version = Migrations.versionOf(object);
             if (version > Settings.SCHEMA_VERSION) {
+                Settings defaults = new Settings();
+                defaults.window = readSession(null);
                 return new Loaded(
-                        new Settings(), LoadResult.NEWER_BACKED_UP, copyAside(file, FILE + ".v" + version + ".bak"));
+                        defaults.clamped(),
+                        LoadResult.NEWER_BACKED_UP,
+                        copyAside(file, FILE + ".v" + version + ".bak"));
             }
+            // A file from before session.json kept the window here: it is carried over once (SET-08).
+            JsonNode legacyWindow = object.get("window");
             // Clamped as it is read (SET-11): a hand-edited value out of range never reaches the app.
-            Settings loaded =
-                    JSON.treeToValue(Migrations.migrate(object), Settings.class).clamped();
+            Settings loaded = JSON.treeToValue(Migrations.migrate(object), Settings.class);
+            loaded.window = readSession(legacyWindow);
             return new Loaded(
-                    loaded, version < Settings.SCHEMA_VERSION ? LoadResult.MIGRATED : LoadResult.LOADED, null);
+                    loaded.clamped(),
+                    version < Settings.SCHEMA_VERSION ? LoadResult.MIGRATED : LoadResult.LOADED,
+                    null);
         } catch (IOException | RuntimeException e) {
             LOG.log(Level.WARNING, "Could not read " + file + "; using defaults", e);
-            return new Loaded(new Settings(), LoadResult.BROKEN_BACKED_UP, copyAside(file, FILE + ".broken.bak"));
+            Settings defaults = new Settings();
+            defaults.window = readSession(null);
+            return new Loaded(defaults.clamped(), LoadResult.BROKEN_BACKED_UP, copyAside(file, FILE + ".broken.bak"));
         }
     }
 
@@ -169,6 +193,35 @@ public final class ConfigStore {
         backup = loaded.backup();
         if (loadResult == LoadResult.MIGRATED) save();
         fire();
+    }
+
+    /**
+     * The session state from {@code session.json}; from {@code legacy} (an old settings file's window) when
+     * there is none yet; else the defaults. A session file that can't be read, or that a newer version wrote, is
+     * kept aside and the session starts fresh (SET-10, SET-11): it is never a reason to fail a start.
+     */
+    private Settings.Window readSession(@Nullable JsonNode legacy) {
+        Path file = sessionFile();
+        try {
+            if (Files.isRegularFile(file)) {
+                if (Files.size(file) > MAX_FILE_BYTES)
+                    throw new IOException("larger than " + MAX_FILE_BYTES + " bytes");
+                JsonNode tree = JSON.readTree(Files.readString(file, StandardCharsets.UTF_8));
+                if (!(tree instanceof ObjectNode object)) throw new IOException("not a JSON object");
+                int version = object.path("schemaVersion").asInt(SESSION_SCHEMA);
+                if (version > SESSION_SCHEMA) {
+                    copyAside(file, SESSION_FILE + ".v" + version + ".bak");
+                    return new Settings.Window();
+                }
+                object.remove("schemaVersion");
+                return JSON.treeToValue(object, Settings.Window.class);
+            }
+            if (legacy instanceof ObjectNode old) return JSON.treeToValue(old, Settings.Window.class);
+        } catch (IOException | RuntimeException e) {
+            LOG.log(Level.WARNING, "Could not read " + file + "; starting a fresh session", e);
+            if (Files.isRegularFile(file)) copyAside(file, SESSION_FILE + ".broken.bak");
+        }
+        return new Settings.Window();
     }
 
     private @Nullable Path copyAside(Path file, String name) {
@@ -202,6 +255,10 @@ public final class ConfigStore {
         if (snapshot == null) return;
         try {
             ConfigFiles.writeString(file(), JSON.writeValueAsString(snapshot));
+            // Session state in a file of its own (SET-08): settings.json holds no window and no open documents.
+            ObjectNode session = JSON.valueToTree(snapshot.window);
+            session.put("schemaVersion", SESSION_SCHEMA);
+            ConfigFiles.writeString(sessionFile(), JSON.writeValueAsString(session));
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Could not save " + file(), e);
         }

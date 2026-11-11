@@ -117,8 +117,10 @@ public final class MainWindow {
         band.getChildren().setAll(headerBar != null ? headerBar : menus.bar(), toolbar.node());
         layout.setTop(band);
         if (headerBar != null) stage.fullScreenProperty().addListener((o, was, full) -> placeHeaderBar(full));
-        this.tabs = new DocumentTabs(services, placeholder(), stage::setTitle);
-        this.toolWindows = new ToolWindowManager(services, tabs.tabPane());
+        this.tabs = new DocumentTabs(services, placeholder(), stage::setTitle, restoreSession);
+        this.restoreSession = restoreSession;
+        tabs.onWelcomeShown(this::refreshWelcome);
+        this.toolWindows = new ToolWindowManager(services, tabs.node());
         this.documentsWindow = new ToolWindow(
                 "documents", Messages.tr("tool.documents"), ToolWindow.Side.LEFT, Icons.DOCUMENTS, () -> {
                     SamplePanels.Documents built = new SamplePanels.Documents(
@@ -223,6 +225,7 @@ public final class MainWindow {
     private void apply(Settings settings) {
         if (settings.theme != Themes.choice()) Themes.apply(settings.theme);
         if (settings.uiZoom != Themes.zoom()) zoomTo(settings.uiZoom);
+        tabs.textZoom(settings.textZoom); // the documents' own zoom (WIN-09)
         toolbar.node().setVisible(settings.showToolbar);
         toolbar.node().setManaged(settings.showToolbar);
         // Simple mode: fewer toolbar groups, the toggle lit, and the shorter menu, rebuilt only on a change.
@@ -265,12 +268,13 @@ public final class MainWindow {
         Label tagline = new Label(Messages.tr("app.tagline"));
         tagline.getStyleClass().add("muted");
         refreshWelcomeHint();
-        HBox actions = new HBox(8);
+        HBox actions = welcomeActions;
         actions.setAlignment(Pos.CENTER);
         for (String id : List.of("palette.show", "app.settings", "help.documentation", "help.whatsNew")) {
             Command command = services.commands().get(id);
             if (command == null) continue;
             Button button = new Button(command.title());
+            button.setUserData(id);
             button.setOnAction(e -> services.commands().run(id));
             toggles.track(button, id); // the palette's button looks pressed while the palette is up (TBAR-07)
             actions.getChildren().add(button);
@@ -280,6 +284,33 @@ public final class MainWindow {
         box.getStyleClass().add("welcome");
         return box;
     }
+
+    /**
+     * Rebuilds the Welcome page each time it is shown (WELC-05): its actions' titles and the hint's chord are
+     * current, and the focus stays where it was.
+     */
+    void refreshWelcome() {
+        javafx.scene.Node owner =
+                stage.getScene() == null ? null : stage.getScene().getFocusOwner();
+        refreshWelcomeHint();
+        for (javafx.scene.Node node : welcomeActions.getChildren()) {
+            if (node instanceof Button button && button.getUserData() instanceof String id) {
+                Command command = services.commands().get(id);
+                if (command != null) button.setText(command.title());
+            }
+        }
+        welcomeRefreshes++;
+        if (owner != null && owner.getScene() != null) owner.requestFocus();
+    }
+
+    /** How many times the Welcome page was rebuilt: the tests read it. */
+    int welcomeRefreshes() {
+        return welcomeRefreshes;
+    }
+
+    private int welcomeRefreshes;
+    private final HBox welcomeActions = new HBox(8);
+    private final boolean restoreSession;
 
     /** The welcome hint names the palette's chord in the active keymap, so it follows a keymap change. */
     private void refreshWelcomeHint() {
@@ -818,6 +849,16 @@ public final class MainWindow {
 
     /** Remembers size, position and maximized state for the next launch. */
     void saveWindowState() {
+        // What was open, for the next launch (WIN-08); a run started with --no-session leaves the last
+        // session's list as it was (CLI-04).
+        java.util.List<String> open = tabs.openPaths();
+        String active = tabs.activePath();
+        if (restoreSession) {
+            services.store().update(s -> {
+                s.window.documents = open;
+                s.window.activeDocument = active;
+            });
+        }
         boolean maximized = stage.isMaximized();
         double x = stage.getX();
         double y = stage.getY();

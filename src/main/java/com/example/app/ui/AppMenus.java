@@ -106,7 +106,6 @@ final class AppMenus {
             // The tabs and the tool windows: every one of their commands has a row (TABS-01).
             spec(
                     "menu.window",
-                    "help.welcome",
                     "switcher.show",
                     "buffer.next",
                     "buffer.previous",
@@ -143,6 +142,7 @@ final class AppMenus {
                     "palette.show",
                     "help.documentation",
                     "help.keyboardShortcuts",
+                    "view.welcome",
                     null,
                     "help.checkForUpdates",
                     "view.messageLog",
@@ -169,7 +169,6 @@ final class AppMenus {
                     "view.toggleSimpleMode"),
             spec(
                     "menu.window",
-                    "help.welcome",
                     "switcher.show",
                     null,
                     "buffer.close",
@@ -178,7 +177,7 @@ final class AppMenus {
                     "tool.documents",
                     "tool.outline",
                     "tool.output"),
-            spec("menu.help", "palette.show", "help.documentation", "help.keyboardShortcuts", null, "help.about"));
+            spec("menu.help", "palette.show", "help.documentation", "view.welcome", null, "help.about"));
 
     private static Spec spec(String key, @Nullable String... ids) {
         return new Spec(key, java.util.Collections.unmodifiableList(java.util.Arrays.<@Nullable String>asList(ids)));

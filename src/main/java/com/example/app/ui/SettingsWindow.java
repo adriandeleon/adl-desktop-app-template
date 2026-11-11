@@ -122,6 +122,7 @@ public final class SettingsWindow {
     private final SettingSwitch statusBar = new SettingSwitch(Messages.tr("settings.statusBar.title"));
     private final ComboBox<ThemeChoice> theme = new ComboBox<>();
     private final ComboBox<Integer> uiZoom = new ComboBox<>();
+    private final ComboBox<Integer> textZoom = new ComboBox<>();
     private final SettingSwitch titleBar = new SettingSwitch(Messages.tr("settings.titleBar.title"));
     private final ComboBox<String> keymap = new ComboBox<>();
     private final TextField syncUrl = new TextField();
@@ -271,6 +272,15 @@ public final class SettingsWindow {
                 .addListener((obs, old, picked) -> commitIfChanged(
                         picked, s -> s.uiZoom, v -> services.store().update(s -> s.uiZoom = v)));
         row(card, Page.APPEARANCE, "settings.uiZoom", uiZoom, "zoom scale size larger smaller bigger interface font");
+        // The documents' text size (WIN-09), apart from the window's zoom.
+        for (int p = Settings.MIN_TEXT_ZOOM; p <= Settings.MAX_TEXT_ZOOM; p += Commands.TEXT_ZOOM_STEP) {
+            textZoom.getItems().add(p);
+        }
+        textZoom.setConverter(converter(p -> Messages.tr("settings.uiZoom.value", p)));
+        textZoom.valueProperty()
+                .addListener((obs, old, picked) -> commitIfChanged(
+                        picked, s -> s.textZoom, v -> services.store().update(s -> s.textZoom = v)));
+        row(card, Page.APPEARANCE, "settings.textZoom", textZoom, "text font size zoom document larger smaller");
         titleBar.setOnAction(e -> {
             services.store().update(s -> s.titleBarMenus = titleBar.isSelected());
             services.echo("status.titleBarRestart");
@@ -287,6 +297,7 @@ public final class SettingsWindow {
         loaders.add(() -> {
             theme.setValue(services.settings().theme);
             uiZoom.setValue(services.settings().uiZoom);
+            textZoom.setValue(services.settings().textZoom);
             titleBar.setSelected(services.settings().titleBarMenus);
         });
     }
