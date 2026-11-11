@@ -874,4 +874,34 @@ class TabsAndPanelsFxTest {
             throw new IllegalStateException(e);
         }
     }
+
+    /** ACC-06: the region commands move the keyboard from the documents to each open tool window and back. */
+    @Test
+    void theRegionCommandsWalkTheDocumentsAndTheOpenToolWindows() throws Exception {
+        select(tab("README.md"));
+        assertTrue(runCommand("tool.documents"));
+        assertTrue(runCommand("tool.output"));
+        settle();
+        run(() -> tools.focusEditor());
+        assertTrue(runCommand("window.focusNextRegion"));
+        assertTrue(call(() -> tools.isFocusIn(window.documentsWindow())), "the left tool window next");
+        assertTrue(runCommand("window.focusNextRegion"));
+        assertTrue(call(() -> tools.isFocusIn(window.outputWindow())), "then the bottom one");
+        assertTrue(runCommand("window.focusNextRegion"));
+        assertFalse(
+                call(() -> tools.isFocusIn(window.documentsWindow()) || tools.isFocusIn(window.outputWindow())),
+                "and round to the documents");
+        assertTrue(runCommand("window.focusPreviousRegion"));
+        assertTrue(call(() -> tools.isFocusIn(window.outputWindow())), "back to the bottom one");
+    }
+
+    /** ACC-05: a file's Git status shows as its letter, not by color alone, on its tab. */
+    @Test
+    void aTabShowsItsGitStatusAsALetter() throws Exception {
+        Tab readme = tab("README.md");
+        assertTrue(call(() -> readme.getGraphic().lookupAll(".git-letter").stream()
+                .anyMatch(n -> "M".equals(((Label) n).getText()))));
+        Tab notes = tab("notes.md");
+        assertTrue(call(() -> notes.getGraphic().lookupAll(".git-letter").isEmpty()), "a clean file shows none");
+    }
 }

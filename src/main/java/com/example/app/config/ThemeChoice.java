@@ -8,12 +8,14 @@ import org.jspecify.annotations.Nullable;
 /**
  * The app theme. {@link #SYSTEM}, the default, follows the operating system's light or dark mode;
  * {@link #LIGHT} and {@link #DARK} are the Caret &amp; Ink pair ({@code editora-light.css},
- * {@code editora-dark.css}).
+ * {@code editora-dark.css}); {@link #HIGH_CONTRAST} is the dark one with {@code high-contrast.css} over it
+ * (ACC-09).
  */
 public enum ThemeChoice {
     SYSTEM,
     LIGHT,
-    DARK;
+    DARK,
+    HIGH_CONTRAST;
 
     /** The theme a first run starts with, and the one an unknown saved name falls back to. */
     public static final ThemeChoice DEFAULT = SYSTEM;

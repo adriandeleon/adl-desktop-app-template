@@ -27,6 +27,8 @@
     "output.runSample": "C-c r",
     "find.show": "C-s",
     "find.previous": "C-r",
-    "edit.cancel": "C-g"
+    "edit.cancel": "C-g",
+    "window.focusNextRegion": "C-x o",
+    "window.focusPreviousRegion": "C-x S-o"
   }
 }

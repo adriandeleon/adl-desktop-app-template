@@ -60,10 +60,16 @@ final class TabHeaders {
         Node glyph = Icons.line(Icons.forFileName(document.title()));
         glyph.getStyleClass().add("tab-file-icon");
         header.getChildren().addAll(glyph, title);
+        // The Git status as its letter after the name, and in words in the tooltip: never color alone (ACC-05).
+        SampleFiles.GitStatus status = document.sample().status();
+        if (status != null) {
+            Label letter = new Label(status.letter());
+            letter.getStyleClass().addAll("tab-title", "git-letter");
+            letter.setAccessibleText(status.words());
+            header.getChildren().add(letter);
+        }
         tab.setText("");
         tab.setGraphic(header);
-        // The Git status in words beside the path: color is not its only sign (TABS-08, ACC-05).
-        SampleFiles.GitStatus status = document.sample().status();
         tooltip(tab, status == null ? document.path().toString() : document.path() + " — " + status.words());
         TabGitStatus.apply(tab, TabGitStatus.classFor(document.sample()));
     }

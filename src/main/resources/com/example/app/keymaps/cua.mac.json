@@ -24,6 +24,8 @@
     "find.previous": "Cmd+Shift+G",
     "view.uiZoomIn": "Cmd+Alt+=",
     "view.uiZoomOut": "Cmd+Alt+-",
-    "view.uiZoomReset": "Cmd+Alt+0"
+    "view.uiZoomReset": "Cmd+Alt+0",
+    "window.focusNextRegion": "F6",
+    "window.focusPreviousRegion": "Shift+F6"
   }
 }

@@ -110,4 +110,32 @@ class KeybindingsTest {
         assertEquals("command.a.run.desc", registry.get("a.run").description());
         assertThrows(IllegalArgumentException.class, () -> registry.register("a.run", () -> {}));
     }
+
+    /**
+     * KBD-10: IntelliJ, VS Code and Sublime keymaps beside CUA and Emacs, each with its macOS form; every bundled
+     * keymap parses whole, has no two commands on the same keys, and binds find.show (FIND-04) and the region
+     * commands (ACC-06).
+     */
+    @Test
+    void everyBundledKeymapParsesWholeAndBindsWhatEveryKeymapMust() {
+        assertEquals(java.util.List.of("cua", "emacs", "intellij", "vscode", "sublime"), Keymap.PRESETS);
+        for (String id : Keymap.PRESETS) {
+            for (boolean mac : new boolean[] {false, true}) {
+                Keymap keymap = Keymap.load(id, mac);
+                String where = id + (mac ? " (mac)" : "");
+                keymap.bindings()
+                        .forEach((command, chord) ->
+                                assertNotNull(KeyStroke.parseSequence(chord), where + ": " + command + " = " + chord));
+                Keybindings bindings = new Keybindings(keymap, java.util.Map.of(), mac);
+                assertTrue(bindings.conflicts().isEmpty(), where + ": " + bindings.conflicts());
+                for (String command : java.util.List.of(
+                        "palette.show", "find.show", "window.focusNextRegion", "window.focusPreviousRegion")) {
+                    assertFalse(bindings.label(command).isEmpty(), where + " binds " + command);
+                }
+            }
+        }
+        for (String id : java.util.List.of("intellij", "vscode", "sublime")) {
+            assertNotNull(Keymap.class.getResource("/com/example/app/keymaps/" + id + ".mac.json"), id + ".mac.json");
+        }
+    }
 }

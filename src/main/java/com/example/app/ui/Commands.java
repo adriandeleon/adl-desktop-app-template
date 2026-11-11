@@ -22,6 +22,9 @@ final class Commands {
         r.register("view.messageLog", window::openMessageLog);
         r.register("messageLog.copy", window::copyMessageLog);
         r.register("messageLog.clear", window::clearMessageLog);
+        // The window's regions, in turn (ACC-06): the documents and each open tool window.
+        r.register("window.focusNextRegion", () -> window.toolWindows().focusRegion(1));
+        r.register("window.focusPreviousRegion", () -> window.toolWindows().focusRegion(-1));
         // The UI zoom (WIN-12): three commands, kept across launches through the setting.
         r.register(
                 "view.uiZoomIn",

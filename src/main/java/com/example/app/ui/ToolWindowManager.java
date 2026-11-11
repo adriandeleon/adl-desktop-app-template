@@ -939,11 +939,35 @@ final class ToolWindowManager {
         return activeToolWindow;
     }
 
+    /** Whether the keyboard is in {@code tw} now. */
+    boolean isFocusIn(ToolWindow tw) {
+        return holdsFocus(tw);
+    }
+
     private boolean holdsFocus(ToolWindow tw) {
         Region panel = panels.get(tw);
         Scene scene = panel == null ? null : panel.getScene();
         Node owner = scene == null ? null : scene.getFocusOwner();
         return owner != null && panel != null && isDescendant(owner, panel);
+    }
+
+    /**
+     * Moves the keyboard to the next ({@code step} 1) or previous ({@code step} -1) region of the window, the
+     * documents first and then each open tool window, left, right and bottom, round and round (ACC-06).
+     */
+    void focusRegion(int step) {
+        List<ToolWindow> open = new ArrayList<>();
+        for (ToolWindow.Side side : List.of(ToolWindow.Side.LEFT, ToolWindow.Side.RIGHT, ToolWindow.Side.BOTTOM)) {
+            for (ToolWindow tw : openOn(side)) if (tw.contentIfBuilt() != null) open.add(tw);
+        }
+        int at = 0; // the documents
+        for (int i = 0; i < open.size(); i++) {
+            if (holdsFocus(open.get(i))) at = i + 1;
+        }
+        int regions = open.size() + 1;
+        int next = Math.floorMod(at + step, regions);
+        if (next == 0) focusEditor();
+        else focus(open.get(next - 1));
     }
 
     /** Gives focus back to the documents: the node that last had it there, else the active document. */

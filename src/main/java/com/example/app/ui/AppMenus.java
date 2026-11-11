@@ -236,14 +236,14 @@ final class AppMenus {
             }
             Row row = row(command.id());
             row.item().setId(command.id());
-            row.item().setOnAction(e -> services.commands().run(command.id()));
+            row.item().setOnAction(e -> runOrSay(services, command.id()));
             menu.getItems().add(row.item());
             rows.add(row);
         }
         groups.add(rows);
         menu.setOnShowing(e -> rows.forEach(row -> {
             Command command = services.commands().get(row.commandId());
-            row.item().setDisable(command != null && command.unavailableReason() != null);
+            showAvailability(row, command == null ? null : command.unavailableReason());
         }));
         // Measured once the popup has CSS, when the labels know their real widths.
         menu.setOnShown(e -> alignChords(rows));
@@ -301,6 +301,40 @@ final class AppMenus {
         if (DESTRUCTIVE.contains(id)) item.getStyleClass().add("danger");
         item.setHideOnClick(true);
         return new Row(item, id, title, chord);
+    }
+
+    /**
+     * A command that can't run now stays in its menu, grayed, and says why (KBD-04): the row keeps working as a
+     * row, so its tooltip shows the reason and a screen reader hears it, and choosing it says the reason in the
+     * status bar instead of running. A row on the macOS system menu bar can only be disabled.
+     */
+    static void showAvailability(Row row, @Nullable String reason) {
+        MenuItem item = row.item();
+        if (!(item instanceof CustomMenuItem custom)) {
+            item.setDisable(reason != null);
+            return;
+        }
+        item.setDisable(false);
+        item.getStyleClass().remove("unavailable");
+        Node content = custom.getContent();
+        Object old = content.getProperties().remove(REASON_TIP);
+        if (old instanceof javafx.scene.control.Tooltip tip) javafx.scene.control.Tooltip.uninstall(content, tip);
+        content.setAccessibleHelp(reason);
+        if (reason == null) return;
+        item.getStyleClass().add("unavailable");
+        javafx.scene.control.Tooltip tip = new javafx.scene.control.Tooltip(reason);
+        javafx.scene.control.Tooltip.install(content, tip);
+        content.getProperties().put(REASON_TIP, tip);
+    }
+
+    private static final String REASON_TIP = AppMenus.class.getName() + ".reason";
+
+    /** Runs the command, or, when it can't run now, says why in the status bar (KBD-04). */
+    static void runOrSay(AppServices services, String id) {
+        if (services.commands().run(id)) return;
+        Command command = services.commands().get(id);
+        String reason = command == null ? null : command.unavailableReason();
+        if (command != null && reason != null) services.echo("status.unavailable", command.title(), reason);
     }
 
     /** The width of the glyph column, so a row without a glyph keeps its title in line. */

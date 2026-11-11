@@ -370,6 +370,11 @@
 }
 /* A row's chord (MENU-15): Inter 11 px in the keyboard's periwinkle, in the menu bar's drop-downs and every
    right-click menu alike. The extra .label class outranks the 14 px pin above and the theme's label fill. */
+/* A command that can't run now: grayed, still a row, its tooltip saying why (KBD-04). */
+.context-menu .menu-item.unavailable .label,
+.context-menu .menu-item.unavailable .icon-box {
+    -fx-opacity: 0.45;
+}
 /* A row that deletes, discards or resets (MENU-12). */
 .context-menu .menu-item.danger .label.menu-item-title,
 .menu-item.danger .label {
@@ -469,6 +474,12 @@
 .tab.git-status-conflict .tab-title,
 .documents-list .git-status-conflict {
     -fx-text-fill: -state-red;
+}
+/* The Git status's letter after a tab's name (ACC-05): a little smaller, in the status's color. */
+.tab-header .git-letter {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 0 2px;
 }
 /* Unsaved (TABS-03): a "• " prefix, amber italic, over any Git color. */
 .tab .tab-header.dirty .tab-title {

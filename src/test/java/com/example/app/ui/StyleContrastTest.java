@@ -342,4 +342,41 @@ class StyleContrastTest {
             assertFalse(HEX.matcher(after).find(), file + " has a hex after its .root block");
         }
     }
+
+    /** ACC-09: the high-contrast sheet sets the roles to 7:1 ink on every ground, and states at 7:1 too. */
+    @Test
+    void theHighContrastThemeReadsAtSevenToOne() throws Exception {
+        Map<String, String> dark = palette("editora-dark");
+        String css = read(Themes.HIGH_CONTRAST);
+        Matcher m = Pattern.compile("(-color-[a-z0-9-]+)\\s*:\\s*([^;]+);").matcher(css);
+        Map<String, String> high = new HashMap<>(dark);
+        while (m.find()) high.put(m.group(1), m.group(2).strip());
+        for (String ground : List.of("-color-bg-default", "-color-bg-subtle", "-color-bg-overlay")) {
+            for (String ink : List.of(
+                    "-color-fg-default",
+                    "-color-fg-muted",
+                    "-color-accent-fg",
+                    "-color-success-fg",
+                    "-color-warning-fg",
+                    "-color-danger-fg")) {
+                double ratio = contrast(color(high, ink), color(high, ground));
+                assertTrue(ratio >= 7, ink + " on " + ground + " is " + ratio);
+            }
+        }
+        assertTrue(contrast(color(high, "-color-fg-emphasis"), color(high, "-color-accent-emphasis")) >= 7);
+        assertFalse(HEX.matcher(css.substring(css.indexOf("\n}"))).find(), "tokens only");
+    }
+
+    /** ACC-09: the OS's high-contrast mode wins while it is on, and the choice comes back when it ends. */
+    @Test
+    void theOsHighContrastModeWinsWhileItIsOn() {
+        assertEquals(
+                com.example.app.config.ThemeChoice.HIGH_CONTRAST,
+                Themes.effective(com.example.app.config.ThemeChoice.LIGHT, true));
+        assertEquals(
+                com.example.app.config.ThemeChoice.LIGHT,
+                Themes.effective(com.example.app.config.ThemeChoice.LIGHT, false));
+        assertTrue(
+                Themes.isDark(com.example.app.config.ThemeChoice.HIGH_CONTRAST, javafx.application.ColorScheme.LIGHT));
+    }
 }

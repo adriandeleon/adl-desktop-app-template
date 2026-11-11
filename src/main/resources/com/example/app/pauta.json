@@ -2,30 +2,6 @@
   "template": true,
   "exceptions": [
     {
-      "rule": "ACC-05",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/accessibility/#acc-05",
-      "kind": "pending",
-      "reason": "A file's Git status shows by its color alone in the tab titles and the Documents window; only a tab's tooltip says it in words.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
-    },
-    {
-      "rule": "ACC-06",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/accessibility/#acc-06",
-      "kind": "pending",
-      "reason": "There are no commands that move the keyboard to the next or previous part of the window.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
-    },
-    {
-      "rule": "ACC-09",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/accessibility/#acc-09",
-      "kind": "pending",
-      "reason": "There is no high-contrast theme, and Windows' high-contrast setting is not followed.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
-    },
-    {
       "rule": "CLI-10",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/6.0.0/command-line/#cli-10",
@@ -50,27 +26,11 @@
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/19"
     },
     {
-      "rule": "KBD-04",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/keyboard/#kbd-04",
-      "kind": "pending",
-      "reason": "A grayed menu row does not say why it is unavailable.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
-    },
-    {
       "rule": "KBD-06",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/6.0.0/keyboard/#kbd-06",
       "kind": "pending",
       "reason": "The Command Palette matches a command's description and not its id.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
-    },
-    {
-      "rule": "KBD-10",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/keyboard/#kbd-10",
-      "kind": "pending",
-      "reason": "There are no IntelliJ, VS Code or Sublime keymaps.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/21"
     },
     {

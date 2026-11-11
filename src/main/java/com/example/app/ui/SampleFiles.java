@@ -33,6 +33,18 @@ final class SampleFiles {
             return "git-status-" + name().toLowerCase(Locale.ROOT);
         }
 
+        /** The status as Git's one letter, drawn beside the name so color is not its only sign (ACC-05). */
+        String letter() {
+            return switch (this) {
+                case MODIFIED -> "M";
+                case ADDED -> "A";
+                case UNTRACKED -> "U";
+                case RENAMED -> "R";
+                case DELETED -> "D";
+                case CONFLICT -> "C";
+            };
+        }
+
         /** The status in words, so color is not its only sign (TABS-08, ACC-05). */
         String words() {
             return com.example.app.i18n.Messages.tr("git.status." + name().toLowerCase(Locale.ROOT));

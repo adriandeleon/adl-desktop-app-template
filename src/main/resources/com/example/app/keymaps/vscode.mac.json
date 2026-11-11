@@ -1,0 +1,26 @@
+{
+  "name": "VS Code",
+  "notation": "cua",
+  "bindings": {
+    "palette.show": "Cmd+Shift+P",
+    "app.settings": "Cmd+,",
+    "app.quit": "Cmd+Q",
+    "buffer.close": "Cmd+W",
+    "buffer.reopenClosed": "Cmd+Shift+T",
+    "buffer.next": "Cmd+Alt+RIGHT",
+    "buffer.previous": "Cmd+Alt+LEFT",
+    "switcher.show": "Ctrl+TAB",
+    "tool.documents": "Cmd+Shift+E",
+    "tool.outline": "Cmd+Shift+O",
+    "tool.output": "Cmd+Shift+U",
+    "view.messageLog": "Cmd+Shift+M",
+    "find.show": "Cmd+F",
+    "find.next": "Cmd+G",
+    "find.previous": "Cmd+Shift+G",
+    "view.uiZoomIn": "Cmd+Alt+=",
+    "view.uiZoomOut": "Cmd+Alt+-",
+    "view.uiZoomReset": "Cmd+Alt+0",
+    "window.focusNextRegion": "F6",
+    "window.focusPreviousRegion": "Shift+F6"
+  }
+}

@@ -15,6 +15,7 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.input.ContextMenuEvent;
 
 import com.example.app.command.Command;
+import com.example.app.i18n.Messages;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -51,7 +52,7 @@ final class CommandMenu {
             }
             AppMenus.Row row = AppMenus.inWindowRow(command.id());
             row.item().setId(command.id());
-            row.item().setOnAction(e -> services.commands().run(command.id()));
+            row.item().setOnAction(e -> AppMenus.runOrSay(services, command.id()));
             built.getItems().add(row.item());
             rows.add(row);
         }
@@ -69,7 +70,8 @@ final class CommandMenu {
             Label chord = row.chord();
             if (title != null) title.setText(command == null ? row.commandId() : command.title());
             if (chord != null) chord.setText(services.keybindings().label(row.commandId()));
-            row.item().setDisable(command == null || command.unavailableReason() != null);
+            AppMenus.showAvailability(
+                    row, command == null ? Messages.tr("palette.disabled.unknown") : command.unavailableReason());
         }
     }
 

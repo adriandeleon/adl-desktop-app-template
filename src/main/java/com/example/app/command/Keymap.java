@@ -22,7 +22,8 @@ public record Keymap(
         String id, String name, boolean emacs, Map<String, String> bindings, Map<String, List<String>> alsoBound) {
 
     /** The bundled presets, in picker order. CUA is the default. */
-    public static final List<String> PRESETS = List.of("cua", "emacs");
+    /** The bundled keymaps (KBD-10): CUA and Emacs, and IntelliJ, VS Code and Sublime Text, each with a macOS form. */
+    public static final List<String> PRESETS = List.of("cua", "emacs", "intellij", "vscode", "sublime");
 
     public static final String DEFAULT = "cua";
 
