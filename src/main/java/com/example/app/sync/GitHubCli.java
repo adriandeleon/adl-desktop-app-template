@@ -113,6 +113,14 @@ public final class GitHubCli {
         return "";
     }
 
+    /** gh's version line, or null when gh can't be run (the Doctor's row, DIAG-07). */
+    public @org.jspecify.annotations.Nullable String version() {
+        Result version = run(QUICK, "--version");
+        return version.ok() && !version.output().isBlank()
+                ? version.output().lines().findFirst().orElse("")
+                : null;
+    }
+
     /** {@code Logged in to github.com account NAME} (gh 2.40 on) or {@code ... as NAME} (before). */
     private static final Pattern ACCOUNT = Pattern.compile("Logged in to (\\S+) (?:account|as) ([\\w.-]+)");
 
@@ -152,6 +160,7 @@ public final class GitHubCli {
         argv.add(gh());
         argv.addAll(List.of(args));
         ProcessBuilder builder = new ProcessBuilder(argv).redirectErrorStream(true);
+        builder.environment().put("PATH", ShellPath.path()); // the login shell's (CLI-10)
         builder.environment().putAll(env);
         builder.environment().put("GH_PROMPT_DISABLED", "1");
         builder.environment().put("GH_NO_UPDATE_NOTIFIER", "1");

@@ -2,22 +2,6 @@
   "template": true,
   "exceptions": [
     {
-      "rule": "CLI-10",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/command-line/#cli-10",
-      "kind": "pending",
-      "reason": "Tools such as git are looked for in a fixed list of folders instead of your login shell's path.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
-    },
-    {
-      "rule": "DIAG-07",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/diagnostics/#diag-07",
-      "kind": "pending",
-      "reason": "There is no page that checks the outside tools the app uses, such as git and gh.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
-    },
-    {
       "rule": "ICON-14",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/6.0.0/icons-and-color/#icon-14",

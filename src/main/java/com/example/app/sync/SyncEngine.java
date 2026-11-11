@@ -57,6 +57,11 @@ public final class SyncEngine {
         this.gh = gh;
     }
 
+    /** The git this engine runs: the Doctor asks it for its version (DIAG-07). */
+    public Git git() {
+        return git;
+    }
+
     public Path repoDir() {
         return syncDir.resolve("repo");
     }

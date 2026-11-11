@@ -54,6 +54,8 @@ public final class AppServices {
         this.keybindings = build(store.settings());
         this.updates = new UpdateCoordinator(this, updateService::check);
         this.sync = new SyncController(this, syncEngine, gitHub);
+        this.syncEngine = syncEngine;
+        this.gitHub = gitHub;
         store.addListener(settings -> {
             String state = settings.keymap + settings.keybindings;
             if (!state.equals(keymapState)) {
@@ -61,6 +63,14 @@ public final class AppServices {
                 keybindingListeners.forEach(Runnable::run);
             }
         });
+    }
+
+    private final SyncEngine syncEngine;
+    private final GitHubCli gitHub;
+
+    /** The Doctor's checks (DIAG-07): blocking, off the FX thread. */
+    public java.util.List<com.example.app.sync.Doctor.Check> doctor() {
+        return com.example.app.sync.Doctor.run(store.dir(), syncEngine.git(), gitHub);
     }
 
     private Keybindings build(Settings settings) {

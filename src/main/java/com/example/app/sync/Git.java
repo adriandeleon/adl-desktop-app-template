@@ -69,6 +69,7 @@ public final class Git {
         command.addAll(List.of(args));
         ProcessBuilder builder =
                 new ProcessBuilder(command).directory(dir.toFile()).redirectErrorStream(true);
+        builder.environment().put("PATH", ShellPath.path()); // the login shell's (CLI-10): git's own helpers too
         builder.environment().putAll(env);
         builder.environment().put("GIT_TERMINAL_PROMPT", "0");
         builder.environment().put("GCM_INTERACTIVE", "never");

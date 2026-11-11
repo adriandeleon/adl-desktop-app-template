@@ -701,6 +701,11 @@ public final class MainWindow {
         if (window != null) window.promptCreateOnGitHub();
     }
 
+    /** The Doctor (DIAG-07). */
+    void openDoctor() {
+        new DoctorWindow(services, stage).show();
+    }
+
     void openAbout() {
         new AboutDialog(services, stage).show();
     }

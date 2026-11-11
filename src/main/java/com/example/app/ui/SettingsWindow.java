@@ -86,7 +86,9 @@ public final class SettingsWindow {
                             "sync.setRepository",
                             "sync.setBranch",
                             "sync.setInterval"),
-            Page.ADVANCED, java.util.Arrays.asList("config.export", "config.import", null, "config.openFolder"));
+            Page.ADVANCED,
+                    java.util.Arrays.asList(
+                            "config.export", "config.import", null, "config.openFolder", "help.doctor"));
 
     private final Map<Page, CommandMenu> pageMenus = new EnumMap<>(Page.class);
 
@@ -596,6 +598,10 @@ public final class SettingsWindow {
         HBox backup = new HBox(8, export, importButton);
         backup.setAlignment(Pos.CENTER_RIGHT);
         row(card, Page.ADVANCED, "settings.backup", backup, "export import zip backup");
+        // The Doctor (DIAG-07): the tools and the folder the app depends on, each checked.
+        Button doctor = new Button(Messages.tr("command.help.doctor"));
+        doctor.setOnAction(e -> services.commands().run("help.doctor"));
+        row(card, Page.ADVANCED, "settings.doctor", doctor, "doctor check tools git gh java environment problem");
     }
 
     // ---- rows, cards, search ----
