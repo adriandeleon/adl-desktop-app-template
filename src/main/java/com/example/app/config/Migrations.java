@@ -28,7 +28,9 @@ public final class Migrations {
             5,
             UnaryOperator.identity(),
             6,
-            UnaryOperator.identity());
+            UnaryOperator.identity(),
+            7,
+            Migrations::v7SessionApart);
 
     private Migrations() {}
 
@@ -60,7 +62,14 @@ public final class Migrations {
 
     // Version 2 to 3 added titleBarMenus, 3 to 4 showToolbar, 4 to 5 showTabBar and the tool windows' state
     // (window.toolWindows), 5 to 6 simpleMode and 6 to 7 uiZoom: purely additive, so the identity steps
-    // above; their defaults fill in.
+    // above; their defaults fill in. 7 to 8 adds textZoom and takes the window out: it moves to session.json
+    // (SET-08), which ConfigStore writes from the old file's window the first time.
+
+    /** Version 8 keeps no session state in settings.json: the window block goes (ConfigStore carries it over). */
+    static ObjectNode v7SessionApart(ObjectNode tree) {
+        tree.remove("window");
+        return tree;
+    }
 
     /** Version 1 had a {@code darkMode} switch; version 2 has a three-way {@code theme}. */
     static ObjectNode v1ToV2(ObjectNode tree) {

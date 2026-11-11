@@ -274,7 +274,7 @@ class MainWindowFxTest {
         // The walk and the zip write run off the FX thread (PERF-01).
         FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Exported"));
         assertTrue(Files.exists(host.saveAnswer));
-        assertTrue(echo().startsWith("Exported 1 file to"), echo()); // one file, worded for one (INTL-12)
+        assertTrue(echo().startsWith("Exported 2 files to"), echo()); // settings.json and session.json (SET-08)
 
         run(() -> services.store().update(s -> s.keymap = "cua"));
         host.openAnswer = host.saveAnswer;
@@ -505,5 +505,23 @@ class MainWindowFxTest {
 
     static List<Window> windows() {
         return List.copyOf(Window.getWindows());
+    }
+
+    /** PAL-09: a keymap switch while the palette is open draws its opener chip, its legend and its chips again. */
+    @Test
+    void thePaletteFollowsAKeymapSwitchWhileOpen() throws Exception {
+        run(window::openPalette);
+        javafx.scene.Node card = call(() -> window.overlays().root().lookup(".command-palette"));
+        java.util.function.Supplier<String> opener =
+                () -> ((javafx.scene.control.Label) card.lookup(".opener-chip")).getText();
+        java.util.function.Supplier<String> legend =
+                () -> ((javafx.scene.control.Label) card.lookup(".palette-hint")).getText();
+        assertEquals(services.keybindings().label("palette.show"), call(opener::get));
+        assertFalse(call(legend::get).contains("C-g"));
+        run(() -> services.store().update(s -> s.keymap = "emacs"));
+        assertEquals("M-x", call(opener::get));
+        assertTrue(call(legend::get).contains("C-n") && call(legend::get).contains("C-g"), call(legend::get));
+        run(() -> window.overlays().hide());
+        run(() -> services.store().update(s -> s.keymap = "cua"));
     }
 }

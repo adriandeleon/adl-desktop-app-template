@@ -40,7 +40,12 @@ public final class AppServices {
     private String keymapState = "";
 
     public AppServices(ConfigStore store, Host host) {
-        this(store, host, new UpdateService(), new SyncEngine(store.dir().resolve("sync"), new Git()), new GitHubCli());
+        this(store, host, new UpdateService(), new GitHubCli());
+    }
+
+    private AppServices(ConfigStore store, Host host, UpdateService updates, GitHubCli gh) {
+        // The sync engine asks gh which account can read the repository, and keeps it (SET-18).
+        this(store, host, updates, new SyncEngine(store.dir().resolve("sync"), new Git(), gh), gh);
     }
 
     AppServices(ConfigStore store, Host host, UpdateService updateService, SyncEngine syncEngine, GitHubCli gitHub) {
@@ -49,6 +54,8 @@ public final class AppServices {
         this.keybindings = build(store.settings());
         this.updates = new UpdateCoordinator(this, updateService::check);
         this.sync = new SyncController(this, syncEngine, gitHub);
+        this.syncEngine = syncEngine;
+        this.gitHub = gitHub;
         store.addListener(settings -> {
             String state = settings.keymap + settings.keybindings;
             if (!state.equals(keymapState)) {
@@ -56,6 +63,14 @@ public final class AppServices {
                 keybindingListeners.forEach(Runnable::run);
             }
         });
+    }
+
+    private final SyncEngine syncEngine;
+    private final GitHubCli gitHub;
+
+    /** The Doctor's checks (DIAG-07): blocking, off the FX thread. */
+    public java.util.List<com.example.app.sync.Doctor.Check> doctor() {
+        return com.example.app.sync.Doctor.run(store.dir(), syncEngine.git(), gitHub);
     }
 
     private Keybindings build(Settings settings) {
@@ -98,6 +113,11 @@ public final class AppServices {
     /** Runs whenever the keymap or the user's bindings change. */
     public void onKeybindingsChanged(Runnable listener) {
         keybindingListeners.add(listener);
+    }
+
+    /** Stops telling {@code listener} about keymap changes: an overlay that closed. */
+    public void offKeybindingsChanged(Runnable listener) {
+        keybindingListeners.remove(listener);
     }
 
     /** Shows a catalog message in the status bar and the Message Log; severity comes from the key. */

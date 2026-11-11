@@ -10,6 +10,23 @@ one-line summary written for users.
 
 ### Added
 
+- **The documents you had open come back.** Quitting remembers the open documents and the selected one, and
+  the next start opens them again; `--no-session` starts with the Welcome page and leaves them for next time
+  (Pauta WIN-08, CLI-04). The window's place and what was open live in `session.json`, apart from your
+  preferences in `settings.json` (SET-08).
+- **Zoom the documents' text on its own:** Zoom Text In, Zoom Text Out and Actual Text Size, from the
+  Command Palette or `Ctrl/Cmd+=`, `-` and `0` (`C-=`, `C--`, `C-0` in Emacs) or Settings → Appearance → Text
+  size, kept across launches; the window's own zoom stays apart (Pauta WIN-09).
+- **IntelliJ, VS Code and Sublime Text keymaps,** each with its macOS form, beside CUA and Emacs (Pauta
+  KBD-10).
+- **A High contrast theme,** chosen in Settings, and followed on its own while Windows' high-contrast mode
+  is on (Pauta ACC-09).
+- **Next Region and Previous Region** (`F6`, `Shift+F6`; `C-x o`, `C-x O` in Emacs) move the keyboard between
+  the documents and each open tool window (Pauta ACC-06).
+- **A Doctor** (Settings → Advanced, or the palette) checks git, gh, Java, JavaFX and the config folder, and
+  says what to do about anything that fails (Pauta DIAG-07).
+- **The palette opens a command's help page** with the first of `Ctrl+H`, `F1` and `Shift+F1` your keymap
+  leaves free, and its key legend is your keymap's (Pauta PAL-08, PAL-09).
 - **Zoom the whole window.** View → Zoom In, Zoom Out and Actual Size (`Ctrl+Alt+=`, `Ctrl+Alt+-` and
   `Ctrl+Alt+0`, `Cmd+Option` on macOS; `Ctrl/Cmd+=` stays free for zooming a document's text), or Settings →
   Appearance → Zoom, from 80 % to 200 %: menus, toolbar, tabs, status bar and dialogs grow and shrink together, at once, and the size is
@@ -105,6 +122,25 @@ one-line summary written for users.
 
 ### Changed
 
+- **ExampleApp's Pauta conformance is Complete:** every MUST and SHOULD of Pauta 6.0.0 a template can meet
+  is met; what is left is each app's own website, screenshots and repository settings (`app-only`).
+- **The palette and every picker move with your keymap's keys** (`C-n`, `C-p`, `C-v`, `M-v` in Emacs) and
+  with `Ctrl/Cmd+Home` and `End`; the tab switcher moves the same way. Pickers say what you are choosing and
+  open on the current value (Pauta PAL-06, QOPEN-02, QOPEN-04, QOPEN-06, QOPEN-12).
+- **The palette finds a command by the words of its id, not its description,** and a query that spells a
+  title puts that command first (Pauta KBD-06).
+- **The Welcome page is in the Help menu** (Help → Welcome Page, `view.welcome`), shows at start when there
+  is no session to restore, is rebuilt each time it is shown, and is no pinned tab: its menu is Close alone.
+  Closing the last tab leaves a hint with the ways in and their keys (Pauta WELC-03, WELC-04, WELC-05,
+  WELC-11).
+- **A grayed menu row says why** in its tooltip, and choosing it says so in the status bar; rows that clear
+  or reset are red (Pauta KBD-04, MENU-12).
+- **A file's Git status shows as its letter** (M, A, U, R, D, C) on its tab and its Documents row, not by
+  color alone (Pauta ACC-05).
+- **Find starts where your caret was** when the bar opened, and the find field keeps your keymap's editing
+  keys (`C-a`, `C-e`, `C-k`, `C-y`… in Emacs) (Pauta FIND-05, FIND-09).
+- **Settings Sync remembers which GitHub account can read your repository,** for a computer signed in to two,
+  and keeps a copy of your settings before a sync replaces them (Pauta SET-18, SET-20).
 - **ExampleApp is built to Pauta 6.0.0,** and its conformance is now Core: it meets every MUST of the
   edition a template can, and the SHOULDs it does not yet are listed in the Pauta window (Help → Pauta
   Conformance). The `pauta-audit` skill and the copy of the edition's rules are 6.0.0's.
@@ -154,6 +190,13 @@ one-line summary written for users.
 
 ### Fixed
 
+- **git and gh are found from your login shell's PATH** on macOS and Linux, so an app opened from the Finder
+  finds Homebrew's tools (Pauta CLI-10).
+- **Faster to start and to type in the palette:** release builds carry precompiled stylesheets, and the
+  palette's rows reuse their nodes and draw their titles in runs (Pauta PERF-17, PERF-09, PERF-10).
+  `scripts/measure-startup.sh` measures a start, phase by phase, and `-Dexampleapp.fxSampler=<ms>` logs what
+  stalls the window (PERF-19, PERF-20).
+- **The Windows installer is signed** once `WINDOWS_CERT_PFX` is set (Pauta REL-17).
 - **The window no longer waits on files while you work.** Logging, the extra font, the About and Pauta
   windows' images and the lookup of `git` and `gh` all moved off the window's thread; the outline is
   re-read once typing pauses instead of on every key, and the Output keeps its newest 1,000 lines

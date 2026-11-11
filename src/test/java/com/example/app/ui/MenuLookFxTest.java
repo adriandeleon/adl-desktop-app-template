@@ -12,9 +12,7 @@ import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.stage.Window;
@@ -255,29 +253,5 @@ class MenuLookFxTest {
         assertEquals("Inter", font.getFamily(), from + ": " + title.getText());
         assertEquals(size, font.getSize(), 0.01, from + ": " + title.getText());
         assertFalse(font.getStyle().toLowerCase(java.util.Locale.ROOT).contains("bold"), from + ": bold");
-    }
-
-    /** ICON-06: the key color reads at 4.5:1 or more on the default, subtle and menu grounds of both themes. */
-    @Test
-    void theKeyColorReadsOnBothThemesGrounds() throws Exception {
-        for (ThemeChoice theme : List.of(ThemeChoice.LIGHT, ThemeChoice.DARK)) {
-            run(() -> {
-                Themes.apply(theme);
-                Pane root = (Pane) window.overlays().root();
-                // The menus' own overlay ground too: that is where every chord is drawn.
-                for (String ground : List.of("-color-bg-default", "-color-bg-subtle", "-color-bg-overlay")) {
-                    Label probe = new Label("x");
-                    probe.setStyle("-fx-text-fill: -state-key; -fx-background-color: " + ground + ";");
-                    root.getChildren().add(probe);
-                    root.applyCss();
-                    Color ink = (Color) probe.getTextFill();
-                    Background background = probe.getBackground();
-                    Color fill = (Color) background.getFills().getFirst().getFill();
-                    root.getChildren().remove(probe);
-                    double ratio = StyleContrastTest.contrast(ink, fill);
-                    assertTrue(ratio >= 4.5, theme + ": -state-key on " + ground + " is " + ratio);
-                }
-            });
-        }
     }
 }

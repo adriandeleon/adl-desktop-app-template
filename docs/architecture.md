@@ -84,6 +84,15 @@ The tests start the app through the same `Startup.prepare` and `Startup.start`, 
   every window gets a copy with each pixel size scaled (made off the FX thread), and the few sizes the code
   fixes are bound to `UiZoom.factor`. **Size new controls in the stylesheet, or bind them with
   `UiZoom.bind`, never in plain pixels.**
+- `PickerKeys`: the keys of every list overlay, the palette, the pickers and the tab switcher: the keymap's
+  `nav.*` chords and the fixed arrows, page keys and Ctrl/Cmd+Home/End, and the palette's help chord.
+  `TextInputKeys`: the keymap's caret and editing chords a text field keeps.
+- `DoctorWindow` over `sync/Doctor`: the tools and the folder the app depends on, each checked.
+  `sync/ShellPath`: the login shell's `PATH`, which git and gh run with. `sync/AccountPin`: the GitHub account
+  a sync clone uses.
+- `FxSampler` (`-Dexampleapp.fxSampler=<ms>`): logs the FX thread's stack when it stalls. `StartupMarks`: the
+  start's phase marks, in the Debug Log and for `scripts/measure-startup.sh`. `StyleCompiler`: the release
+  build's `.bss` stylesheets, which `Themes` prefers at 100 % zoom.
 - `MacAppMenu`: About and Settings in macOS's application menu, through Glass (only macOS's JavaFX has
   it; the launchers export `com.sun.glass.ui.mac` to the app on macOS alone).
 - `Picker`: the one list chooser; the Command Palette is a `Picker` over commands, and the theme,
@@ -105,9 +114,12 @@ The tests start the app through the same `Startup.prepare` and `Startup.start`, 
 
 ## Config folder
 
-`~/.exampleapp` (`--config-dir`, then `EXAMPLEAPP_CONFIG_DIR`, then the default, `~/.exampleapp-dev` with `--dev`): `settings.json`,
-`exampleapp-session.log` (+ `.prev.log`), `instance.sock`, `sync/`, and backups
-(`settings.json.v<n>.bak`, `settings.json.broken.bak`). Every JSON file there has a `schemaVersion` and a
+`~/.exampleapp` (`--config-dir`, then `--dev` (`~/.exampleapp-dev`), then `EXAMPLEAPP_CONFIG_DIR`, then the
+default): `settings.json` (preferences only), `session.json` (the window's place, the tool windows and the
+open documents: Pauta SET-08, WIN-08), `exampleapp-session.log` (+ `.prev.log`), `instance.sock`, `sync/`
+(the clone, `base.json`, and `account.json`, the GitHub account pinned to the clone: SET-18), `backups/`
+(`settings-<time>.json`, kept before a sync replaces your settings: SET-20) and the backups of files that
+could not be read (`settings.json.v<n>.bak`, `settings.json.broken.bak`, the same for `session.json`). Every JSON file there has a `schemaVersion` and a
 migration step per version: `settings.json` (`Settings`, `Migrations`) and Settings Sync's
 `keybindings.json` and `base.json` (`SyncData`). A sync file from a newer build is refused, never
 overwritten.

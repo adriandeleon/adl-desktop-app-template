@@ -3,6 +3,7 @@ package com.example.app.ui;
 import com.example.app.AppInfo;
 import com.example.app.command.Command;
 import com.example.app.command.CommandRegistry;
+import com.example.app.i18n.Messages;
 
 /**
  * Every command the starter registers, in one place. Each needs {@code command.<id>} and
@@ -22,6 +23,29 @@ final class Commands {
         r.register("view.messageLog", window::openMessageLog);
         r.register("messageLog.copy", window::copyMessageLog);
         r.register("messageLog.clear", window::clearMessageLog);
+        r.register("help.doctor", window::openDoctor); // DIAG-07
+        // The window's regions, in turn (ACC-06): the documents and each open tool window.
+        r.register("window.focusNextRegion", () -> window.toolWindows().focusRegion(1));
+        r.register("window.focusPreviousRegion", () -> window.toolWindows().focusRegion(-1));
+        // The documents' text zoom (WIN-09), Ctrl/Cmd+=, - and 0; kept across launches as a setting.
+        r.register(
+                "view.zoomIn",
+                () -> zoomText(services, services.settings().textZoom + TEXT_ZOOM_STEP),
+                () -> services.settings().textZoom >= com.example.app.config.Settings.MAX_TEXT_ZOOM
+                        ? Messages.tr("palette.disabled.textZoomLargest")
+                        : null);
+        r.register(
+                "view.zoomOut",
+                () -> zoomText(services, services.settings().textZoom - TEXT_ZOOM_STEP),
+                () -> services.settings().textZoom <= com.example.app.config.Settings.MIN_TEXT_ZOOM
+                        ? Messages.tr("palette.disabled.textZoomSmallest")
+                        : null);
+        r.register(
+                "view.zoomReset",
+                () -> zoomText(services, com.example.app.config.Settings.DEFAULT_TEXT_ZOOM),
+                () -> services.settings().textZoom == com.example.app.config.Settings.DEFAULT_TEXT_ZOOM
+                        ? Messages.tr("palette.disabled.textZoomDefault")
+                        : null);
         // The UI zoom (WIN-12): three commands, kept across launches through the setting.
         r.register(
                 "view.uiZoomIn",
@@ -164,6 +188,15 @@ final class Commands {
      * and the per-tab ones on the tab's right-click menu ({@link TabContextMenu}). Each acts on the selected
      * tab. The ids are Editora's.
      */
+    /** One step of the text zoom, in percent. */
+    static final int TEXT_ZOOM_STEP = 10;
+
+    private static void zoomText(AppServices services, int percent) {
+        int clamped = com.example.app.config.Settings.clampTextZoom(percent);
+        services.store().update(s -> s.textZoom = clamped);
+        services.echo("status.textZoom", clamped);
+    }
+
     private static void zoomUi(AppServices services, int percent) {
         services.store().update(s -> s.uiZoom = percent);
         services.echo("status.uiZoom", percent);
@@ -210,7 +243,7 @@ final class Commands {
                 () -> window.tabs().selectNext(-1),
                 () -> window.tabs().cycleUnavailable());
         r.register("switcher.show", window::showSwitcher, () -> window.tabs().closeUnavailable());
-        r.register("help.welcome", () -> window.tabs().showWelcome());
+        r.register("view.welcome", () -> window.tabs().showWelcome());
     }
 
     /**

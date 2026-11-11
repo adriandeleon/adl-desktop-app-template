@@ -351,4 +351,46 @@ class RightClickMenusFxTest {
                 false,
                 null);
     }
+
+    /** MENU-12: a row that deletes, discards or resets wears the danger style; others do not. */
+    @Test
+    void destructiveRowsAreStyledAsDangerous() throws Exception {
+        CommandMenu log = app.window().messageLog().rowMenu();
+        run(log::menu);
+        javafx.scene.control.MenuItem clear = call(() -> log.items().stream()
+                .filter(i -> "messageLog.clear".equals(i.getId()))
+                .findFirst()
+                .orElseThrow());
+        javafx.scene.control.MenuItem copy = call(() -> log.items().stream()
+                .filter(i -> "messageLog.copy".equals(i.getId()))
+                .findFirst()
+                .orElseThrow());
+        assertTrue(clear.getStyleClass().contains("danger"));
+        assertFalse(copy.getStyleClass().contains("danger"));
+    }
+
+    /** KBD-04: a row whose command can't run stays in the menu, grayed, its reason in a tooltip and said aloud. */
+    @Test
+    void anUnavailableRowStaysAndSaysWhy() throws Exception {
+        CommandMenu tabs = app.window().tabs().menu();
+        run(() -> {
+            tabs.menu();
+            tabs.refresh();
+        });
+        // On the first tab nothing is left of it: Close Tabs to the Left can't run.
+        run(() -> app.window().tabs().tabPane().getSelectionModel().select(0));
+        run(tabs::refresh);
+        javafx.scene.control.CustomMenuItem reopen =
+                (javafx.scene.control.CustomMenuItem) call(() -> tabs.items().stream()
+                        .filter(i -> "buffer.closeLeft".equals(i.getId()))
+                        .findFirst()
+                        .orElseThrow());
+        String reason = services.commands().get("buffer.closeLeft").unavailableReason();
+        assertNotNull(reason);
+        assertFalse(call(reopen::isDisable), "not hidden, not dead: a tooltip shows on it");
+        assertTrue(call(() -> reopen.getStyleClass().contains("unavailable")));
+        assertEquals(reason, call(() -> reopen.getContent().getAccessibleHelp()));
+        run(reopen::fire);
+        assertTrue(call(() -> app.window().statusBar().echo().getText()).contains(reason), "choosing it says why");
+    }
 }

@@ -383,4 +383,18 @@ class ReleaseSupplyChainTest {
                 attachedByJReleaser("\n" + jreleaser).equals(attested(missing)),
                 "a download JReleaser attaches but nothing attests must fail the check");
     }
+
+    /** REL-17: the Windows leg signs the .msi, once a certificate is set, before it is uploaded. */
+    @Test
+    void theWindowsInstallerIsSignedBeforeItIsUploaded() throws IOException {
+        String release = java.nio.file.Files.readString(java.nio.file.Path.of(".github/workflows/release.yml"));
+        int sign = release.indexOf("- name: Sign the installer (Windows)");
+        int upload = release.indexOf("- name: Upload\n");
+        org.junit.jupiter.api.Assertions.assertTrue(sign > 0, "a Windows signing step");
+        org.junit.jupiter.api.Assertions.assertTrue(sign < upload, "before the upload");
+        String step = release.substring(sign, upload);
+        org.junit.jupiter.api.Assertions.assertTrue(
+                step.contains("signtool\" sign") && step.contains("WINDOWS_CERT_PFX"));
+        org.junit.jupiter.api.Assertions.assertTrue(step.contains("verify /pa"));
+    }
 }

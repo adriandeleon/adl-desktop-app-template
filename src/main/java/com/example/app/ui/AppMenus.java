@@ -106,7 +106,6 @@ final class AppMenus {
             // The tabs and the tool windows: every one of their commands has a row (TABS-01).
             spec(
                     "menu.window",
-                    "help.welcome",
                     "switcher.show",
                     "buffer.next",
                     "buffer.previous",
@@ -143,6 +142,7 @@ final class AppMenus {
                     "palette.show",
                     "help.documentation",
                     "help.keyboardShortcuts",
+                    "view.welcome",
                     null,
                     "help.checkForUpdates",
                     "view.messageLog",
@@ -169,7 +169,6 @@ final class AppMenus {
                     "view.toggleSimpleMode"),
             spec(
                     "menu.window",
-                    "help.welcome",
                     "switcher.show",
                     null,
                     "buffer.close",
@@ -178,7 +177,7 @@ final class AppMenus {
                     "tool.documents",
                     "tool.outline",
                     "tool.output"),
-            spec("menu.help", "palette.show", "help.documentation", "help.keyboardShortcuts", null, "help.about"));
+            spec("menu.help", "palette.show", "help.documentation", "view.welcome", null, "help.about"));
 
     private static Spec spec(String key, @Nullable String... ids) {
         return new Spec(key, java.util.Collections.unmodifiableList(java.util.Arrays.<@Nullable String>asList(ids)));
@@ -236,14 +235,14 @@ final class AppMenus {
             }
             Row row = row(command.id());
             row.item().setId(command.id());
-            row.item().setOnAction(e -> services.commands().run(command.id()));
+            row.item().setOnAction(e -> runOrSay(services, command.id()));
             menu.getItems().add(row.item());
             rows.add(row);
         }
         groups.add(rows);
         menu.setOnShowing(e -> rows.forEach(row -> {
             Command command = services.commands().get(row.commandId());
-            row.item().setDisable(command != null && command.unavailableReason() != null);
+            showAvailability(row, command == null ? null : command.unavailableReason());
         }));
         // Measured once the popup has CSS, when the labels know their real widths.
         menu.setOnShown(e -> alignChords(rows));
@@ -251,7 +250,11 @@ final class AppMenus {
     }
 
     private Row row(String id) {
-        if (systemMenu) return new Row(new MenuItem(), id, null, null);
+        if (systemMenu) {
+            MenuItem item = new MenuItem();
+            if (DESTRUCTIVE.contains(id)) item.getStyleClass().add("danger");
+            return new Row(item, id, null, null);
+        }
         return inWindowRow(id);
     }
 
@@ -259,6 +262,13 @@ final class AppMenus {
      * An in-window row (MENU-02): the command's glyph (or an empty slot, so titles line up), the title, a
      * spacer and the chord. The right-click menus ({@link CommandMenu}) draw their rows the same way.
      */
+    /**
+     * The rows that delete, discard or reset, styled as dangerous (MENU-12): their title in the red. Whether
+     * each asks first is the confirm dialog's business, not the row's.
+     */
+    static final java.util.Set<String> DESTRUCTIVE = java.util.Set.of(
+            "messageLog.clear", "debugLog.clear", "output.clear", "keymap.resetBinding", "config.import");
+
     static Row inWindowRow(String id) {
         Node glyph = Icons.commandGlyph(id);
         Region slot = new Region();
@@ -287,8 +297,43 @@ final class AppMenus {
                         title.textProperty(),
                         chord.textProperty()));
         CustomMenuItem item = new CustomMenuItem(box);
+        if (DESTRUCTIVE.contains(id)) item.getStyleClass().add("danger");
         item.setHideOnClick(true);
         return new Row(item, id, title, chord);
+    }
+
+    /**
+     * A command that can't run now stays in its menu, grayed, and says why (KBD-04): the row keeps working as a
+     * row, so its tooltip shows the reason and a screen reader hears it, and choosing it says the reason in the
+     * status bar instead of running. A row on the macOS system menu bar can only be disabled.
+     */
+    static void showAvailability(Row row, @Nullable String reason) {
+        MenuItem item = row.item();
+        if (!(item instanceof CustomMenuItem custom)) {
+            item.setDisable(reason != null);
+            return;
+        }
+        item.setDisable(false);
+        item.getStyleClass().remove("unavailable");
+        Node content = custom.getContent();
+        Object old = content.getProperties().remove(REASON_TIP);
+        if (old instanceof javafx.scene.control.Tooltip tip) javafx.scene.control.Tooltip.uninstall(content, tip);
+        content.setAccessibleHelp(reason);
+        if (reason == null) return;
+        item.getStyleClass().add("unavailable");
+        javafx.scene.control.Tooltip tip = new javafx.scene.control.Tooltip(reason);
+        javafx.scene.control.Tooltip.install(content, tip);
+        content.getProperties().put(REASON_TIP, tip);
+    }
+
+    private static final String REASON_TIP = AppMenus.class.getName() + ".reason";
+
+    /** Runs the command, or, when it can't run now, says why in the status bar (KBD-04). */
+    static void runOrSay(AppServices services, String id) {
+        if (services.commands().run(id)) return;
+        Command command = services.commands().get(id);
+        String reason = command == null ? null : command.unavailableReason();
+        if (command != null && reason != null) services.echo("status.unavailable", command.title(), reason);
     }
 
     /** The width of the glyph column, so a row without a glyph keeps its title in line. */

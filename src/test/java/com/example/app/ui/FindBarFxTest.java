@@ -224,4 +224,49 @@ class FindBarFxTest {
                 "C-s",
                 com.example.app.command.Keymap.load("emacs", false).bindings().get("find.show"));
     }
+
+    /**
+     * FIND-05: a search starts from where the caret was when the bar opened. FIND-09: in the Emacs keymap the
+     * field's C-a, C-e and C-k act on the field, never on a command bound to the same keys.
+     */
+    @Test
+    void theSearchStartsAtTheCaretAndTheFieldKeepsItsEditingKeys() throws Exception {
+        MainWindow window = app.window();
+        run(() -> window.tabs().tabPane().getSelectionModel().select(1));
+        DocumentView document = call(() -> window.tabs().activeDocument());
+        String text = call(() -> document.text().getText());
+        // A word that occurs twice: the caret sits after the first one when the bar opens.
+        String word = "the";
+        int first = text.toLowerCase(java.util.Locale.ROOT).indexOf(word);
+        int second = text.toLowerCase(java.util.Locale.ROOT).indexOf(word, first + 1);
+        org.junit.jupiter.api.Assumptions.assumeTrue(first >= 0 && second > first, "the sample has the word twice");
+        run(() -> document.text().positionCaret(first + 1));
+        run(() -> app.services().commands().run("find.show"));
+        FindBar bar = document.findBar();
+        run(() -> bar.field().setText(word));
+        FxTestSupport.waitUntil(() -> !bar.searching());
+        assertEquals(second, (int) call(() -> document.text().getSelection().getStart()), "from the anchor");
+        run(() -> bar.field().setText(word.substring(0, 2)));
+        FxTestSupport.waitUntil(() -> !bar.searching());
+        assertTrue(call(() -> document.text().getSelection().getStart()) >= first + 1, "refining stays put");
+
+        run(() -> app.services().store().update(s -> {
+            s.keymap = "emacs";
+            s.keybindings.put("view.toggleStatusBar", "C-a"); // a command on a field's editing key
+        }));
+        run(() -> bar.field().setText("one two"));
+        run(() -> bar.field().positionCaret(4));
+        run(() -> press(bar.field(), KeyCode.A, false, true, false, false));
+        assertEquals(0, (int) call(() -> bar.field().getCaretPosition()), "C-a went to the start of the field");
+        assertTrue(app.services().settings().showStatusBar, "C-a ran no command");
+        run(() -> press(bar.field(), KeyCode.E, false, true, false, false));
+        assertEquals(7, (int) call(() -> bar.field().getCaretPosition()), "C-e went to the end");
+        run(() -> bar.field().positionCaret(3));
+        run(() -> press(bar.field(), KeyCode.K, false, true, false, false));
+        assertEquals("one", call(() -> bar.field().getText()), "C-k killed the rest");
+        run(() -> app.services().store().update(s -> {
+            s.keymap = "cua";
+            s.keybindings.remove("view.toggleStatusBar");
+        }));
+    }
 }

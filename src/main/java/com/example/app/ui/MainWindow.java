@@ -117,8 +117,10 @@ public final class MainWindow {
         band.getChildren().setAll(headerBar != null ? headerBar : menus.bar(), toolbar.node());
         layout.setTop(band);
         if (headerBar != null) stage.fullScreenProperty().addListener((o, was, full) -> placeHeaderBar(full));
-        this.tabs = new DocumentTabs(services, placeholder(), stage::setTitle);
-        this.toolWindows = new ToolWindowManager(services, tabs.tabPane());
+        this.tabs = new DocumentTabs(services, placeholder(), stage::setTitle, restoreSession);
+        this.restoreSession = restoreSession;
+        tabs.onWelcomeShown(this::refreshWelcome);
+        this.toolWindows = new ToolWindowManager(services, tabs.node());
         this.documentsWindow = new ToolWindow(
                 "documents", Messages.tr("tool.documents"), ToolWindow.Side.LEFT, Icons.DOCUMENTS, () -> {
                     SamplePanels.Documents built = new SamplePanels.Documents(
@@ -136,6 +138,9 @@ public final class MainWindow {
                         "output", Messages.tr("tool.output"), ToolWindow.Side.BOTTOM, Icons.OUTPUT, () -> {
                             SamplePanels.Output built = new SamplePanels.Output();
                             output = built;
+                            built.findBar()
+                                    .editingKeys(() ->
+                                            services.keybindings().keymap().emacs());
                             // A read-only console: its right-click menu is the Output's commands (MENU-05).
                             CommandMenu.onConsole(
                                     built.console(),
@@ -220,6 +225,7 @@ public final class MainWindow {
     private void apply(Settings settings) {
         if (settings.theme != Themes.choice()) Themes.apply(settings.theme);
         if (settings.uiZoom != Themes.zoom()) zoomTo(settings.uiZoom);
+        tabs.textZoom(settings.textZoom); // the documents' own zoom (WIN-09)
         toolbar.node().setVisible(settings.showToolbar);
         toolbar.node().setManaged(settings.showToolbar);
         // Simple mode: fewer toolbar groups, the toggle lit, and the shorter menu, rebuilt only on a change.
@@ -262,12 +268,13 @@ public final class MainWindow {
         Label tagline = new Label(Messages.tr("app.tagline"));
         tagline.getStyleClass().add("muted");
         refreshWelcomeHint();
-        HBox actions = new HBox(8);
+        HBox actions = welcomeActions;
         actions.setAlignment(Pos.CENTER);
         for (String id : List.of("palette.show", "app.settings", "help.documentation", "help.whatsNew")) {
             Command command = services.commands().get(id);
             if (command == null) continue;
             Button button = new Button(command.title());
+            button.setUserData(id);
             button.setOnAction(e -> services.commands().run(id));
             toggles.track(button, id); // the palette's button looks pressed while the palette is up (TBAR-07)
             actions.getChildren().add(button);
@@ -277,6 +284,33 @@ public final class MainWindow {
         box.getStyleClass().add("welcome");
         return box;
     }
+
+    /**
+     * Rebuilds the Welcome page each time it is shown (WELC-05): its actions' titles and the hint's chord are
+     * current, and the focus stays where it was.
+     */
+    void refreshWelcome() {
+        javafx.scene.Node owner =
+                stage.getScene() == null ? null : stage.getScene().getFocusOwner();
+        refreshWelcomeHint();
+        for (javafx.scene.Node node : welcomeActions.getChildren()) {
+            if (node instanceof Button button && button.getUserData() instanceof String id) {
+                Command command = services.commands().get(id);
+                if (command != null) button.setText(command.title());
+            }
+        }
+        welcomeRefreshes++;
+        if (owner != null && owner.getScene() != null) owner.requestFocus();
+    }
+
+    /** How many times the Welcome page was rebuilt: the tests read it. */
+    int welcomeRefreshes() {
+        return welcomeRefreshes;
+    }
+
+    private int welcomeRefreshes;
+    private final HBox welcomeActions = new HBox(8);
+    private final boolean restoreSession;
 
     /** The welcome hint names the palette's chord in the active keymap, so it follows a keymap change. */
     private void refreshWelcomeHint() {
@@ -339,6 +373,7 @@ public final class MainWindow {
         Switcher built = switcher;
         if (built == null) {
             built = new Switcher(tabs, overlays);
+            built.keymap(services::keybindings, Os.isMac()); // the pickers' keys (QOPEN-12)
             switcher = built;
         }
         built.show();
@@ -400,23 +435,51 @@ public final class MainWindow {
     }
 
     void openPalette() {
-        // Every registered command (PAL-02): one that cannot run now stays listed, grayed with the reason.
-        List<Picker.Item<String>> items = services.commands().all().stream()
+        Picker<String> palette = new Picker<>(
+                        overlays,
+                        Messages.tr("palette.prompt"),
+                        services.keybindings().label("palette.show"),
+                        paletteItems(),
+                        services.commands()::run)
+                .keymap(services::keybindings, Os.isMac())
+                // PAL-08: the help chord opens the selected command's page in this version's docs.
+                .help(id -> services.host().openUrl(AppInfo.docsUrl() + "/commands/#" + id));
+        palette.hint().setText(legend(palette));
+        // PAL-09: a keymap switch while it is open draws its chips and its legend again.
+        Runnable rebind =
+                () -> palette.rebind(services.keybindings().label("palette.show"), paletteItems(), legend(palette));
+        services.onKeybindingsChanged(rebind);
+        palette.onHidden(() -> services.offKeybindingsChanged(rebind)).show();
+    }
+
+    /** Every registered command (PAL-02): one that cannot run now stays listed, grayed with the reason. */
+    private List<Picker.Item<String>> paletteItems() {
+        return services.commands().all().stream()
                 .sorted(java.util.Comparator.comparing(Command::title))
                 .map(c -> new Picker.Item<>(
                         c.id(),
                         c.title(),
                         c.description(),
                         services.keybindings().label(c.id()),
-                        c.unavailableReason()))
+                        c.unavailableReason(),
+                        Picker.idWords(c.id())))
                 .toList();
-        new Picker<>(
-                        overlays,
-                        Messages.tr("palette.prompt"),
-                        services.keybindings().label("palette.show"),
-                        items,
-                        services.commands()::run)
-                .show();
+    }
+
+    /** The palette's key legend in the active keymap: its moves, run, cancel and help (PAL-06, PAL-08). */
+    private String legend(Picker<String> palette) {
+        var keys = services.keybindings();
+        String moves = java.util.stream.Stream.of("nav.lineDown", "nav.lineUp")
+                .map(keys::label)
+                .filter(l -> !l.isEmpty())
+                .collect(java.util.stream.Collectors.joining(" "));
+        String cancel = keys.label("edit.cancel");
+        String help = palette.helpLabel(keys);
+        String legend = Messages.tr(
+                "palette.legend",
+                moves.isEmpty() ? "↑↓" : "↑↓ / " + moves,
+                cancel.isEmpty() ? "Esc" : "Esc / " + cancel);
+        return help.isEmpty() ? legend : legend + " · " + Messages.tr("palette.legendHelp", help);
     }
 
     void chooseTheme() {
@@ -429,6 +492,9 @@ public final class MainWindow {
                     services.echo(
                             "status.theme", Messages.tr("theme." + t.name().toLowerCase(java.util.Locale.ROOT)));
                 })
+                .titled(Messages.tr("command.settings.theme")) // QOPEN-02
+                .keymap(services::keybindings, Os.isMac())
+                .current(services.settings().theme) // QOPEN-04
                 .show();
     }
 
@@ -440,6 +506,9 @@ public final class MainWindow {
                     services.store().update(s -> s.keymap = id);
                     services.echo("status.keymap", Keymap.load(id).name());
                 })
+                .titled(Messages.tr("command.settings.keymap"))
+                .keymap(services::keybindings, Os.isMac())
+                .current(services.settings().keymap)
                 .show();
     }
 
@@ -453,6 +522,9 @@ public final class MainWindow {
                     services.store().update(s -> s.language = code);
                     services.echo("status.languageRestart");
                 })
+                .titled(Messages.tr("command.settings.language"))
+                .keymap(services::keybindings, Os.isMac())
+                .current(services.settings().language)
                 .show();
     }
 
@@ -504,7 +576,10 @@ public final class MainWindow {
                 .map(c -> new Picker.Item<>(
                         c, c.title(), c.description(), services.keybindings().label(c.id()), null))
                 .toList();
-        new Picker<>(overlays, Messages.tr("picker.bindKey"), "", items, this::promptBinding).show();
+        new Picker<>(overlays, Messages.tr("picker.bindKey"), "", items, this::promptBinding)
+                .titled(Messages.tr("command.settings.bindKey")) // QOPEN-02
+                .keymap(services::keybindings, Os.isMac()) // QOPEN-06
+                .show();
     }
 
     TextInputDialog promptBinding(Command command) {
@@ -627,6 +702,11 @@ public final class MainWindow {
         openSettings(SettingsWindow.Page.SYNC);
         SettingsWindow window = settings;
         if (window != null) window.promptCreateOnGitHub();
+    }
+
+    /** The Doctor (DIAG-07). */
+    void openDoctor() {
+        new DoctorWindow(services, stage).show();
     }
 
     void openAbout() {
@@ -777,6 +857,16 @@ public final class MainWindow {
 
     /** Remembers size, position and maximized state for the next launch. */
     void saveWindowState() {
+        // What was open, for the next launch (WIN-08); a run started with --no-session leaves the last
+        // session's list as it was (CLI-04).
+        java.util.List<String> open = tabs.openPaths();
+        String active = tabs.activePath();
+        if (restoreSession) {
+            services.store().update(s -> {
+                s.window.documents = open;
+                s.window.activeDocument = active;
+            });
+        }
         boolean maximized = stage.isMaximized();
         double x = stage.getX();
         double y = stage.getY();

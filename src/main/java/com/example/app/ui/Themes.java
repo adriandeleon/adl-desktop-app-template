@@ -38,6 +38,15 @@ public final class Themes {
     /** The dark control theme, a user-agent stylesheet. */
     static final String DARK_THEME = "editora-dark.css";
 
+    /** The high-contrast sheet: the dark theme's roles set to black, white and saturated states (ACC-09). */
+    static final String HIGH_CONTRAST = "high-contrast.css";
+
+    /** Windows' own high-contrast preference (ACC-09). */
+    static final String WINDOWS_HIGH_CONTRAST = "Windows.SPI.HighContrast";
+
+    /** Whether the OS asks for high contrast now: the theme follows it, and goes back when it ends. */
+    private static boolean systemHighContrast;
+
     /** The UI font sheet: Inter on {@code .root}, attached to every window's scene. */
     static final String UI_FONT = "ui-font.css";
 
@@ -64,14 +73,41 @@ public final class Themes {
             Platform.getPreferences().colorSchemeProperty().addListener((obs, old, scheme) -> {
                 if (choice == ThemeChoice.SYSTEM) apply(ThemeChoice.SYSTEM);
             });
+            // ACC-09: Windows' high-contrast mode switches the app to its high-contrast theme, and back.
+            systemHighContrast = Boolean.TRUE.equals(Platform.getPreferences().get(WINDOWS_HIGH_CONTRAST));
+            Platform.getPreferences().addListener((javafx.collections.MapChangeListener<String, Object>) change -> {
+                if (!WINDOWS_HIGH_CONTRAST.equals(change.getKey())) return;
+                systemHighContrast = Boolean.TRUE.equals(change.getValueAdded());
+                apply(choice);
+            });
         }
         boolean dark = isDark();
+        boolean high = effective() == ThemeChoice.HIGH_CONTRAST;
         Application.setUserAgentStylesheet(zoomed(dark ? DARK_THEME : LIGHT_THEME, zoom));
         for (Window window : Window.getWindows()) {
             Scene scene = window.getScene();
-            if (scene != null) scene.getPreferences().setColorScheme(dark ? ColorScheme.DARK : ColorScheme.LIGHT);
+            if (scene != null) {
+                scene.getPreferences().setColorScheme(dark ? ColorScheme.DARK : ColorScheme.LIGHT);
+                highContrast(scene, high);
+            }
             if (window instanceof Stage stage) titleButtons(stage);
         }
+    }
+
+    /** The theme in effect: the high-contrast one while the OS asks for it, else the one chosen. Pure. */
+    static ThemeChoice effective(ThemeChoice choice, boolean systemHighContrast) {
+        return systemHighContrast ? ThemeChoice.HIGH_CONTRAST : choice;
+    }
+
+    static ThemeChoice effective() {
+        return effective(choice, systemHighContrast);
+    }
+
+    /** Puts the high-contrast sheet on {@code scene}, or takes it off. */
+    private static void highContrast(Scene scene, boolean on) {
+        String url = sheet(HIGH_CONTRAST);
+        if (on && !scene.getStylesheets().contains(url)) scene.getStylesheets().add(url);
+        if (!on) scene.getStylesheets().remove(url);
     }
 
     /**
@@ -91,11 +127,13 @@ public final class Themes {
 
     /** Whether the theme in effect is dark. */
     public static boolean isDark() {
-        return isDark(choice, Platform.getPreferences().getColorScheme());
+        return isDark(effective(), Platform.getPreferences().getColorScheme());
     }
 
     static boolean isDark(ThemeChoice choice, ColorScheme system) {
-        return choice == ThemeChoice.DARK || (choice == ThemeChoice.SYSTEM && system == ColorScheme.DARK);
+        return choice == ThemeChoice.DARK
+                || choice == ThemeChoice.HIGH_CONTRAST
+                || (choice == ThemeChoice.SYSTEM && system == ColorScheme.DARK);
     }
 
     /**
@@ -107,6 +145,7 @@ public final class Themes {
         // The UI font is attached by installUiFont once the window shows; adding it here too means a
         // scene measured before it is shown is measured in the font it is drawn in.
         addSheet(scene, UI_FONT);
+        highContrast(scene, effective() == ThemeChoice.HIGH_CONTRAST);
         String app = zoomed("app.css", zoom);
         if (!scene.getStylesheets().contains(app)) scene.getStylesheets().add(app);
         scene.getPreferences().setColorScheme(isDark() ? ColorScheme.DARK : ColorScheme.LIGHT);
@@ -139,7 +178,9 @@ public final class Themes {
     }
 
     private static void addUiFont(@Nullable Scene scene) {
-        if (scene != null) addSheet(scene, UI_FONT);
+        if (scene == null) return;
+        addSheet(scene, UI_FONT);
+        highContrast(scene, effective() == ThemeChoice.HIGH_CONTRAST); // popups, menus and tooltips too
     }
 
     private static void addSheet(Scene scene, String sheet) {
@@ -199,7 +240,16 @@ public final class Themes {
 
     /** The URL of one of the app's stylesheets. */
     static String sheet(String name) {
+        // The precompiled form when the build made one (PERF-17): it loads without being parsed.
+        String binary = binaryName(name);
+        java.net.URL bss = binary == null ? null : Themes.class.getResource("/com/example/app/styles/" + binary);
+        if (bss != null) return bss.toExternalForm();
         return Objects.requireNonNull(Themes.class.getResource("/com/example/app/styles/" + name))
                 .toExternalForm();
+    }
+
+    /** {@code app.css} → {@code app.bss}; null for a name that is no stylesheet. Pure. */
+    static @Nullable String binaryName(String name) {
+        return name.endsWith(".css") ? name.substring(0, name.length() - 4) + ".bss" : null;
     }
 }

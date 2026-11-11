@@ -127,6 +127,9 @@ public final class Icons {
         };
     }
 
+    /** The Doctor: a pulse line. */
+    public static final String PULSE = "M1 8.5h3l1.8 -4.5l3 9l2 -6l1.2 1.5H15";
+
     /** The text commands: scissors, two sheets, a clipboard, a dashed frame round lines. */
     public static final String CUT =
             "M3 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M9 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M6.4 10.4L11.5 2M9.6 10.4L4.5 2";
@@ -296,7 +299,7 @@ public final class Icons {
             Map.entry("view.uiZoomIn", ZOOM_IN),
             Map.entry("view.uiZoomOut", ZOOM_OUT),
             Map.entry("view.uiZoomReset", ZOOM_RESET),
-            Map.entry("help.welcome", HOME),
+            Map.entry("view.welcome", HOME),
             Map.entry("buffer.close", CLOSE),
             Map.entry("buffer.closeOthers", CLOSE_OTHERS),
             Map.entry("buffer.closeAll", CLOSE_ALL),
@@ -313,6 +316,7 @@ public final class Icons {
             Map.entry("tool.output", OUTPUT),
             Map.entry("output.runSample", RUN),
             Map.entry("app.quit", QUIT),
+            Map.entry("help.doctor", PULSE),
             Map.entry("help.keyboardShortcuts", KEYBOARD),
             Map.entry("debugLog.refresh", REFRESH),
             Map.entry("debugLog.copy", COPY),

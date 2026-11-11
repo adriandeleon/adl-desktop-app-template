@@ -46,13 +46,31 @@ public final class Git {
     }
 
     public Result run(Path dir, String... args) {
+        return run(java.util.Map.of(), dir, args);
+    }
+
+    /**
+     * As {@link #run(Path, String...)}, with {@code env} added to git's environment: the token of the account
+     * the clone is pinned to ({@code GH_TOKEN}, SET-18), which the credential helper hands to git.
+     */
+    public Result run(java.util.Map<String, String> env, Path dir, String... args) {
         List<String> command = new ArrayList<>();
         command.add(executable());
         command.add("-c");
         command.add("core.quotepath=off");
+        if (env.containsKey("GH_TOKEN")) {
+            // The pinned account's token for github.com, whatever helper the user's own config names.
+            command.add("-c");
+            command.add("credential.https://github.com.helper=");
+            command.add("-c");
+            command.add("credential.https://github.com.helper="
+                    + "!f() { echo username=x-access-token; echo \"password=$GH_TOKEN\"; }; f");
+        }
         command.addAll(List.of(args));
         ProcessBuilder builder =
                 new ProcessBuilder(command).directory(dir.toFile()).redirectErrorStream(true);
+        builder.environment().put("PATH", ShellPath.path()); // the login shell's (CLI-10): git's own helpers too
+        builder.environment().putAll(env);
         builder.environment().put("GIT_TERMINAL_PROMPT", "0");
         builder.environment().put("GCM_INTERACTIVE", "never");
         try {

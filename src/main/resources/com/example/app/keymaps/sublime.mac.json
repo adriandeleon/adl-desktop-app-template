@@ -1,0 +1,30 @@
+{
+  "name": "Sublime Text",
+  "notation": "cua",
+  "bindings": {
+    "palette.show": "Cmd+Shift+P",
+    "app.settings": "Cmd+,",
+    "app.quit": "Cmd+Q",
+    "buffer.close": "Cmd+W",
+    "buffer.reopenClosed": "Cmd+Shift+T",
+    "buffer.next": "Cmd+Alt+RIGHT",
+    "buffer.previous": "Cmd+Alt+LEFT",
+    "switcher.show": "Cmd+P",
+    "tool.documents": "Cmd+K Cmd+B",
+    "tool.outline": "Cmd+R",
+    "tool.output": "Ctrl+BACK_QUOTE",
+    "find.show": [
+      "Cmd+F",
+      "F3"
+    ],
+    "find.previous": "Shift+F3",
+    "view.uiZoomIn": "Cmd+Alt+=",
+    "view.uiZoomOut": "Cmd+Alt+-",
+    "view.uiZoomReset": "Cmd+Alt+0",
+    "window.focusNextRegion": "F6",
+    "window.focusPreviousRegion": "Shift+F6",
+    "view.zoomIn": "Cmd+=",
+    "view.zoomOut": "Cmd+-",
+    "view.zoomReset": "Cmd+0"
+  }
+}

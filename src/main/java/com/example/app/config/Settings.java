@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
 public final class Settings {
 
     /** Bump with every change to the shape of this file, and add the matching {@link Migrations} step. */
-    public static final int SCHEMA_VERSION = 7;
+    public static final int SCHEMA_VERSION = 8;
 
     public int schemaVersion = SCHEMA_VERSION;
 
@@ -74,8 +74,27 @@ public final class Settings {
         return Math.min(MAX_UI_ZOOM, Math.max(MIN_UI_ZOOM, percent));
     }
 
-    /** Machine-local: never synced. */
+    /**
+     * Session state, not a preference (SET-08): where the window was and what was open. Kept in
+     * {@code session.json} beside {@code settings.json}, never in it ({@link ConfigStore}); machine-local,
+     * never synced.
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Window window = new Window();
+
+    /** The documents' text size (WIN-09), in percent: the content zoom, apart from the UI zoom. */
+    public int textZoom = DEFAULT_TEXT_ZOOM;
+
+    public static final int DEFAULT_TEXT_ZOOM = 100;
+
+    public static final int MIN_TEXT_ZOOM = 50;
+
+    public static final int MAX_TEXT_ZOOM = 300;
+
+    /** {@code percent} within the text zoom's range. */
+    public static int clampTextZoom(int percent) {
+        return Math.min(MAX_TEXT_ZOOM, Math.max(MIN_TEXT_ZOOM, percent));
+    }
 
     public Sync sync = new Sync();
 
@@ -128,6 +147,7 @@ public final class Settings {
         keybindings = bindings;
         lastUpdateCheck = Math.max(0, lastUpdateCheck);
         uiZoom = clampUiZoom(uiZoom);
+        textZoom = clampTextZoom(textZoom);
         if (window == null) window = new Window();
         window.clamp();
         if (sync == null) sync = new Sync();
@@ -152,6 +172,7 @@ public final class Settings {
         c.language = language;
         c.keymap = keymap;
         c.uiZoom = uiZoom;
+        c.textZoom = textZoom;
         c.keybindings = new TreeMap<>(keybindings);
         c.checkForUpdates = checkForUpdates;
         c.lastUpdateCheck = lastUpdateCheck;
@@ -166,6 +187,8 @@ public final class Settings {
         c.window.height = window.height;
         c.window.maximized = window.maximized;
         c.window.toolWindows = window.toolWindows.copy();
+        c.window.documents = window.documents == null ? null : new java.util.ArrayList<>(window.documents);
+        c.window.activeDocument = window.activeDocument;
         c.sync.repoUrl = sync.repoUrl;
         c.sync.branch = sync.branch;
         c.sync.auto = sync.auto;
@@ -188,6 +211,18 @@ public final class Settings {
         /** The tool windows' arrangement, restored on the next launch (TABS-15). */
         public ToolWindows toolWindows = new ToolWindows();
 
+        /**
+         * The documents open at the last quit, in tab order (WIN-08), or null before the first quit: the next
+         * launch opens them again, unless it was started with {@code --no-session} (CLI-04).
+         */
+        public java.util.@Nullable List<String> documents;
+
+        /** The document that was selected, or null for the Welcome page. */
+        public @Nullable String activeDocument;
+
+        /** At most this many documents are reopened: a hand-edited file can't open a thousand tabs. */
+        public static final int MAX_DOCUMENTS = 100;
+
         void clamp() {
             Window defaults = new Window();
             width = Settings.clamp(width, MIN_WINDOW_SIZE, MAX_WINDOW_SIZE, defaults.width);
@@ -198,6 +233,16 @@ public final class Settings {
             }
             if (toolWindows == null) toolWindows = new ToolWindows();
             toolWindows.clamp();
+            if (documents != null) {
+                documents = documents.stream()
+                        .filter(d -> d != null && !d.isBlank())
+                        .distinct()
+                        .limit(MAX_DOCUMENTS)
+                        .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+            }
+            if (activeDocument != null && (documents == null || !documents.contains(activeDocument))) {
+                activeDocument = null;
+            }
         }
 
         private static boolean onScreen(@Nullable Double position) {

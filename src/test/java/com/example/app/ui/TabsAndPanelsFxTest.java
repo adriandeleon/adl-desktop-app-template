@@ -196,19 +196,20 @@ class TabsAndPanelsFxTest {
     void pinnedTabsSurviveBulkCloses() throws Exception {
         assertEquals(List.of("Welcome", "README.md", "notes.md", "LICENSE"), titles());
         select(tab("LICENSE"));
-        assertTrue(runCommand("buffer.togglePin")); // to the end of the pinned group: after Welcome
-        assertEquals(List.of("Welcome", "LICENSE", "README.md", "notes.md"), titles());
+        assertTrue(runCommand("buffer.togglePin")); // to the end of the pinned group: the front
+        assertEquals(List.of("LICENSE", "Welcome", "README.md", "notes.md"), titles());
 
+        // The Welcome page is no document and not pinned (WELC-11): a bulk close closes it too.
         select(tab("notes.md"));
         assertTrue(runCommand("buffer.closeLeft"));
-        assertEquals(List.of("Welcome", "LICENSE", "notes.md"), titles());
+        assertEquals(List.of("LICENSE", "notes.md"), titles());
         assertTrue(runCommand("buffer.closeAll"));
-        assertEquals(List.of("Welcome", "LICENSE"), titles());
+        assertEquals(List.of("LICENSE"), titles());
         assertFalse(runCommand("buffer.closeAll"), "nothing left to close but pinned tabs");
 
         select(tab("LICENSE"));
         assertTrue(runCommand("buffer.togglePin")); // unpinned: just after the pinned group
-        assertEquals(List.of("Welcome", "LICENSE"), titles());
+        assertEquals(List.of("LICENSE"), titles());
         assertFalse(call(() -> header(tab("LICENSE")).getStyleClass().contains("pinned")));
     }
 
@@ -242,8 +243,8 @@ class TabsAndPanelsFxTest {
         Tab welcome = tab("Welcome");
         run(() -> tabs.moveBeside(readme, license, true));
         assertEquals(List.of("Welcome", "notes.md", "LICENSE", "README.md"), titles());
-        run(() -> tabs.moveBeside(readme, welcome, false)); // not ahead of a pinned tab
-        assertEquals(List.of("Welcome", "README.md", "notes.md", "LICENSE"), titles());
+        run(() -> tabs.moveBeside(readme, welcome, false)); // the Welcome tab is not pinned (WELC-11)
+        assertEquals(List.of("README.md", "Welcome", "notes.md", "LICENSE"), titles());
     }
 
     /** TABS-08: a changed file's tab wears the class its Documents row wears. */
@@ -269,6 +270,8 @@ class TabsAndPanelsFxTest {
     /** TABS-09: the switcher moves, closes the highlighted file, and keeps its width. */
     @Test
     void theSwitcherMovesClosesAndKeepsItsWidth() throws Exception {
+        // C-n is the Emacs keymap's line chord; the switcher moves on it as the pickers do (QOPEN-12).
+        run(() -> services.store().update(st -> st.keymap = "emacs"));
         assertTrue(runCommand("switcher.show"));
         Switcher switcher = Objects.requireNonNull(window.switcher());
         assertTrue(call(() -> window.overlays().isShowing()));
@@ -291,6 +294,7 @@ class TabsAndPanelsFxTest {
                 new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.CONTROL, false, false, false, false)));
         assertFalse(call(() -> window.overlays().isShowing()));
         assertSame(highlighted, call(tabs::selected));
+        run(() -> services.store().update(st -> st.keymap = "cua"));
     }
 
     /** TABS-09: opened with C-x C-b, letting go of Ctrl does not close the list. */
@@ -326,7 +330,7 @@ class TabsAndPanelsFxTest {
         assertEquals("Welcome", call(() -> tabs.title(Objects.requireNonNull(tabs.selected()))));
         assertTrue(runCommand("buffer.close"));
         assertFalse(titles().contains("Welcome"));
-        assertTrue(runCommand("help.welcome"));
+        assertTrue(runCommand("view.welcome"));
         assertEquals("Welcome", titles().getFirst());
     }
 
@@ -832,9 +836,17 @@ class TabsAndPanelsFxTest {
         assertTrue(runCommand("buffer.reopenClosed"));
         select(tab("notes.md"));
         assertTrue(runCommand("buffer.closeOthers"));
-        assertEquals(List.of("Welcome", "notes.md"), titles());
+        assertEquals(List.of("notes.md"), titles());
         assertTrue(runCommand("buffer.closeUnmodified"));
-        assertEquals(List.of("Welcome"), titles());
+        assertEquals(List.of(), titles());
+        // WELC-04: the last tab closed leaves the empty area's hint, with the ways in, and the keyboard.
+        assertTrue(call(() -> tabs.emptyHint().isVisible()));
+        assertTrue(call(
+                () -> tabs.emptyHint().getText().contains(services.keybindings().label("palette.show"))));
+        settle();
+        assertTrue(call(() -> window.stage().getScene().getFocusOwner() == tabs.emptyHint()), "it has the keyboard");
+        assertTrue(runCommand("view.welcome"));
+        assertFalse(call(() -> tabs.emptyHint().isVisible()), "a tab hides it");
         assertFalse(runCommand("buffer.next"), "one tab: nothing to cycle");
 
         assertTrue(runCommand("buffer.reopenClosed"));
@@ -873,5 +885,35 @@ class TabsAndPanelsFxTest {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /** ACC-06: the region commands move the keyboard from the documents to each open tool window and back. */
+    @Test
+    void theRegionCommandsWalkTheDocumentsAndTheOpenToolWindows() throws Exception {
+        select(tab("README.md"));
+        assertTrue(runCommand("tool.documents"));
+        assertTrue(runCommand("tool.output"));
+        settle();
+        run(() -> tools.focusEditor());
+        assertTrue(runCommand("window.focusNextRegion"));
+        assertTrue(call(() -> tools.isFocusIn(window.documentsWindow())), "the left tool window next");
+        assertTrue(runCommand("window.focusNextRegion"));
+        assertTrue(call(() -> tools.isFocusIn(window.outputWindow())), "then the bottom one");
+        assertTrue(runCommand("window.focusNextRegion"));
+        assertFalse(
+                call(() -> tools.isFocusIn(window.documentsWindow()) || tools.isFocusIn(window.outputWindow())),
+                "and round to the documents");
+        assertTrue(runCommand("window.focusPreviousRegion"));
+        assertTrue(call(() -> tools.isFocusIn(window.outputWindow())), "back to the bottom one");
+    }
+
+    /** ACC-05: a file's Git status shows as its letter, not by color alone, on its tab. */
+    @Test
+    void aTabShowsItsGitStatusAsALetter() throws Exception {
+        Tab readme = tab("README.md");
+        assertTrue(call(() -> readme.getGraphic().lookupAll(".git-letter").stream()
+                .anyMatch(n -> "M".equals(((Label) n).getText()))));
+        Tab notes = tab("notes.md");
+        assertTrue(call(() -> notes.getGraphic().lookupAll(".git-letter").isEmpty()), "a clean file shows none");
     }
 }

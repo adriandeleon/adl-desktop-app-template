@@ -139,6 +139,8 @@ public final class SyncController {
         long mine = generation.incrementAndGet();
         Thread.ofPlatform().daemon().name("settings-sync").start(() -> {
             SyncEngine.Result result = engine.sync(url, branch, local);
+            // SET-20: before a sync replaces this machine's settings, a copy of them is kept.
+            if (result.merged() != null && !result.merged().equals(local)) backUp();
             Platform.runLater(() -> {
                 if (mine == generation.get()) finish(result, manual);
             });
@@ -164,6 +166,37 @@ public final class SyncController {
         }
         running = false;
         fire();
+    }
+
+    /** How many backups a sync keeps; the oldest go first. */
+    static final int BACKUPS_KEPT = 10;
+
+    /**
+     * Copies {@code settings.json} to {@code backups/settings-<time>.json} before a sync replaces what this
+     * machine has (SET-20), keeping the newest {@link #BACKUPS_KEPT}. Off the FX thread.
+     */
+    private void backUp() {
+        java.nio.file.Path file = services.store().file();
+        java.nio.file.Path folder = services.store().dir().resolve("backups");
+        try {
+            if (!java.nio.file.Files.isRegularFile(file)) return;
+            java.nio.file.Files.createDirectories(folder);
+            String stamp = java.time.LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS"));
+            java.nio.file.Files.copy(file, folder.resolve("settings-" + stamp + ".json"));
+            try (var files = java.nio.file.Files.list(folder)) {
+                List<java.nio.file.Path> kept = files.filter(
+                                f -> f.getFileName().toString().startsWith("settings-"))
+                        .sorted(java.util.Comparator.reverseOrder())
+                        .toList();
+                for (java.nio.file.Path old : kept.subList(Math.min(BACKUPS_KEPT, kept.size()), kept.size())) {
+                    java.nio.file.Files.deleteIfExists(old);
+                }
+            }
+        } catch (java.io.IOException e) {
+            java.util.logging.Logger.getLogger(SyncController.class.getName())
+                    .log(java.util.logging.Level.WARNING, "Could not back up " + file + " before a sync", e);
+        }
     }
 
     /** The name "Create on GitHub" suggests: {@code <app>-sync}. */

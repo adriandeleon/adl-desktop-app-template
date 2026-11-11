@@ -1,0 +1,30 @@
+{
+  "name": "IntelliJ",
+  "notation": "cua",
+  "bindings": {
+    "palette.show": "Cmd+Shift+A",
+    "app.settings": "Cmd+,",
+    "app.quit": "Cmd+Q",
+    "buffer.close": "Cmd+W",
+    "buffer.reopenClosed": "Cmd+Shift+T",
+    "buffer.next": "Cmd+Shift+CLOSE_BRACKET",
+    "buffer.previous": "Cmd+Shift+OPEN_BRACKET",
+    "switcher.show": "Cmd+E",
+    "tool.documents": "Cmd+1",
+    "tool.outline": "Cmd+7",
+    "tool.output": "Cmd+4",
+    "view.closeFocusedToolWindow": "Shift+Esc",
+    "find.show": "Cmd+F",
+    "find.next": "Cmd+G",
+    "find.previous": "Cmd+Shift+G",
+    "view.messageLog": "Cmd+Alt+M",
+    "view.uiZoomIn": "Cmd+Alt+=",
+    "view.uiZoomOut": "Cmd+Alt+-",
+    "view.uiZoomReset": "Cmd+Alt+0",
+    "window.focusNextRegion": "F6",
+    "window.focusPreviousRegion": "Shift+F6",
+    "view.zoomIn": "Cmd+=",
+    "view.zoomOut": "Cmd+-",
+    "view.zoomReset": "Cmd+0"
+  }
+}

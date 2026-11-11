@@ -54,6 +54,16 @@ arguments (CLI-12).
 issues, in an app made from the template (Pauta PAUTA-16). The template itself, `"template": true`, is not
 held to it.
 
+**Precompiled stylesheets.** `-Pdist` runs `StyleCompiler` at `process-classes`: every stylesheet gets a `.bss`
+beside it, which the app loads without parsing (Pauta PERF-17). The `.css` stays too: a UI zoom other than 100 %
+scales its text.
+
+**Measuring a start.** `scripts/measure-startup.sh <launcher> [runs]` launches a packaged app several times,
+each in a fresh config folder, and prints the median of each phase the app marks (`main`, `prepared`,
+`window`, `first-paint`), in milliseconds from the process's start (Pauta PERF-19). A change to the start-up
+path quotes it. `-Dexampleapp.fxSampler=<ms>` (or `EXAMPLEAPP_FX_SAMPLER`) logs the FX thread's stack to the
+Debug Log whenever it stalls longer than that (PERF-20).
+
 ## Installers
 
 | OS | Files | Notes |

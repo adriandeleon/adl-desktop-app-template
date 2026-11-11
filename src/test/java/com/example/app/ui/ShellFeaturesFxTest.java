@@ -257,4 +257,24 @@ class ShellFeaturesFxTest {
         assertEquals("https://127.0.0.1/me/exampleapp-sync.git", second.settings().sync.repoUrl);
         FxTestSupport.waitUntil(() -> second.sync().pill() == SyncController.Pill.FAILING);
     }
+
+    /** DIAG-07: the Doctor opens from its command and draws a row per check, a pill each. */
+    @Test
+    void theDoctorDrawsARowPerCheck() throws Exception {
+        assertTrue(call(() -> services.commands().run("help.doctor")));
+        DoctorWindow doctor = call(() -> new DoctorWindow(services, app.window().stage()));
+        run(() -> doctor.fill(java.util.List.of(
+                new com.example.app.sync.Doctor.Check(
+                        "git", com.example.app.sync.Doctor.Status.FAILED, "Not found.", "Install git.", "https://x"),
+                new com.example.app.sync.Doctor.Check(
+                        "Java", com.example.app.sync.Doctor.Status.OK, "25", null, null))));
+        assertEquals(
+                2,
+                call(() -> doctor.rows().getChildren().stream()
+                                .filter(n -> n.getStyleClass().contains("pill"))
+                                .count())
+                        .intValue());
+        assertTrue(call(() -> doctor.rows().lookupAll(".hyperlink").size() == 1), "the failure's link");
+        run(() -> doctor.dialog().close());
+    }
 }

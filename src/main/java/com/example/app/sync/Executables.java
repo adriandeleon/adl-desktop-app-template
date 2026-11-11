@@ -23,7 +23,8 @@ public final class Executables {
 
     /** The tool's full path, or its bare name (left to the OS to find, or to fail) when not found. */
     public static String find(String name) {
-        Path found = find(name, System.getenv().getOrDefault("PATH", ""), Os.isWindows());
+        // The login shell's PATH first, on macOS and Linux (CLI-10).
+        Path found = find(name, ShellPath.path(), Os.isWindows());
         return found == null ? name : found.toString();
     }
 

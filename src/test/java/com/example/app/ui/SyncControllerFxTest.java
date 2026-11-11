@@ -128,4 +128,26 @@ class SyncControllerFxTest {
         assertEquals(UpdateCoordinator.State.NEVER, updates.state(), "the stale answer was applied");
         assertEquals(null, updates.latest());
     }
+
+    /** SET-20: before a sync replaces this machine's settings with another's, a copy of them is kept. */
+    @Test
+    void aSyncThatReplacesLocalSettingsBacksThemUpFirst() throws Exception {
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                new Git().run(dir, "--version").ok(), "needs git");
+        Path remote = dir.resolve("remote.git");
+        Files.createDirectories(remote);
+        new Git().run(remote, "init", "-q", "--bare");
+        String url = remote.toUri().toString();
+        String branch = services.settings().sync.branch;
+        // Another computer syncs first, with a binding of its own.
+        new SyncEngine(dir.resolve("other-sync"), new Git()).sync(url, branch, Map.of("help.about", "F2"));
+        run(() -> services.store().update(s -> s.sync.repoUrl = url));
+        services.store().flush();
+        run(() -> sync.syncNow(true));
+        FxTestSupport.waitUntil(
+                () -> "F2".equals(services.settings().keybindings.get("help.about")));
+        try (var backups = Files.list(dir.resolve("backups"))) {
+            assertTrue(backups.anyMatch(f -> f.getFileName().toString().matches("settings-[0-9-]+\\.json")));
+        }
+    }
 }

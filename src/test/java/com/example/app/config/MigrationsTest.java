@@ -36,10 +36,11 @@ class MigrationsTest {
         ObjectNode v2 =
                 JsonNodeFactory.instance.objectNode().put("schemaVersion", 2).put("keymap", "emacs");
         // 2 to 3 (titleBarMenus), 3 to 4 (showToolbar), 4 to 5 (showTabBar, window.toolWindows), 5 to 6
-        // (simpleMode) and 6 to 7 (uiZoom) only add fields: the tree comes through as it was.
+        // (simpleMode) and 6 to 7 (uiZoom) only add fields, and 7 to 8 moves the window out to session.json:
+        // the rest of the tree comes through as it was.
         ObjectNode current = Migrations.migrate(v2);
         assertEquals(Settings.SCHEMA_VERSION, Migrations.versionOf(current));
-        assertEquals(7, Settings.SCHEMA_VERSION);
+        assertEquals(8, Settings.SCHEMA_VERSION);
         assertEquals("emacs", current.get("keymap").asText());
     }
 

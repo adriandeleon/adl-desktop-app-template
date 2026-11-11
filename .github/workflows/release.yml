@@ -300,6 +300,31 @@ jobs:
           fi
           ls -la
 
+      # REL-17: the .msi is Authenticode-signed once the app has a certificate (WINDOWS_CERT_PFX); until then
+      # it ships unsigned, with its build provenance attestation, and the run says so.
+      - name: Sign the installer (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        timeout-minutes: 10
+        env:
+          WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "$WINDOWS_CERT_PFX" ] || [ -z "$WINDOWS_CERT_PASSWORD" ]; then
+            echo "::notice title=Windows installer unsigned::set WINDOWS_CERT_PFX and WINDOWS_CERT_PASSWORD to sign the .msi"
+            exit 0
+          fi
+          signtool=$(ls "/c/Program Files (x86)/Windows Kits/10/bin/"*/x64/signtool.exe | sort | tail -1)
+          pfx="$RUNNER_TEMP/cert.pfx"
+          printf '%s' "$WINDOWS_CERT_PFX" | base64 --decode > "$pfx"
+          for msi in target/installers/*.msi; do
+            "$signtool" sign /f "$pfx" /p "$WINDOWS_CERT_PASSWORD" /fd SHA256 \
+              /tr http://timestamp.digicert.com /td SHA256 "$msi"
+            "$signtool" verify /pa "$msi"
+          done
+          rm -f "$pfx"
+
       - name: Upload
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

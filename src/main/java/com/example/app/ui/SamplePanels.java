@@ -60,10 +60,14 @@ final class SamplePanels {
                             getStyleClass().removeIf(c -> c.startsWith("git-status-"));
                             if (empty || sample == null) {
                                 setText(null);
+                                setAccessibleText(null);
                                 setGraphic(null);
                                 return;
                             }
-                            setText(sample.name());
+                            // The Git status as its letter after the name, never color alone (ACC-05).
+                            SampleFiles.GitStatus git = sample.status();
+                            setText(git == null ? sample.name() : sample.name() + "   " + git.letter());
+                            setAccessibleText(git == null ? sample.name() : sample.name() + ", " + git.words());
                             setGraphic(Icons.line(Icons.forFileName(sample.name())));
                             String status = TabGitStatus.classFor(sample);
                             if (status != null) getStyleClass().add(status);
