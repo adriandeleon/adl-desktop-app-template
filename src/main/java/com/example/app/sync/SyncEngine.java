@@ -171,6 +171,9 @@ public final class SyncEngine {
         } else {
             git.run(repo, "remote", "set-url", "origin", url);
         }
+        // The files are checked out as they were pushed, whatever the user's core.autocrlf: a Windows clone
+        // writes and reads the same bytes as a Mac's or a Linux one's.
+        git.run(repo, "config", "core.autocrlf", "false");
         Git.Result fetch = git.run(env, repo, "fetch", "-q", "origin");
         if (!fetch.ok()) return fetch;
         boolean remoteBranch =

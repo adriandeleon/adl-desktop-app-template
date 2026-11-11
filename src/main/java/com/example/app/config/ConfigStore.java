@@ -43,7 +43,8 @@ public final class ConfigStore {
 
     static final ObjectMapper JSON = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .enable(SerializationFeature.INDENT_OUTPUT);
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .setDefaultPrettyPrinter(ConfigFiles.indented());
 
     /** What happened at load, for the status bar. */
     public enum LoadResult {

@@ -22,7 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class EditionTest {
 
     private static String read(String file) throws Exception {
-        return Files.readString(Path.of(file), StandardCharsets.UTF_8);
+        // A Windows checkout may end lines in \r\n.
+        return Files.readString(Path.of(file), StandardCharsets.UTF_8).replace("\r\n", "\n");
     }
 
     private static String pomEdition() throws Exception {
