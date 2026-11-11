@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SyncTest {
@@ -33,9 +34,84 @@ class SyncTest {
     @Test
     void urlsWithCredentialsAreRefused() {
         assertEquals("empty", SyncEngine.checkUrl(" "));
-        assertEquals("credentials", SyncEngine.checkUrl("https://me:token@github.com/me/sync.git"));
-        assertNull(SyncEngine.checkUrl("git@github.com:me/sync.git"));
-        assertNull(SyncEngine.checkUrl("https://github.com/me/sync.git"));
+        // SET-15, SYNC-02: a password, or a token as the user name, in any case of scheme.
+        for (String url : java.util.List.of(
+                "https://me:token@github.com/me/sync.git",
+                "https://user:token@host/repo.git",
+                "HTTPS://me:secret@github.com/me/sync.git",
+                "ssh://git:hunter2@host/repo.git",
+                "https://ghp_abcdefghijklmnopqrstuvwxyz0123456789@github.com/me/sync.git",
+                "https://github_pat_11ABCDEFG_abcdefghijklmnop@github.com/me/sync.git",
+                "https://glpat-abcdefghijklmnop@gitlab.com/me/sync.git",
+                "http://0123456789abcdef0123456789abcdef01234567@host/repo.git",
+                "  https://me:token@github.com/me/sync.git  ")) {
+            assertEquals("credentials", SyncEngine.checkUrl(url), url);
+        }
+        // An SSH user, a plain user name and a user with an empty password carry no secret.
+        for (String url : java.util.List.of(
+                "git@github.com:me/sync.git",
+                "ssh://git@github.com/me/sync.git",
+                "https://github.com/me/sync.git",
+                "https://me@github.com/me/sync.git",
+                "https://me:@github.com/me/sync.git",
+                "https://github.com/me/sync.git?ref=a@b",
+                "file:///home/me/sync.git")) {
+            assertNull(SyncEngine.checkUrl(url), url);
+        }
+    }
+
+    @Test
+    void theSyncFilesCarryAVersionAndAnOldBareFileIsMigrated(@TempDir Path root) throws Exception {
+        assertTrue(
+                SyncData.STEPS
+                        .keySet()
+                        .containsAll(java.util.stream.IntStream.range(SyncData.UNVERSIONED, SyncData.SCHEMA_VERSION)
+                                .boxed()
+                                .toList()),
+                "every version below the current one has a step (SET-09)");
+        Path file = root.resolve("keybindings.json");
+        // Version 1, as the first builds wrote it: the bare map.
+        Files.writeString(file, "{\"app.quit\": \"C-q\", \"help.about\": \"\"}");
+        assertEquals(Map.of("app.quit", "C-q", "help.about", ""), SyncData.read(file));
+        SyncData.write(file, Map.of("app.quit", "C-q"));
+        String written = Files.readString(file);
+        assertTrue(written.contains("\"schemaVersion\" : " + SyncData.SCHEMA_VERSION), written);
+        assertEquals(Map.of("app.quit", "C-q"), SyncData.read(file));
+        // Never trusted: a binding with no chord is dropped; something that is not an object is refused.
+        Files.writeString(file, "{\"schemaVersion\": 2, \"keybindings\": {\"app.quit\": null, \"x\": \"F2\"}}");
+        assertEquals(Map.of("x", "F2"), SyncData.read(file));
+        Files.writeString(file, "[1, 2]");
+        assertThrows(java.io.IOException.class, () -> SyncData.read(file));
+        Files.writeString(file, "{\"schemaVersion\": 9}");
+        SyncData.NewerException newer = assertThrows(SyncData.NewerException.class, () -> SyncData.read(file));
+        assertEquals(9, newer.version());
+        assertEquals(Map.of(), SyncData.read(root.resolve("absent.json")));
+    }
+
+    @Test
+    void aRepositoryFromANewerBuildIsLeftAsItIs(@TempDir Path root) throws Exception {
+        Path remote = root.resolve("remote.git");
+        Files.createDirectories(remote);
+        assertTrue(new Git().run(remote, "init", "-q", "--bare").ok());
+        String url = remote.toUri().toString();
+        SyncEngine newer = new SyncEngine(root.resolve("newer/sync"), new Git());
+        assertTrue(newer.sync(url, "main", Map.of("app.quit", "C-q")).ok());
+        // The newer computer's build writes schema 99 and pushes it.
+        Path repo = newer.repoDir();
+        String future = "{\"schemaVersion\": 99, \"keybindings\": {}, \"more\": true}\n";
+        Files.writeString(repo.resolve(SyncEngine.DATA_FILE), future);
+        Git git = new Git();
+        assertTrue(git.run(repo, "-c", "user.name=t", "-c", "user.email=t@localhost", "commit", "-qam", "newer")
+                .ok());
+        assertTrue(git.run(repo, "push", "-q", "origin", "HEAD:refs/heads/main").ok());
+
+        SyncEngine older = new SyncEngine(root.resolve("older/sync"), new Git());
+        SyncEngine.Result result = older.sync(url, "main", Map.of("help.about", "F1"));
+        assertFalse(result.ok());
+        assertEquals("data.newer", result.error());
+        assertEquals(
+                future, Files.readString(older.repoDir().resolve(SyncEngine.DATA_FILE)), "nothing written over it");
+        assertFalse(Files.exists(root.resolve("older/sync").resolve(SyncEngine.BASE_FILE)));
     }
 
     @Test

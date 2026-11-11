@@ -88,7 +88,9 @@ final class FxTestSupport {
     static Startup.Running start(Path dir, FakeHost host, String... extraArgs) throws Exception {
         List<String> args = new ArrayList<>(List.of("--config-dir", dir.toString(), "--new-instance"));
         args.addAll(List.of(extraArgs));
-        return call(() -> Startup.start(new Stage(), CommandLine.parse(args.toArray(String[]::new)), host));
+        // As a launch does: the file work off the FX thread, then the window on it (PERF-01).
+        Startup.Prepared prepared = Startup.prepare(CommandLine.parse(args.toArray(String[]::new)));
+        return call(() -> Startup.start(new Stage(), prepared, host));
     }
 
     /** Stops the app and closes every window it opened. */
@@ -101,6 +103,7 @@ final class FxTestSupport {
             }
             Messages.init("en");
         });
+        running.services().store().flush(); // the exit's last save, before the temp folder goes
     }
 
     private static Stage primary() {

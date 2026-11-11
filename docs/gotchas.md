@@ -38,4 +38,9 @@ Each of these cost one of the family's apps real time.
 - **Filters and searches wait for typing to pause** (`Debounce`). The headless tests set
   `Debounce.immediate`, so typing then reading needs no wait; a test of the pause turns it off.
 - **A result from a background thread checks its generation inside the `runLater`.** A sync or update
-  answer that arrives after `stop()` or `cancel()` must change nothing.
+  answer that arrives after `stop()` or `cancel()` must change nothing, and neither must an import or a
+  Debug Log search that a newer one superseded (`LatestOnly` is the guard as an object).
+- **`Startup.prepare` refuses the FX thread.** A test that starts the app calls it from the test thread,
+  then `Startup.start` on the FX thread, as `FxTestSupport.start` does.
+- **A value in `settings.json` is clamped when it is read.** Add a new setting's range to
+  `Settings.clamped` with the field, or a hand-edited file can carry any value into the app.

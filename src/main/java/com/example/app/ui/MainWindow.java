@@ -71,6 +71,11 @@ public final class MainWindow {
     private @Nullable Switcher switcher;
     private final @Nullable HeaderBar headerBar;
     private final StatusBar statusBar;
+    /** The latest Import Configuration; a scan or result for an older one is dropped (PERF-03). */
+    private final java.util.concurrent.atomic.AtomicLong imports = new java.util.concurrent.atomic.AtomicLong();
+
+    private final java.util.concurrent.atomic.AtomicInteger importsDropped =
+            new java.util.concurrent.atomic.AtomicInteger();
     /** Built on first open, not before the first frame (PERF-14). */
     private @Nullable MessageLogView messageLog;
 
@@ -572,28 +577,45 @@ public final class MainWindow {
 
     /**
      * Import Configuration: the zip is read and checked off the FX thread, then the question lists the
-     * parts it holds, and only the ticked ones replace this computer's (SET-12, WIN-05).
+     * parts it holds, and only the ticked ones replace this computer's (SET-12, WIN-05). Each import takes
+     * a generation, and its scan and its result are applied only while it is still the latest, checked
+     * again on the FX thread (PERF-03): a second import, or quitting, drops the first.
      */
     void importConfig() {
         Path source = services.host().chooseOpenFile(stage, Messages.tr("command.config.import"));
         if (source == null) return;
         Path dir = services.store().dir();
+        long mine = imports.incrementAndGet();
         Background.run(() -> {
             ConfigImport.Scan scan;
             try {
                 scan = ConfigImport.read(source);
             } catch (IOException e) {
-                services.echo("status.configImportFailed", String.valueOf(e.getMessage()));
+                if (mine == imports.get()) services.echo("status.configImportFailed", String.valueOf(e.getMessage()));
                 return;
             }
-            Platform.runLater(() -> askAndImport(source, scan, dir));
+            Platform.runLater(() -> {
+                if (current(mine)) askAndImport(source, scan, dir, mine);
+            });
         });
     }
 
-    private void askAndImport(Path source, ConfigImport.Scan scan, Path dir) {
+    /** Whether import {@code generation} is still the latest; a stale one is counted for the tests. */
+    private boolean current(long generation) {
+        if (generation == imports.get()) return true;
+        importsDropped.incrementAndGet();
+        return false;
+    }
+
+    /** How many stale import results were dropped (PERF-03). */
+    int importsDropped() {
+        return importsDropped.get();
+    }
+
+    private void askAndImport(Path source, ConfigImport.Scan scan, Path dir, long mine) {
         List<ConfigImport.Part> parts = List.copyOf(scan.available());
         Confirmations.Question question = Confirmations.importConfig(String.valueOf(source.getFileName()), parts);
-        if (!services.host().confirm(stage, question)) return;
+        if (!services.host().confirm(stage, question) || !current(mine)) return;
         java.util.Set<ConfigImport.Part> ticked = java.util.EnumSet.noneOf(ConfigImport.Part.class);
         for (int i = 0; i < parts.size(); i++) {
             if (question.choices().get(i).ticked()) ticked.add(parts.get(i));
@@ -607,6 +629,7 @@ public final class MainWindow {
                 int count = ConfigImport.apply(scan, dir, ticked);
                 ConfigStore.Loaded loaded = services.store().read(); // the file work, here
                 Platform.runLater(() -> {
+                    if (!current(mine)) return; // a later import, or the quit, supersedes this one
                     services.store().install(loaded);
                     services.echo("status.configImported", count);
                 });
@@ -630,6 +653,7 @@ public final class MainWindow {
      * saves the window geometry and the settings, then exits (TRAY-04).
      */
     void quit() {
+        imports.incrementAndGet(); // an import still in flight is never applied
         toolWindows.saveForQuit(); // before the floating windows close with the rest
         for (javafx.stage.Window other : List.copyOf(javafx.stage.Window.getWindows())) {
             if (other != stage) other.hide();

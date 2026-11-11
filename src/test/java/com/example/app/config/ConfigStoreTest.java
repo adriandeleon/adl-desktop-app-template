@@ -116,6 +116,68 @@ class ConfigStoreTest {
     }
 
     @Test
+    void outOfRangeAndUnknownValuesAreCorrectedAsTheFileIsRead() throws Exception {
+        Files.writeString(dir.resolve(ConfigStore.FILE), """
+                {"schemaVersion": %d, "theme": "SEPIA", "language": "xx", "keymap": "vim",
+                 "keybindings": {"palette.show": "Hyper-Q", "app.quit": "", "view.messageLog": "Ctrl+M"},
+                 "lastUpdateCheck": -5,
+                 "window": {"x": 1e12, "y": 10, "width": 2000000, "height": -1, "maximized": true,
+                            "toolWindows": {"open": ["outline", null, "outline"], "sides": {"outline": "TOP"},
+                                            "sizes": {"outline": 7.5, "output": -1}, "splits": {"LEFT": 0},
+                                            "maximized": "gone", "hidden": null}},
+                 "sync": {"repoUrl": null, "branch": "a..b", "intervalMinutes": 0, "lastSync": -1}}
+                """.formatted(Settings.SCHEMA_VERSION));
+        ConfigStore store = ConfigStore.open(dir);
+        assertEquals(
+                ConfigStore.LoadResult.LOADED,
+                store.loadResult(),
+                "a bad value is corrected, not the file thrown away");
+        Settings s = store.settings();
+        assertEquals(ThemeChoice.SYSTEM, s.theme);
+        assertEquals("", s.language);
+        assertEquals("cua", s.keymap);
+        assertEquals(
+                java.util.Map.of("app.quit", "", "view.messageLog", "Ctrl+M"),
+                s.keybindings,
+                "an unknown chord is dropped");
+        assertEquals(0, s.lastUpdateCheck);
+        assertEquals(Settings.MAX_WINDOW_SIZE, s.window.width);
+        assertEquals(Settings.MIN_WINDOW_SIZE, s.window.height);
+        assertNull(s.window.x, "a position far off every screen is forgotten");
+        assertNull(s.window.y);
+        assertTrue(s.window.maximized);
+        assertEquals(java.util.List.of("outline"), s.window.toolWindows.open);
+        assertTrue(s.window.toolWindows.sides.isEmpty());
+        assertEquals(Settings.MAX_SHARE, s.window.toolWindows.sizes.get("outline"));
+        assertEquals(Settings.MIN_SHARE, s.window.toolWindows.sizes.get("output"));
+        assertEquals(Settings.MIN_SHARE, s.window.toolWindows.splits.get("LEFT"));
+        assertEquals("", s.window.toolWindows.maximized);
+        assertTrue(s.window.toolWindows.hidden.isEmpty());
+        assertEquals("", s.sync.repoUrl);
+        assertEquals("main", s.sync.branch);
+        assertEquals(1, s.sync.intervalMinutes);
+        assertEquals(0, s.sync.lastSync);
+
+        Files.writeString(
+                dir.resolve(ConfigStore.FILE),
+                "{\"schemaVersion\": %d, \"sync\": {\"intervalMinutes\": 99999999}, \"window\": {\"width\": \"NaN\"}}"
+                        .formatted(Settings.SCHEMA_VERSION));
+        store = ConfigStore.open(dir);
+        assertEquals(Settings.MAX_SYNC_INTERVAL_MINUTES, store.settings().sync.intervalMinutes);
+        assertEquals(new Settings().window.width, store.settings().window.width);
+    }
+
+    @Test
+    void aFileThatMakesTheReaderThrowSomethingElseIsBackedUpAndDefaultsLoad() throws Exception {
+        // Schema 0 has no migration step: the read throws an IllegalStateException, not an IOException.
+        Files.writeString(dir.resolve(ConfigStore.FILE), "{\"schemaVersion\": 0, \"theme\": \"DARK\"}");
+        ConfigStore store = ConfigStore.open(dir);
+        assertEquals(ConfigStore.LoadResult.BROKEN_BACKED_UP, store.loadResult());
+        assertEquals(ThemeChoice.SYSTEM, store.settings().theme);
+        assertTrue(Files.exists(dir.resolve("settings.json.broken.bak")));
+    }
+
+    @Test
     void savingIntoAnUnwritablePlaceIsLoggedNotThrown() throws Exception {
         Path file = dir.resolve("a-file");
         Files.writeString(file, "x");

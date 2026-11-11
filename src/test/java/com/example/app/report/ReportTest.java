@@ -97,6 +97,50 @@ class ReportTest {
     }
 
     @Test
+    void theReportCommandWritesAReportWithNothingPrivateLeftInIt(@TempDir Path dir) throws Exception {
+        // CLI-05, SET-15: what the last runs logged goes through the redactor before it is written or linked.
+        Files.writeString(dir.resolve(DebugLog.PREVIOUS_FILE), """
+                WARNING could not read /home/ada/.exampleapp/sync/repo on lovelace-pc for ada
+                git push https://ada:s3cret-pass@github.com/ada/sync.git failed
+                token ghp_abcdefghijklmnopqrstuvwxyz0123 from ada.lovelace@example.com at 192.168.1.20
+                """);
+        Files.writeString(
+                dir.resolve(DebugLog.FILE), "INFO api_key=sk-live-123456 Authorization: Bearer abcdefghijklmnop\n");
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        List<String> opened = new ArrayList<>();
+        int code = ReportCommand.run(
+                dir,
+                new PrintStream(out, true, StandardCharsets.UTF_8),
+                url -> {
+                    opened.add(url);
+                    return true;
+                },
+                redactor);
+        assertEquals(0, code);
+        String written = Files.readString(dir.resolve(ReportCommand.FILE));
+        String link = java.net.URLDecoder.decode(opened.getFirst(), StandardCharsets.UTF_8);
+        for (String secret : List.of(
+                "/home/ada",
+                "lovelace-pc",
+                "s3cret-pass",
+                "ghp_abcdefghijklmnopqrstuvwxyz0123",
+                "ada.lovelace@example.com",
+                "192.168.1.20",
+                "sk-live-123456",
+                "abcdefghijklmnop",
+                " ada ")) {
+            assertFalse(written.contains(secret), "left in the report: " + secret);
+            assertFalse(link.contains(secret), "left in the issue link: " + secret);
+        }
+        for (String mark :
+                List.of("~/.exampleapp", "<host>", "<user>", "://<credentials>@", "<token>", "<email>", "<ip>")) {
+            assertTrue(written.contains(mark), "no " + mark + " in:\n" + written);
+        }
+        assertTrue(written.contains("could not read"), "the log itself is kept");
+        assertTrue(out.toString(StandardCharsets.UTF_8).contains("Read it before you submit"));
+    }
+
+    @Test
     void aLongReportSaysToPaste(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve(DebugLog.FILE), "z ".repeat(5000));
         ByteArrayOutputStream out = new ByteArrayOutputStream();

@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The first frame comes first: only what the first window shows is built before it (PERF-14), and the
- * update check and the extra font wait until it has painted (PERF-15), the check a short delay longer,
+ * update check, the extra font and Settings Sync wait until it has painted (PERF-15), the check a short delay longer,
  * once a session and only when allowed and due (DIAG-05).
  */
 @Tag("fx")
@@ -51,29 +51,52 @@ class StartupDeferralFxTest {
 
     @Test
     void closedPanelsAreUnbuiltAndDeferredWorkWaitsForTheFirstPaint() throws Exception {
+        Startup.Prepared prepared =
+                Startup.prepare(CommandLine.parse(new String[] {"--config-dir", dir.toString(), "--new-instance"}));
         List<Object> beforePaint = call(() -> {
-            app = Startup.start(
-                    new Stage(),
-                    CommandLine.parse(new String[] {"--config-dir", dir.toString(), "--new-instance"}),
-                    host);
+            app = Startup.start(new Stage(), prepared, host);
             // Still inside the turn that showed the window: nothing has painted yet.
             List<Object> seen = new ArrayList<>();
             seen.add(app.afterFirstPaint().get());
             seen.add(app.window().builtMessageLog());
             seen.add(app.window().settingsWindow());
             seen.add(app.window().debugLogWindow());
+            seen.add(app.services().sync().automaticStarted());
             return seen;
         });
         assertEquals(false, beforePaint.get(0), "deferred work ran before the first paint");
         assertNull(beforePaint.get(1), "the Message Log was built before it was opened");
         assertNull(beforePaint.get(2), "Settings was built before it was opened");
         assertNull(beforePaint.get(3), "the Debug Log was built before it was opened");
+        assertEquals(false, beforePaint.get(4), "Settings Sync started before the first paint");
 
         FxTestSupport.waitUntil(() -> app.afterFirstPaint().get());
         assertTrue(Fonts.deferredLoaded(), "the extra font loads after the first paint");
+        assertTrue(call(() -> app.services().sync().automaticStarted()), "Settings Sync starts after it");
         assertNull(call(() -> app.window().builtMessageLog()), "painting builds no closed panel");
         run(app.window()::openMessageLog);
         assertTrue(call(() -> app.window().builtMessageLog() != null));
+    }
+
+    @Test
+    void theStartsFileWorkIsReadAheadOffTheFxThreadAndTheExitWaitsOnAThreadOfItsOwn() throws Exception {
+        CommandLine cli = CommandLine.parse(new String[] {"--config-dir", dir.toString(), "--new-instance"});
+        IllegalStateException refused = org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalStateException.class, () -> call(() -> Startup.prepare(cli)));
+        assertTrue(refused.getMessage().contains("FX thread"));
+
+        Startup.readAhead(cli); // as main does, before launch
+        Startup.Prepared prepared = Startup.takePrepared(cli);
+        assertEquals(dir, prepared.dir());
+        assertEquals(
+                com.example.app.config.ConfigStore.LoadResult.DEFAULTS,
+                prepared.store().loadResult());
+        app = call(() -> Startup.start(new Stage(), prepared, host));
+        run(() -> app.services().store().update(s -> s.showStatusBar = false));
+        Thread exit = call(() -> app.services().store().flushOnExit());
+        assertFalse(exit.isDaemon(), "the JVM must wait for the last save");
+        exit.join();
+        assertTrue(java.nio.file.Files.readString(prepared.store().file()).contains("\"showStatusBar\" : false"));
     }
 
     @Test

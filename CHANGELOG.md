@@ -109,6 +109,21 @@ one-line summary written for users.
 
 ### Fixed
 
+- **Starting and quitting never wait on the disk.** The settings file is read on a thread of its own while
+  the window's toolkit starts, and the last save at quit is waited for off the window's thread; Settings
+  Sync's first run now waits until the window has drawn (Pauta PERF-01, PERF-15, PERF-16).
+- **Find in the Debug Log stays smooth on a long log.** It searches in the background, and typing one more
+  letter narrows the matches it has instead of searching the whole log again (Pauta PERF-01, PERF-08).
+- **A configuration import that finishes late can no longer undo a newer one.** Starting a second import,
+  or quitting, drops the first one's result (Pauta PERF-03).
+- **A hand-edited settings file can no longer carry bad values into the app.** A window size, a sync
+  interval or a tool window's size out of range is corrected as the file is read, and an unknown keymap,
+  language, key chord or branch falls back to its default (Pauta SET-11).
+- **Settings Sync's files carry a version number.** An older copy upgrades what it finds, and a copy that
+  finds files from a newer one stops and says so instead of writing over them (Pauta SET-09, PLAT-14).
+- **A sync repository address with an access token as its user name is refused,** as one with a password
+  already was, with the fix: a credential helper or an SSH address (Pauta SET-15).
+
 - **Closing the app cancels a startup update check that is still waiting.** The check waits five seconds
   after the window paints; an app closed in that time still started it, and in the tests its thread could
   show up inside a later test (`WindowLifecycleFxTest`'s "threads left running: [update-check]").

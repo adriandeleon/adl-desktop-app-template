@@ -21,9 +21,10 @@ import com.example.app.instance.SingleInstance;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Builds the running app from the command line: config folder, Debug Log file, settings, language,
- * theme, the main window, single-instance hand-off, the update check and sync. Apart from
- * {@code App}, so the headless tests start the app exactly the way a launch does.
+ * Builds the running app from the command line in two steps: {@link #prepare}, the file work (config
+ * folder, Debug Log file, settings, language, single-instance socket) off the FX thread, and
+ * {@link #start}, the theme and the main window on it, with the update check and sync after the first
+ * paint. Apart from {@code App}, so the headless tests start the app exactly the way a launch does.
  */
 public final class Startup {
 
@@ -48,31 +49,94 @@ public final class Startup {
             @Nullable SingleInstance instance,
             java.util.concurrent.atomic.AtomicBoolean afterFirstPaint)
             implements AutoCloseable {
+        /**
+         * Stops what runs in the background. {@code App.stop} calls it on the FX thread, so the last save is
+         * waited for on a thread of its own (PERF-01), which keeps the JVM up until it is on disk.
+         */
         @Override
         public void close() {
             services.updates().cancel(); // a startup check still waiting would run after the app closed
             services.sync().stop();
-            services.store().flush();
+            services.store().flushOnExit();
             if (instance != null) instance.close();
             DebugLog.onUncaught(null);
         }
     }
 
+    /**
+     * The file work of a start, done before the window is built and off the FX thread (PERF-01, PERF-16):
+     * the config folder, the session log, the settings file, the language and the single-instance socket.
+     */
+    public record Prepared(
+            CommandLine cli,
+            Path dir,
+            ConfigStore store,
+            @Nullable SingleInstance instance,
+            HandOff handOff) {}
+
+    /** Where another launch's arguments go: the main window once it exists, always on the FX thread. */
+    public static final class HandOff implements java.util.function.Consumer<java.util.List<String>> {
+        private volatile @Nullable MainWindow window;
+
+        @Override
+        public void accept(java.util.List<String> args) {
+            Platform.runLater(() -> {
+                MainWindow to = window;
+                if (to != null) to.handOff(args);
+            });
+        }
+    }
+
+    /** The read {@code main} started before {@code launch}, or null. */
+    private static java.util.concurrent.@Nullable CompletableFuture<Prepared> readAhead;
+
     private Startup() {}
 
-    public static Running start(Stage stage, CommandLine cli, Host host) {
-        // Before any stylesheet: CSS naming a font that is not registered yet falls back silently.
-        Fonts.load();
-        Themes.installUiFont();
+    /**
+     * Starts {@link #prepare} on a thread of its own, so the settings file is read while the toolkit starts
+     * (PERF-16). {@code main} calls it just before {@code launch}.
+     */
+    public static synchronized void readAhead(CommandLine cli) {
+        readAhead = java.util.concurrent.CompletableFuture.supplyAsync(
+                () -> prepare(cli),
+                runnable -> Thread.ofPlatform().name("read-ahead").start(runnable));
+    }
+
+    /**
+     * What {@link #readAhead} read, or a read done now when there was none. {@code App.init} calls it on
+     * the launcher thread, never the FX thread.
+     */
+    public static synchronized Prepared takePrepared(CommandLine cli) {
+        java.util.concurrent.CompletableFuture<Prepared> ahead = readAhead;
+        readAhead = null;
+        return ahead != null ? ahead.join() : prepare(cli);
+    }
+
+    /** The start's file work. Blocking: never on the FX thread, which it refuses (PERF-01). */
+    public static Prepared prepare(CommandLine cli) {
+        if (Platform.isFxApplicationThread()) throw new IllegalStateException("the start's file work on the FX thread");
         Path dir = ConfigDir.resolve(cli.configDir(), cli.dev());
         DebugLog.attachFile(dir);
         ConfigStore store = ConfigStore.open(dir);
         Messages.init(
                 Messages.resolve(store.settings().language, Locale.getDefault().getLanguage()));
+        HandOff handOff = new HandOff();
+        SingleInstance instance = cli.newInstance() ? null : SingleInstance.listen(dir, handOff);
+        return new Prepared(cli, dir, store, instance, handOff);
+    }
+
+    /** Builds and shows the app from what {@link #prepare} read. FX thread; no file work. */
+    public static Running start(Stage stage, Prepared prepared, Host host) {
+        // Before any stylesheet: CSS naming a font that is not registered yet falls back silently.
+        Fonts.load();
+        Themes.installUiFont();
+        Path dir = prepared.dir();
+        ConfigStore store = prepared.store();
         Themes.apply(store.settings().theme);
 
         AppServices services = new AppServices(store, host);
-        MainWindow window = new MainWindow(stage, services, !cli.noSession());
+        MainWindow window = new MainWindow(stage, services, !prepared.cli().noSession());
+        prepared.handOff().window = window;
         DebugLog.onUncaught(error -> services.echoText(
                 Messages.tr("status.uncaughtError", String.valueOf(error)), MessageLog.Severity.ERROR));
         // A press anywhere outside a right-click menu closes it, in every window (MENU-06/07).
@@ -87,10 +151,8 @@ public final class Startup {
             default -> services.echo("status.ready");
         }
 
-        SingleInstance instance = cli.newInstance()
-                ? null
-                : SingleInstance.listen(dir, args -> Platform.runLater(() -> window.handOff(args)));
-        // What nobody waits for starts after the first frame has painted (PERF-15, DIAG-05).
+        // What nobody waits for starts after the first frame has painted (PERF-15, DIAG-05): the extra
+        // fonts, the keymaps, the update check and Settings Sync's first run, which starts git.
         java.util.concurrent.atomic.AtomicBoolean afterFirstPaint = new java.util.concurrent.atomic.AtomicBoolean();
         FirstPaint.then(stage.getScene(), () -> {
             afterFirstPaint.set(true);
@@ -98,11 +160,11 @@ public final class Startup {
             // Every keymap parsed now, off the FX thread, so picking one later parses nothing (PERF-01).
             Background.run(() -> Keymap.PRESETS.forEach(Keymap::load));
             services.updates().scheduleStartupCheck();
+            services.sync().startAutomatic();
         });
-        services.sync().startAutomatic();
         smokeTest(System.getProperty(SMOKE_TEST), host);
         aotTrain(System.getProperty(AOT_TRAIN), host);
-        return new Running(services, window, instance, afterFirstPaint);
+        return new Running(services, window, prepared.instance(), afterFirstPaint);
     }
 
     /** Ends an AOT training run after the window has settled. */

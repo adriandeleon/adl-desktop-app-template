@@ -36,8 +36,10 @@ the code wins and the docs are fixed in the same change.
 
 Five places, in one pull request:
 
-1. **Model**: a public field with its default in `config/Settings`, `SCHEMA_VERSION` bumped, and a
-   step in `config/Migrations` (the identity step for a purely additive field).
+1. **Model**: a public field with its default in `config/Settings`, `SCHEMA_VERSION` bumped, a
+   step in `config/Migrations` (the identity step for a purely additive field), its line in
+   `Settings.copy`, and its range or known values in `Settings.clamped`, which corrects it on every read
+   (SET-11).
 2. **Control**: built once in `SettingsWindow`, writing the field through `store.update`.
 3. **Row** on its page, with search keywords (`row(card, page, "settings.x", control, "keywords")`).
 4. **Load line** in the page's loader, setting the control from the model; safe to run any time.

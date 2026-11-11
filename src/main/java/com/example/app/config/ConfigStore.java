@@ -152,7 +152,9 @@ public final class ConfigStore {
                 return new Loaded(
                         new Settings(), LoadResult.NEWER_BACKED_UP, copyAside(file, FILE + ".v" + version + ".bak"));
             }
-            Settings loaded = JSON.treeToValue(Migrations.migrate(object), Settings.class);
+            // Clamped as it is read (SET-11): a hand-edited value out of range never reaches the app.
+            Settings loaded =
+                    JSON.treeToValue(Migrations.migrate(object), Settings.class).clamped();
             return new Loaded(
                     loaded, version < Settings.SCHEMA_VERSION ? LoadResult.MIGRATED : LoadResult.LOADED, null);
         } catch (IOException | RuntimeException e) {
@@ -194,6 +196,14 @@ public final class ConfigStore {
         } catch (InterruptedException | java.util.concurrent.ExecutionException e) {
             Thread.currentThread().interrupt(); // the no-op task cannot fail: only an interrupt gets here
         }
+    }
+
+    /**
+     * At exit, from the FX thread: waits for the last save on a thread of its own, which is not a daemon,
+     * so the JVM stays up until the file is on disk and the FX thread never waits (PERF-01).
+     */
+    public Thread flushOnExit() {
+        return Thread.ofPlatform().daemon(false).name("settings-flush").start(this::flush);
     }
 
     private void writePending() {

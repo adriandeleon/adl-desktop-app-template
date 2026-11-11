@@ -40,7 +40,11 @@
 | `SimpleModeFxTest` | Simple mode, a test per rule it shows: a shorter menu rebuilt only when the mode changes (MENU-04), hidden groups take their gaps (TBAR-05), the toggle lit while on (TBAR-07), the toggle just before Settings (TBAR-16), the bar's height kept (TBAR-19) |
 | `MessagesTest` | Every catalog has every key; apostrophes follow the pattern rule; translations are not English copies |
 | `ConfigStoreTest#everySettingSurvivesARestart` | The settings round trip |
-| `MigrationsTest` | Every schema version has a migration step |
+| `ConfigStoreTest#outOfRangeAndUnknownValuesAreCorrectedAsTheFileIsRead` | Every value read from `settings.json` is clamped or falls back to its default |
+| `MigrationsTest`, `SyncTest#theSyncFilesCarryAVersionAndAnOldBareFileIsMigrated` | Every schema version of `settings.json` and of Settings Sync's files has a migration step |
+| `StartupDeferralFxTest` | The start's file work runs off the FX thread; nothing nobody waits for, Settings Sync included, starts before the first paint |
+| `LogSearchTest`, `DebugLogFindBarFxTest` | The Debug Log's find runs off the FX thread, applies only its latest search, and narrows a growing query without searching the log again |
+| `ReportTest#theReportCommandWritesAReportWithNothingPrivateLeftInIt` | `--report` writes a report and a link with nothing private left in them |
 | `NoticeCoverageTest` | Every runtime dependency in the pom has a `NOTICE` entry; the jar carries `LICENSE` and `NOTICE` |
 | `BuildHygieneTest` | The jar, the app image and the installers are handed `LICENSE` and `NOTICE`; the coverage floors below match the pom |
 | `ReleaseSupplyChainTest` | Signing, notarization and attestation steps stay where they are; the attested files are the files JReleaser attaches; a dry run publishes nothing |

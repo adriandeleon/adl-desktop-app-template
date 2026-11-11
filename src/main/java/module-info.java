@@ -10,8 +10,10 @@ module com.example.app {
     requires java.logging;
     requires java.net.http;
 
-    // Jackson binds settings.json onto the config POJOs.
+    // Jackson binds settings.json onto the config POJOs, and Settings Sync's files onto SyncData.
     opens com.example.app.config to
+            com.fasterxml.jackson.databind;
+    opens com.example.app.sync to
             com.fasterxml.jackson.databind;
 
     exports com.example.app;

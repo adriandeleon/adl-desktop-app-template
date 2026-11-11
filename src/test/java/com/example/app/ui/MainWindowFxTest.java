@@ -291,6 +291,23 @@ class MainWindowFxTest {
         assertFalse(services.settings().showStatusBar, "an unticked part is kept");
         host.onQuestion = q -> {};
 
+        // PERF-03: two imports at once; the first one's scan is dropped, and only the latest is asked about.
+        int asked = host.questions.size();
+        host.confirmAnswer = false;
+        run(() -> {
+            window.importConfig();
+            window.importConfig();
+        });
+        FxTestSupport.waitUntil(() -> window.importsDropped() == 1 && host.questions.size() == asked + 1);
+        // And a quit drops an import still in flight.
+        host.confirmAnswer = true;
+        run(() -> {
+            window.importConfig();
+            window.quit();
+        });
+        FxTestSupport.waitUntil(() -> window.importsDropped() == 2);
+        assertEquals(asked + 1, host.questions.size(), "a dropped import asked anyway");
+
         host.saveAnswer = dir.resolve("missing/folder/backup.zip");
         run(window::exportConfig);
         FxTestSupport.waitUntil(() -> window.statusBar().echo().getText().startsWith("Export failed"));

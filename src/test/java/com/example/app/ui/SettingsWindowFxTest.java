@@ -176,6 +176,13 @@ class SettingsWindowFxTest {
         assertTrue(call(() -> settings.syncUrl().getStyleClass().contains("invalid")));
         assertEquals("", services.settings().sync.repoUrl);
         assertTrue(call(() -> app.window().statusBar().echo().getText()).startsWith("Repository URL refused"));
+        // SET-15: a token as the user name is refused too, and the status bar says the fix.
+        run(() -> {
+            settings.syncUrl().setText("https://ghp_abcdefghijklmnopqrstuvwxyz0123456789@github.com/me/sync.git");
+            settings.syncUrl().fireEvent(new javafx.event.ActionEvent());
+        });
+        assertEquals("", services.settings().sync.repoUrl);
+        assertTrue(call(() -> app.window().statusBar().echo().getText()).contains("credential helper"));
 
         Path remote = dir.resolve("remote.git");
         Files.createDirectories(remote);
@@ -257,6 +264,8 @@ class SettingsWindowFxTest {
         TextInputDialog repo = call(() -> app.window().promptSyncRepository());
         Button repoOk = (Button) repo.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
         run(() -> repo.getEditor().setText("https://me:token@github.com/me/sync.git"));
+        assertTrue(call(repoOk::isDisabled));
+        run(() -> repo.getEditor().setText("https://glpat-abcdefghijklmnop@gitlab.com/me/sync.git"));
         assertTrue(call(repoOk::isDisabled));
         run(() -> repo.getEditor().setText("git@github.com:me/sync.git"));
         run(repoOk::fire);
