@@ -1,7 +1,7 @@
 {
   "$schema": "https://pauta-project.dev/6.0.0/audit.schema.json",
   "app": "ExampleApp",
-  "commit": "9234e53",
+  "commit": "4aa2356",
   "edition": "6.0.0",
   "date": "2026-11-11",
   "scope": [],
@@ -17,7 +17,7 @@
       "id": "OS-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "check.command exits 0: only src/main/java/com/example/app/Os.java:31,41 reads os.name; AppInfo.java:123 asks Os.description(); no separatorChar test; Executables.java:26 and Browser.java:28 ask Os."
+      "evidence": "check.command exits 0: only src/main/java/com/example/app/Os.java:31,41 reads os.name; AppInfo.java:123 asks Os.description(); no separatorChar test; Executables.java:27 and Browser.java:28 ask Os."
     },
     {
       "id": "OS-03",
@@ -29,7 +29,7 @@
       "id": "OS-04",
       "level": "MUST",
       "status": "pass",
-      "evidence": "OS-02 command exits 0. New OS tests: Os.isMac() handed to the pickers and switcher (src/main/java/com/example/app/ui/MainWindow.java:376,444,496,510,526) picks Cmd for Ctrl+Home/End (src/main/java/com/example/app/ui/PickerKeys.java:47), the macOS form of a chord; Os.isWindows() in src/main/java/com/example/app/sync/ShellPath.java:30 and Executables.java:27 changes only a child process's PATH; the system-menu row that can only be disabled (AppMenus.java:310-315) is the macOS menu bar row. Windows.SPI.HighContrast (src/main/java/com/example/app/ui/Themes.java:77-82) follows an OS setting, not an OS test."
+      "evidence": "OS-02 command exits 0. New OS tests: Os.isMac() handed to the pickers and switcher (src/main/java/com/example/app/ui/MainWindow.java:376,444,496,510,526,581) picks Cmd for Ctrl+Home/End (src/main/java/com/example/app/ui/PickerKeys.java:47), the macOS form of a chord; Os.isWindows() in src/main/java/com/example/app/sync/ShellPath.java:30 and Executables.java:27 changes only a child process's PATH; the system-menu row that can only be disabled (AppMenus.java:310-315) is the macOS menu bar row. Windows.SPI.HighContrast (src/main/java/com/example/app/ui/Themes.java:77-82) follows an OS setting, not an OS test."
     },
     {
       "id": "PAUTA-01",
@@ -59,7 +59,7 @@
       "id": "PAUTA-05",
       "level": "MUST",
       "status": "pass",
-      "evidence": "No not-applicable entry in pauta.json (35 pending SHOULD, 10 app-only)."
+      "evidence": "No not-applicable entry in pauta.json (9 app-only, nothing pending)."
     },
     {
       "id": "PAUTA-06",
@@ -125,7 +125,7 @@
       "id": "PAUTA-15",
       "level": "MUST",
       "status": "pass",
-      "evidence": "README.md:15 badge 'Pauta-6.0.0 · Complete' and README.md:46 'Built to ... 6.0.0 ..., Pauta conformance: Complete', both linking https://exampleapp-project.dev/docs/pauta/; pauta.json has no pending entry, so the helper computes Complete; held by PautaConformanceTest. (The computed Complete overstates: see PAUTA-04.)"
+      "evidence": "README.md:15 badge 'Pauta-6.0.0 · Complete' and README.md:46 'Built to ... 6.0.0 ..., Pauta conformance: Complete', both linking https://exampleapp-project.dev/docs/pauta/; pauta.json has no pending entry, so the helper computes Complete; held by PautaConformanceTest."
     },
     {
       "id": "PAUTA-17",
@@ -137,7 +137,7 @@
       "id": "PLAT-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Command exits 0: pom.xml:26 maven.compiler.release 25, enforcer [25,) at pom.xml:150, no profile with an enforcer rule; every setup-java step sets java-version '25' (ci.yml:42,62,129; full-tests.yml:56; release.yml:38,103,502,606)."
+      "evidence": "Command exits 0: pom.xml:26 maven.compiler.release 25, enforcer [25,) at pom.xml:155, no profile with an enforcer rule; every setup-java step sets java-version '25' (ci.yml:42,62,129; full-tests.yml:56; release.yml:38,103,526,631)."
     },
     {
       "id": "PLAT-02",
@@ -179,7 +179,7 @@
       "id": "PLAT-10",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Command exits 0: pom.xml:439 palantirJavaFormat; ci.yml:27-46 Format job runs only spotless:check, on pull_request (ci.yml:9)."
+      "evidence": "Command exits 0: pom.xml:448 palantirJavaFormat; ci.yml:27-46 Format job runs only spotless:check, on pull_request (ci.yml:9)."
     },
     {
       "id": "PLAT-11",
@@ -191,7 +191,7 @@
       "id": "PLAT-12",
       "level": "MUST",
       "status": "pass",
-      "evidence": "pom.xml:293-307 jacoco-check bound to verify with BUNDLE LINE 0.90 and METHOD 0.90; os-mac/os-windows profiles (pom.xml:476-495) touch neither floors nor skip."
+      "evidence": "pom.xml:298-317 jacoco-check bound to verify with BUNDLE LINE 0.90 and METHOD 0.90; os-mac/os-windows profiles (pom.xml:487-531) touch neither floors nor skip."
     },
     {
       "id": "PLAT-13",
@@ -203,7 +203,7 @@
       "id": "PLAT-14",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Config files go through Jackson: config/ConfigStore.java:45,148,213 (settings.json), sync/SyncData.java:37,65,86, config/ConfigImport.java:133,162; no hand-built JSON."
+      "evidence": "Config files go through Jackson: config/ConfigStore.java:44,162,258 (settings.json), sync/SyncData.java:41,72,91, config/ConfigImport.java:133,160; no hand-built JSON."
     },
     {
       "id": "REPO-01",
@@ -227,7 +227,7 @@
       "id": "REPO-04",
       "level": "MUST",
       "status": "pass",
-      "evidence": "NOTICE:1-4 name, copyright, MIT sentence; :11-50 OpenJFX, OpenJDK, AtlantaFX, Jackson, Inter, JetBrains Mono with licenses; pom.xml:130-138 packages NOTICE into the jar and pom.xml:642-651 add-notices into the app image; NoticeCoverageTest.java:64,102."
+      "evidence": "NOTICE:1-4 name, copyright, MIT sentence; :11-50 OpenJFX, OpenJDK, AtlantaFX, Jackson, Inter, JetBrains Mono with licenses; pom.xml:132-140 packages NOTICE into the jar and pom.xml:696-709 add-notices into the app image; NoticeCoverageTest.java:64,102."
     },
     {
       "id": "REPO-05",
@@ -263,7 +263,7 @@
       "id": "REPO-10",
       "level": "MUST",
       "status": "pass",
-      "evidence": "branding/exampleapp.svg; jpackage icon paths pom.xml:57,481,491 point at packaging/icons/exampleapp.{png,icns,ico}."
+      "evidence": "branding/exampleapp.svg; jpackage icon paths pom.xml:62,494,504 point at packaging/icons/exampleapp.{png,icns,ico}."
     },
     {
       "id": "REPO-11",
@@ -299,13 +299,13 @@
       "id": "DOCS-05",
       "level": "MUST",
       "status": "pass",
-      "evidence": "jreleaser.yml:54-57 takes the notes from out/release-notes.md, written by scripts/release-notes.sh from the version's CHANGELOG.md section (release.yml:504-511); no generate_release_notes; the Welcome page's What's New (MainWindow.java:211) runs help.whatsNew -> AppInfo.releaseNotesUrl() = releases/tag/v<version> (AppInfo.java:74-81). pauta.json still lists it as pending ('The website has no What's new page made from the changelog yet', which is DOCS-04's in 6.0.0): an entry for a passing rule."
+      "evidence": "jreleaser.yml:54-57 takes the notes from out/release-notes.md, written by scripts/release-notes.sh from the version's CHANGELOG.md section (release.yml:529-536); no generate_release_notes; the Welcome page's What's New (MainWindow.java:273-278) runs help.whatsNew -> AppInfo.releaseNotesUrl() = releases/tag/v<version> (AppInfo.java:75-82)."
     },
     {
       "id": "DOCS-06",
       "level": "MUST",
       "status": "pass",
-      "evidence": "ui/Commands.java:96 help.documentation opens AppInfo.docsUrl(); Help menu row AppMenus.java:127 (full) and :162 (Simple); Welcome page row runs it through the registry (MainWindow.java:211-214)."
+      "evidence": "ui/Commands.java:138 help.documentation opens AppInfo.docsUrl(); Help menu row AppMenus.java:143 (full) and :180 (Simple); Welcome page row runs it through the registry (MainWindow.java:273-278)."
     },
     {
       "id": "DOCS-07",
@@ -347,13 +347,13 @@
       "id": "DOCS-14",
       "level": "MUST",
       "status": "pass",
-      "evidence": "CONTRIBUTING.md:25,33 link into docs/; AGENTS.md (96 lines), CONTRIBUTING.md and the guides (all under 100 lines) hold no history or exhaustive catalog, so no docs/reference/ is needed."
+      "evidence": "CONTRIBUTING.md:25,33 link into docs/; AGENTS.md (100 lines), CONTRIBUTING.md (46) and the guides in docs/ (the longest, docs/architecture.md, 125) hold no history or exhaustive catalog, so no docs/reference/ is needed."
     },
     {
       "id": "DOCS-15",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "No Javadoc comment followed by another with only blank or // lines between, in src/main or src/test (scanned every .java file). The rule's check needs no test. pauta.json still lists it as pending ('No test catches a code comment that was pasted over another'): an entry for a passing rule."
+      "evidence": "No Javadoc comment followed by another with only blank or // lines between, in src/main or src/test (scanned every .java file). The rule's check needs no test."
     },
     {
       "id": "DOCS-16",
@@ -389,7 +389,7 @@
       "id": "QUAL-04",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "packaging/BuildHygieneTest.java:140 theCoverageFloorsQuotedInTheTestingGuideAreTheOnesTheBuildEnforces compares pom.xml with docs/testing.md:53; untagged, not excluded by surefire."
+      "evidence": "packaging/BuildHygieneTest.java:152 theCoverageFloorsQuotedInTheTestingGuideAreTheOnesTheBuildEnforces compares pom.xml with docs/testing.md:64; untagged, not excluded by surefire."
     },
     {
       "id": "QUAL-05",
@@ -413,7 +413,7 @@
       "id": "QUAL-08",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Test windows start with --config-dir <TempDir> (src/test/java/com/example/app/ui/FxTestSupport.java:88-93); the new session.json, backups/ and sync/account.txt land in that folder; the new tests use @TempDir (SessionAndWelcomeFxTest.java:28, SettingsRoundTripFxTest.java:31, AccountPinTest.java:42, StyleCompilerTest.java:21, DoctorTest.java:20)."
+      "evidence": "Test windows start with --config-dir <TempDir> (src/test/java/com/example/app/ui/FxTestSupport.java:88-93); the new session.json, backups/ and sync/account.txt land in that folder; the new tests use @TempDir (SessionAndWelcomeFxTest.java:28, SettingsRoundTripFxTest.java:32, AccountPinTest.java:40, StyleCompilerTest.java:21, DoctorTest.java:20)."
     },
     {
       "id": "QUAL-09",
@@ -425,7 +425,7 @@
       "id": "QUAL-10",
       "level": "SHOULD",
       "status": "manual",
-      "evidence": "Break what a drift or parity test guards (e.g. a floor in docs/testing.md for BuildHygieneTest.java:140, a NOTICE entry for NoticeCoverageTest.java:64), run it and see it fail; not recorded"
+      "evidence": "Break what a drift or parity test guards (e.g. a floor in docs/testing.md for BuildHygieneTest.java:152, a NOTICE entry for NoticeCoverageTest.java:64), run it and see it fail; not recorded"
     },
     {
       "id": "QUAL-11",
@@ -449,19 +449,19 @@
       "id": "PERF-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "New grep candidates all run off the FX thread: session read in ConfigStore.read (Startup.prepare, or Background at MainWindow.java:801-807), session write on the settings-writer (ConfigStore.java:252-262), AccountPin and SyncController.backUp on the settings-sync thread (SyncController.java:139-143), Doctor via Background (DoctorWindow.java:46-51), ShellPath's shell -l only from git/gh calls on worker threads, marks file in Background (Startup.java:181-193), FxSampler's sleep on its own thread. Handlers added on the FX thread (Picker keys, idWords, TextInputKeys, refreshWelcome) do no I/O or parsing."
+      "evidence": "New grep candidates all run off the FX thread: session read in ConfigStore.read (Startup.prepare, or Background at MainWindow.java:804-815), session write on the settings-writer (ConfigStore.java:254-266), AccountPin and SyncController.backUp on the settings-sync thread (SyncController.java:139-143), Doctor via Background (DoctorWindow.java:46-51), ShellPath's shell -l only from git/gh calls on worker threads, marks file in Background (Startup.java:181-193), FxSampler's sleep on its own thread. Handlers added on the FX thread (Picker keys, idWords, TextInputKeys, refreshWelcome) do no I/O or parsing."
     },
     {
       "id": "PERF-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Every task body hands results back inside Platform.runLater: src/main/java/com/example/app/ui/UpdateCoordinator.java:117-121, src/main/java/com/example/app/ui/SyncController.java:140-145,184-189, src/main/java/com/example/app/ui/MainWindow.java:589-600,624-637, src/main/java/com/example/app/ui/LatestOnly.java:47-57 (deliver = Platform::runLater); off-thread echoes go through FxBatcher (src/main/java/com/example/app/ui/AppServices.java:109-115); single-instance callback uses runLater (src/main/java/com/example/app/ui/Startup.java:83)."
+      "evidence": "Every task body hands results back inside Platform.runLater: src/main/java/com/example/app/ui/UpdateCoordinator.java:117-121, src/main/java/com/example/app/ui/SyncController.java:140-146,217-221, src/main/java/com/example/app/ui/MainWindow.java:769-780,804-819, src/main/java/com/example/app/ui/LatestOnly.java:47-57 (deliver = Platform::runLater); off-thread echoes go through FxBatcher (src/main/java/com/example/app/ui/AppServices.java:129-136); single-instance callback uses runLater (src/main/java/com/example/app/ui/Startup.java:84)."
     },
     {
       "id": "PERF-03",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Repeatable requests compare a generation inside the runLater: update check src/main/java/com/example/app/ui/UpdateCoordinator.java:116-120, sync src/main/java/com/example/app/ui/SyncController.java:139-144,183-188, config import src/main/java/com/example/app/ui/MainWindow.java:588,597-598,631-632, Debug Log search via LatestOnly (src/main/java/com/example/app/ui/LatestOnly.java:53-56, src/main/java/com/example/app/ui/DebugLogFindBar.java:39). Other runLater lines hand over events or one-shot results."
+      "evidence": "Repeatable requests compare a generation inside the runLater: update check src/main/java/com/example/app/ui/UpdateCoordinator.java:116-120, sync src/main/java/com/example/app/ui/SyncController.java:139-145,216-220, config import src/main/java/com/example/app/ui/MainWindow.java:768,777-778,811-812, Debug Log search via LatestOnly (src/main/java/com/example/app/ui/LatestOnly.java:53-56, src/main/java/com/example/app/ui/FindBar.java:40). Other runLater lines hand over events or one-shot results."
     },
     {
       "id": "PERF-04",
@@ -479,13 +479,13 @@
       "id": "PERF-06",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Redraw sets a pending flag and schedules one pass (Redraw.java:18-24); the status bar (StatusBar.java:79) and the Outline (MainWindow.java:250-256, via Debounce) redraw through it; MessageLogView refreshes from a debounced filter (MessageLogView.java:56-57)."
+      "evidence": "Redraw sets a pending flag and schedules one pass (Redraw.java:18-24); the status bar (StatusBar.java:79) and the Outline (MainWindow.java:255-262, via Debounce) redraw through it; MessageLogView refreshes from a debounced filter (MessageLogView.java:56-57)."
     },
     {
       "id": "PERF-23",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Background search waits for typing to pause: Debug Log find bar src/main/java/com/example/app/ui/DebugLogFindBar.java:52,86 (Debounce, a PauseTransition playFromStart, src/main/java/com/example/app/ui/Debounce.java); Settings search src/main/java/com/example/app/ui/SettingsWindow.java:154, prompts src/main/java/com/example/app/ui/Prompts.java:52; the palette and Message Log filter in-memory lists."
+      "evidence": "Background search waits for typing to pause: Debug Log find bar src/main/java/com/example/app/ui/FindBar.java:53,105 (Debounce, a PauseTransition playFromStart, src/main/java/com/example/app/ui/Debounce.java); Settings search src/main/java/com/example/app/ui/SettingsWindow.java:165, prompts src/main/java/com/example/app/ui/Prompts.java:52; the palette and Message Log filter in-memory lists."
     },
     {
       "id": "PERF-07",
@@ -497,7 +497,7 @@
       "id": "PERF-08",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Per-keystroke listeners do O(1) work or defer: DocumentView.java:45-48 marks dirty and debounces the whole-text compare; FindBar.java:75-79 searches off the FX thread; Picker.java:94-95 filters in memory (exempt); Outline rebuild is debounced (MainWindow.java:161,256). Node loops are fixed or bounded sets (PautaWindow rows from bundled pauta.json, toolbar, settings cards); lists are ListViews."
+      "evidence": "Per-keystroke listeners do O(1) work or defer: DocumentView.java:45-48 marks dirty and debounces the whole-text compare; FindBar.java:83-87 searches off the FX thread; Picker.java:117-118 filters in memory (exempt); Outline rebuild is debounced (MainWindow.java:166,262). Node loops are fixed or bounded sets (PautaWindow rows from bundled pauta.json, toolbar, settings cards); lists are ListViews."
     },
     {
       "id": "PERF-09",
@@ -521,13 +521,13 @@
       "id": "PERF-12",
       "level": "MUST",
       "status": "pass",
-      "evidence": "The one picked input, a config import zip, is read through named caps and refused past them: src/main/java/com/example/app/config/ConfigImport.java:37-41,116,122,204 (MAX_ENTRY_BYTES, MAX_TOTAL_BYTES, MAX_ENTRIES); nothing to step down to. Settings file also capped (src/main/java/com/example/app/config/ConfigStore.java:147)."
+      "evidence": "The one picked input, a config import zip, is read through named caps and refused past them: src/main/java/com/example/app/config/ConfigImport.java:37-41,116,122,200 (MAX_ENTRY_BYTES, MAX_TOTAL_BYTES, MAX_ENTRIES); nothing to step down to. Settings file also capped (src/main/java/com/example/app/config/ConfigStore.java:161)."
     },
     {
       "id": "PERF-13",
       "level": "MUST",
       "status": "pass",
-      "evidence": "About removes its update listener on hide (src/main/java/com/example/app/ui/AboutDialog.java:86,176); Settings and the Debug Log are one per session and reused; floating tool windows clear handlers (src/main/java/com/example/app/ui/ToolWindowManager.java:431,474,499). src/test/java/com/example/app/ui/WindowLifecycleFxTest.java:76 opens and closes every window three times and finds no added listener or thread."
+      "evidence": "About removes its update listener on hide (src/main/java/com/example/app/ui/AboutDialog.java:84,172); Settings and the Debug Log are one per session and reused; floating tool windows clear handlers (src/main/java/com/example/app/ui/ToolWindowManager.java:445,488). src/test/java/com/example/app/ui/WindowLifecycleFxTest.java:76 opens and closes every window three times and finds no added listener or thread."
     },
     {
       "id": "PERF-14",
@@ -575,7 +575,7 @@
       "id": "PERF-21",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Hot-path fixes in CHANGELOG.md:119-123 keep headless tests: src/test/java/com/example/app/ui/DebugLogFindBarFxTest.java:107 (search off the FX thread, narrowed in place), src/test/java/com/example/app/ui/StartupDeferralFxTest.java:53,82, src/test/java/com/example/app/ui/FxPacingFxTest.java:42,63,76; @Tag(\"fx\") is not excluded by Surefire (pom.xml:245-270)."
+      "evidence": "Hot-path fixes in CHANGELOG.md:226-230 keep headless tests: src/test/java/com/example/app/ui/FindBarFxTest.java:108 (search off the FX thread, narrowed in place), src/test/java/com/example/app/ui/StartupDeferralFxTest.java:53,82, src/test/java/com/example/app/ui/FxPacingFxTest.java:42,63,76; @Tag(\"fx\") is not excluded by Surefire (pom.xml:251-278)."
     },
     {
       "id": "PERF-22",
@@ -587,7 +587,7 @@
       "id": "KBD-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Commands.java:93-219 registers every action in the one CommandRegistry; menu rows (AppMenus.java:220), right-click rows (CommandMenu.java:54), toolbar (AppToolbar.java:137), stripe and header buttons (ToolWindowManager.java:207,872), dialog buttons (AboutDialog.java:71,115; DebugLogWindow.java:86; SettingsWindow.java:427-553) and keys (KeyDispatcher.java:60) run command ids; Settings switches write what the toggle commands write. Window-local closes (find bar Close/Esc, Settings Close) and the Pauta window's per-rule links (PautaWindow.java:126,136) have no command, read as content/dismissal, not actions."
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:17-392 registers every action in the one CommandRegistry; menu rows (AppMenus.java:238), right-click rows (CommandMenu.java:55), toolbar (AppToolbar.java:137), stripe and header buttons (ToolWindowManager.java:209,893), dialog buttons (AboutDialog.java:70,111; DebugLogWindow.java:86; SettingsWindow.java:469-603) and keys (KeyDispatcher.java:70) run command ids; Settings switches write what the toggle commands write. Window-local closes (find bar Close/Esc, Settings Close) and the Pauta window's per-rule links (PautaWindow.java:125,135) have no command, read as content/dismissal, not actions."
     },
     {
       "id": "KBD-02",
@@ -605,7 +605,7 @@
       "id": "KBD-04",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Menu rows of a command that can't run stay, grayed (app.css:374-377), with the reason as tooltip and accessible help, and choosing one echoes it (src/main/java/com/example/app/ui/AppMenus.java:310-337; CommandMenu.java:72-74); the palette lists disabled rows with a reason (MainWindow.java paletteItems); RightClickMenusFxTest.anUnavailableRowStaysAndSaysWhy. macOS system-menu rows can only be disabled (AppMenus.java:312-314)."
+      "evidence": "Menu rows of a command that can't run stay, grayed (app.css:374-377), with the reason as tooltip and accessible help, and choosing one echoes it (src/main/java/com/example/app/ui/AppMenus.java:310-337; CommandMenu.java:73-74); the palette lists disabled rows with a reason (MainWindow.java paletteItems); RightClickMenusFxTest.anUnavailableRowStaysAndSaysWhy. macOS system-menu rows can only be disabled (AppMenus.java:312-314)."
     },
     {
       "id": "KBD-05",
@@ -641,7 +641,7 @@
       "id": "KBD-21",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/resources/com/example/app/keymaps/cua.json:4-20 and cua.mac.json:4-20 bind the same 15 command ids (emacs.json has no .mac variant); held by src/test/java/com/example/app/command/KeybindingsTest.java:18."
+      "evidence": "src/main/resources/com/example/app/keymaps/cua.json:4-33 and cua.mac.json:4-33 bind the same 25 command ids, and intellij, vscode and sublime bind the same 24, 23 and 21 as their .mac.json (emacs.json has no .mac variant); held by src/test/java/com/example/app/command/KeybindingsTest.java:18 and :140."
     },
     {
       "id": "KBD-11",
@@ -659,7 +659,7 @@
       "id": "KBD-13",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "No catalog value names a command's chord: messages.properties:97,398 name the picker's and switcher's own fixed keys, :299 an example of the notation; chords rendered by one formatter, KeyStroke.label via Keybindings.label (Keybindings.java:148-151)."
+      "evidence": "No catalog value names a command's chord: messages.properties:97,407 name the picker's and switcher's own fixed keys, :308 an example of the notation; chords rendered by one formatter, KeyStroke.label via Keybindings.label (Keybindings.java:101-104)."
     },
     {
       "id": "KBD-14",
@@ -671,13 +671,13 @@
       "id": "KBD-15",
       "level": "MUST",
       "status": "manual",
-      "evidence": "Tab through every window and dialog and work each control with Space/Enter. Source finds no mouse-only control: toolbar buttons (Icons.java:420-424), tool-window header buttons (ToolWindowManager.java:890-905) and the status bar's update link (StatusBar.java:62-64) run commands; status labels run view.messageLog (StatusBar.java:23-24,59-61); find-bar buttons (FindBar.java:91-93) per FIND-16; picker list driven from its field (Picker.java:77) ; not recorded"
+      "evidence": "Tab through every window and dialog and work each control with Space/Enter. Source finds no mouse-only control: toolbar buttons (Icons.java:424-427), tool-window header buttons (ToolWindowManager.java:890-905) and the status bar's update link (StatusBar.java:62-64) run commands; status labels run view.messageLog (StatusBar.java:23-24,59-61); find-bar buttons (FindBar.java:95-104) per FIND-16; picker list driven from its field (Picker.java:119-122) ; not recorded"
     },
     {
       "id": "KBD-16",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/resources/com/example/app/styles/app.css:595-597 *:focus-visible { -fx-border-color: -focus-ring } is the last block and covers every control kind; nothing after it. Problem: src/main/resources/com/example/app/pauta.json:227-234 still lists it as pending (\"No test tabs through each kind of control\"; a test is no longer required), at level SHOULD where 6.0.0 has MUST, url 4.1.0."
+      "evidence": "src/main/resources/com/example/app/styles/app.css:624-626 *:focus-visible { -fx-border-color: -focus-ring } covers every control kind, and the file ends with the rest of that layer: the ring's width and insets (:629-640, KBD-22) and a text field's ring drawn inside (:642-646). No rule after the layer sets a border or background."
     },
     {
       "id": "KBD-22",
@@ -689,7 +689,7 @@
       "id": "KBD-18",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/SettingSwitch.java:12-19 (ToggleButton: focusable, Space toggles, AccessibleRole.TOGGLE_BUTTON); every on/off row uses it (SettingsWindow.java:118-128)."
+      "evidence": "src/main/java/com/example/app/ui/SettingSwitch.java:12-19 (ToggleButton: focusable, Space toggles, AccessibleRole.TOGGLE_BUTTON); every on/off row uses it (SettingsWindow.java:120-132)."
     },
     {
       "id": "ACC-01",
@@ -713,7 +713,7 @@
       "id": "ACC-04",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Nothing of the kind: the only Timelines and PauseTransitions (SamplePanels.java:178, SyncController.java:105, UpdateCoordinator.java:101, Debounce.java:31, Startup.java:173) are timers that move, fade or flash no part of the UI."
+      "evidence": "Nothing of the kind: the only Timelines and PauseTransitions (SamplePanels.java:217, SyncController.java:105, UpdateCoordinator.java:101, Debounce.java:31, Startup.java:197) are timers that move, fade or flash no part of the UI."
     },
     {
       "id": "ACC-05",
@@ -737,19 +737,19 @@
       "id": "ACC-08",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Picker.select calls list.notifyAccessibleAttributeChanged(FOCUS_ITEM) after moving the list's focus model (Picker.java:162-172), so the ListView answers FOCUS_ITEM with the selected row; an unavailable row's accessible text carries its reason (Picker.java:243-244)."
+      "evidence": "Picker.select calls list.notifyAccessibleAttributeChanged(FOCUS_ITEM) after moving the list's focus model (Picker.java:266-276), so the ListView answers FOCUS_ITEM with the selected row; an unavailable row's accessible text carries its reason (Picker.java:372-373)."
     },
     {
       "id": "ACC-09",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "A listener on Platform.getPreferences() for Windows.SPI.HighContrast re-applies the theme and goes back when it ends (src/main/java/com/example/app/ui/Themes.java:77-82, effective() :106-112); ThemeChoice.HIGH_CONTRAST with high-contrast.css is in the theme list (ThemeChoice.java:18; MainWindow.chooseTheme); StyleContrastTest.java:347-381."
+      "evidence": "A listener on Platform.getPreferences() for Windows.SPI.HighContrast re-applies the theme and goes back when it ends (src/main/java/com/example/app/ui/Themes.java:77-82, effective() :98-104); ThemeChoice.HIGH_CONTRAST with high-contrast.css is in the theme list (ThemeChoice.java:18; MainWindow.chooseTheme); StyleContrastTest.java:347-381."
     },
     {
       "id": "WIN-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:147 puts the StatusBar in the window, shown unless showStatusBar is off (Settings.java:45 defaults true, MainWindow.java:191, view.toggleStatusBar Commands.java:38); src/main/java/com/example/app/ui/StatusBar.java:62-66 switches the echo label between error and warning classes, :36 a click runs view.messageLog"
+      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:170 puts the StatusBar in the window, shown unless showStatusBar is off (Settings.java:45 defaults true, MainWindow.java:234, view.toggleStatusBar Commands.java:78); src/main/java/com/example/app/ui/StatusBar.java:85-89 switches the echo label between error and warning classes, :59 a click runs view.messageLog"
     },
     {
       "id": "WIN-03",
@@ -773,7 +773,7 @@
       "id": "WIN-08",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Quit saves size, position, maximized and the open documents with the selected one (src/main/java/com/example/app/ui/MainWindow.java:856-880) to session.json; the next launch restores geometry (MainWindow.java:184) and reopens the documents in order (src/main/java/com/example/app/ui/DocumentTabs.java:102-114); SessionAndWelcomeFxTest.java:43-91."
+      "evidence": "Quit saves size, position, maximized and the open documents with the selected one (src/main/java/com/example/app/ui/MainWindow.java:859-883) to session.json; the next launch restores geometry (MainWindow.java:182-189) and reopens the documents in order (src/main/java/com/example/app/ui/DocumentTabs.java:102-114); SessionAndWelcomeFxTest.java:44-92."
     },
     {
       "id": "WIN-09",
@@ -791,7 +791,7 @@
       "id": "WIN-13",
       "level": "MUST",
       "status": "pass",
-      "evidence": "One quit method MainWindow.quit (MainWindow.java:761-776): app.quit (Commands.java:20), File -> Quit (AppMenus.java:77), the close request (MainWindow.java:186-189, which macOS's app-menu/Dock Quit reaches); asks about unsaved tabs (CONF-01), hides other windows, saves the window state and flushes."
+      "evidence": "One quit method MainWindow.quit (MainWindow.java:841-856): app.quit (Commands.java:21), File -> Quit (AppMenus.java:77), the close request (MainWindow.java:192-195, which macOS's app-menu/Dock Quit reaches); asks about unsaved tabs (CONF-01), hides other windows, saves the window state and flushes."
     },
     {
       "id": "WIN-14",
@@ -803,31 +803,31 @@
       "id": "WIN-15",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "macOS only, read: MacAppMenu.install inserts Settings into the application menu (MacAppMenu.java:47-63,84-87) running app.settings (MainWindow.java:203-212), created with no key equivalent, title carrying the keymap's chord and rewritten on keymap change (MacAppMenu.java:58-64, MainWindow.java:213); launchers export com.sun.glass.ui.mac (pom.xml:478-479,493,657-658)."
+      "evidence": "macOS only, read: MacAppMenu.install inserts Settings into the application menu (MacAppMenu.java:47-57,84-87) running app.settings (MainWindow.java:208-216), created with no key equivalent, title carrying the keymap's chord and rewritten on keymap change (MacAppMenu.java:59-64, MainWindow.java:218); launchers export com.sun.glass.ui.mac (pom.xml:478-479,493,657-658)."
     },
     {
       "id": "WIN-10",
       "level": "MAY",
       "status": "fail",
-      "evidence": "MAY: only Simple mode (Settings.simpleMode, Commands.java:49-52); no Zen or Expert command and no truth table of chrome per mode."
+      "evidence": "MAY: only Simple mode (Settings.simpleMode, Commands.java:74-77); no Zen or Expert command and no truth table of chrome per mode."
     },
     {
       "id": "ICON-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Themes.java:106-126: a listener on Window.getWindows() adds ui-font.css to each window's scene and to a new scene; app.css's .root (app.css:17-36) sets no -fx-font-family; held by StyleContrastTest.java:297."
+      "evidence": "src/main/java/com/example/app/ui/Themes.java:162-184: a listener on Window.getWindows() adds ui-font.css to each window's scene and to a new scene; app.css's .root (app.css:17-40) sets no -fx-font-family; held by StyleContrastTest.java:327."
     },
     {
       "id": "ICON-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/resources/com/example/app/fonts/inter/ holds the four Inter .ttf faces and OFL.txt; Fonts.load (Fonts.java:19-21,34) runs in Startup.java:131 before window.show (Startup.java:144)."
+      "evidence": "src/main/resources/com/example/app/fonts/inter/ holds the four Inter .ttf faces and OFL.txt; Fonts.load (Fonts.java:19-21,34) runs in Startup.java:134 before window.show (Startup.java:148)."
     },
     {
       "id": "ICON-04",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "editora-light.css and editora-dark.css open with .root (after the header comment) and hold no hex after it (the one later # is inside a comment, line 4855); held by StyleContrastTest.java:306."
+      "evidence": "editora-light.css and editora-dark.css open with .root (after the header comment) and hold no hex after it (the one later # is inside a comment, line 4977); held by StyleContrastTest.java:337."
     },
     {
       "id": "ICON-05",
@@ -839,7 +839,7 @@
       "id": "ICON-06",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "-state-key is a ladder() of -color-bg-default (src/main/resources/com/example/app/styles/app.css:35); StyleContrastTest.theKeyColorReadsOnBothThemesGrounds (src/test/java/com/example/app/ui/StyleContrastTest.java:389) resolves it on both flagship themes; on the new High contrast theme's #000/#0d0d0d grounds it resolves to about #b0b6e0, about 10:1."
+      "evidence": "-state-key is a ladder() of -color-bg-default (src/main/resources/com/example/app/styles/app.css:35); StyleContrastTest.theKeyColorReadsOnBothThemesGrounds (src/test/java/com/example/app/ui/StyleContrastTest.java:390) resolves it on both flagship themes; on the new High contrast theme's #000/#0d0d0d grounds it resolves to about #b0b6e0, about 10:1."
     },
     {
       "id": "ICON-07",
@@ -863,13 +863,13 @@
       "id": "ICON-10",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/test/java/com/example/app/ui/StyleContrastTest.java:138 (tintedTextReachesAaOnItsOwnFillAndOnBothGrounds): each role's -fg on its -subtle, bg-subtle and bg-default in both flagship themes, 4.5:1."
+      "evidence": "src/test/java/com/example/app/ui/StyleContrastTest.java:166 (tintedTextReachesAaOnItsOwnFillAndOnBothGrounds): each role's -fg on its -subtle, bg-subtle and bg-default in both flagship themes, 4.5:1."
     },
     {
       "id": "ICON-11",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/test/java/com/example/app/ui/StyleContrastTest.java:153 (inkOnAnEmphasisFillIsTheThemesOnEmphasisColor): fg-emphasis on the four roles' emphasis fills, 4.5:1, and every emphasis-filled rule uses it."
+      "evidence": "src/test/java/com/example/app/ui/StyleContrastTest.java:181 (inkOnAnEmphasisFillIsTheThemesOnEmphasisColor): fg-emphasis on the four roles' emphasis fills, 4.5:1, and every emphasis-filled rule uses it."
     },
     {
       "id": "ICON-12",
@@ -893,13 +893,13 @@
       "id": "ICON-15",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Themes.java:54 calls Application.setUserAgentStylesheet on each apply; a theme change in the settings reaches it through MainWindow.java:174,185 at run time; light and dark sheets ship."
+      "evidence": "src/main/java/com/example/app/ui/Themes.java:86 calls Application.setUserAgentStylesheet on each apply; a theme change in the settings reaches it through MainWindow.java:197,226 at run time; light and dark sheets ship."
     },
     {
       "id": "ICON-16",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/config/ThemeChoice.java:14 SYSTEM (the default), listed by the Settings combo (SettingsWindow.java:244) and the theme picker (MainWindow.java:323); Themes.java:49-51 re-applies on colorSchemeProperty while SYSTEM is chosen."
+      "evidence": "src/main/java/com/example/app/config/ThemeChoice.java:15 SYSTEM (the default), listed by the Settings combo (SettingsWindow.java:262) and the theme picker (MainWindow.java:486); Themes.java:73-75 re-applies on colorSchemeProperty while SYSTEM is chosen."
     },
     {
       "id": "ICON-17",
@@ -965,7 +965,7 @@
       "id": "TBAR-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Icons.java:280-284 toolbarButton sets setFocusTraversable(false) for the main toolbar and stripes; panel header buttons ToolWindowManager.java:886."
+      "evidence": "src/main/java/com/example/app/ui/Icons.java:424-428 toolbarButton sets setFocusTraversable(false) for the main toolbar and stripes; panel header buttons ToolWindowManager.java:901."
     },
     {
       "id": "TBAR-04",
@@ -983,7 +983,7 @@
       "id": "TBAR-07",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/AppToolbar.java:141,212 (OverlayToggles.OPEN while an overlay or Simple mode holds); app.css:400-405 .button:open fill."
+      "evidence": "src/main/java/com/example/app/ui/AppToolbar.java:141,212 (OverlayToggles.OPEN while an overlay or Simple mode holds); app.css:421-427 .button:open fill."
     },
     {
       "id": "TBAR-08",
@@ -1019,7 +1019,7 @@
       "id": "TBAR-18",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Commands.java:106-109 view.toggleToolbar writes showToolbar, read back at start-up through MainWindow.apply (MainWindow.java:176,186)."
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:69-72 view.toggleToolbar writes showToolbar, read back at start-up through MainWindow.apply (MainWindow.java:199,229)."
     },
     {
       "id": "TBAR-19",
@@ -1043,19 +1043,19 @@
       "id": "TABS-10",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/DocumentTabs.java:300-312 sets the title to file — project — app with a \"● \" prefix for an unsaved file; TabsAndPanelsTest.theWindowTitleNamesTheFileTheProjectAndTheApp"
+      "evidence": "src/main/java/com/example/app/ui/DocumentTabs.java:455-468 sets the title to file — project — app with a \"● \" prefix for an unsaved file; TabsAndPanelsTest.theWindowTitleNamesTheFileTheProjectAndTheApp"
     },
     {
       "id": "TABS-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Commands.java:150-188 registers buffer.close, closeOthers, closeAll, closeUnmodified, closeLeft, closeRight, togglePin, reopenClosed, next, previous; Window menu rows ui/AppMenus.java:90-105; every tab's right-click menu ui/TabContextMenu.java:19-27 via DocumentTabs.java:192; TabsAndPanelsFxTest.everyTabOperationIsACommandWithAMenuRow"
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:205-244 registers buffer.close, closeOthers, closeAll, closeUnmodified, closeLeft, closeRight, togglePin, reopenClosed, next, previous; Window menu rows ui/AppMenus.java:107-121; every tab's right-click menu ui/TabContextMenu.java:19-27 via DocumentTabs.java:69,325; TabsAndPanelsFxTest.everyTabOperationIsACommandWithAMenuRow"
     },
     {
       "id": "TABS-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/TabHeaders.java:50-65: setText(\"\"), a graphic with the file glyph and a .tab-title label, tooltip the file's absolute path"
+      "evidence": "src/main/java/com/example/app/ui/TabHeaders.java:50-73: setText(\"\"), a graphic with the file glyph and a .tab-title label, tooltip the file's absolute path"
     },
     {
       "id": "TABS-03",
@@ -1079,7 +1079,7 @@
       "id": "TABS-06",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/ClosedTabs.java:20,34-39 newest first, bounded to 20, one entry per file with its caret; reopen restores the caret (ui/DocumentTabs.java:268-276); TabsAndPanelsTest.closedTabsKeepOrderBoundOneEntryPerFileAndTheCaret"
+      "evidence": "src/main/java/com/example/app/ui/ClosedTabs.java:20,34-39 newest first, bounded to 20, one entry per file with its caret; reopen restores the caret (ui/DocumentTabs.java:424-432); TabsAndPanelsTest.closedTabsKeepOrderBoundOneEntryPerFileAndTheCaret"
     },
     {
       "id": "TABS-07",
@@ -1091,7 +1091,7 @@
       "id": "TABS-08",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/TabHeaders.java:65-68 puts the status in words in the tooltip (\"path — modified\") and the Documents rows' git-status-* class on the tab (src/main/java/com/example/app/ui/TabGitStatus.java:19-30); app.css:444-472 lets .dirty amber win; TabsAndPanelsFxTest.java:253-266."
+      "evidence": "src/main/java/com/example/app/ui/TabHeaders.java:73-74 puts the status in words in the tooltip (\"path — modified\") and the Documents rows' git-status-* class on the tab (src/main/java/com/example/app/ui/TabGitStatus.java:19-30); app.css:454-488 lets .dirty amber win; TabsAndPanelsFxTest.java:252-268."
     },
     {
       "id": "TABS-09",
@@ -1103,25 +1103,25 @@
       "id": "TABS-12",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "view.toggleTabBar (src/main/java/com/example/app/ui/Commands.java:59-62) flips showTabBar; src/main/java/com/example/app/ui/DocumentTabs.java:322-326 and app.css:486-491 fold the header with any number of tabs; TabsAndPanelsFxTest.java:311-314."
+      "evidence": "view.toggleTabBar (src/main/java/com/example/app/ui/Commands.java:83-86) flips showTabBar; src/main/java/com/example/app/ui/DocumentTabs.java:444-447 and app.css:502-507 fold the header with any number of tabs; TabsAndPanelsFxTest.java:314-321."
     },
     {
       "id": "TABS-13",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Commands.java:199-204 tool.documents, tool.outline, tool.output toggle; stripe button runs the command (ui/ToolWindowManager.java:207-208); src/main/resources/com/example/app/keymaps/emacs.json:17-19 binds M-1..M-3"
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:254-260 tool.documents, tool.outline, tool.output toggle; stripe button runs the command (ui/ToolWindowManager.java:208-209); src/main/resources/com/example/app/keymaps/emacs.json:17-19 binds M-1..M-3"
     },
     {
       "id": "TABS-15",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "window.toolWindows (open, sides, order, hidden, floating, sizes, splits, maximized: src/main/java/com/example/app/config/Settings.java:259-280) now goes to session.json (ConfigStore.java:257-261) and is read back at start (ToolWindowManager restore)."
+      "evidence": "window.toolWindows (open, sides, order, hidden, floating, sizes, splits, maximized: src/main/java/com/example/app/config/Settings.java:259-280) now goes to session.json (ConfigStore.java:259-262) and is read back at start (ToolWindowManager restore)."
     },
     {
       "id": "TABS-19",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/ToolWindowManager.java:425-440 refocuses the editor on closing a focused panel; :905 keeps a weak reference to the last document focus owner, :932 focusEditor"
+      "evidence": "src/main/java/com/example/app/ui/ToolWindowManager.java:440-455 refocuses the editor on closing a focused panel; :923 keeps a weak reference to the last document focus owner, :974 focusEditor"
     },
     {
       "id": "TABS-16",
@@ -1139,25 +1139,25 @@
       "id": "TABS-18",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Commands.java:224-266 view.floatToolWindow, maximizeToolWindow, resize*, closeFocusedToolWindow; one maximized field (ui/ToolWindowManager.java:107, :523-526)"
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:280-322 view.floatToolWindow, maximizeToolWindow, resize*, closeFocusedToolWindow; one maximized field (ui/ToolWindowManager.java:108, :529-531)"
     },
     {
       "id": "TABS-20",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "User choice in state.hidden (src/main/java/com/example/app/ui/ToolWindowManager.java:374-384), context in a separate set (src/main/java/com/example/app/ui/ToolWindowManager.java:364-371, never writes hidden), button shown only when both hold (src/main/java/com/example/app/ui/ToolWindowVisibility.java:14-16, ToolWindowManager.java:680); TabsAndPanelsFxTest.hiddenIsNotUnavailable (:473)."
+      "evidence": "User choice in state.hidden (src/main/java/com/example/app/ui/ToolWindowManager.java:374-384), context in a separate set (src/main/java/com/example/app/ui/ToolWindowManager.java:364-371, never writes hidden), button shown only when both hold (src/main/java/com/example/app/ui/ToolWindowVisibility.java:14-16, ToolWindowManager.java:680); TabsAndPanelsFxTest.hiddenIsNotUnavailable (:477)."
     },
     {
       "id": "TABS-21",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/ToolWindow.java:82 firstOpenShare; ui/ToolWindowManager.java:396-399 grants it only while no size is saved; ui/MainWindow.java:139; TabsAndPanelsFxTest.anOutputWindowAsksForMoreOnItsFirstOpen"
+      "evidence": "src/main/java/com/example/app/ui/ToolWindow.java:82 firstOpenShare; ui/ToolWindowManager.java:410-413 grants it only while no size is saved; ui/MainWindow.java:160; TabsAndPanelsFxTest.anOutputWindowAsksForMoreOnItsFirstOpen"
     },
     {
       "id": "TABS-22",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/ToolWindow.java:29 busy property; ui/ToolWindowManager.java:240-254 spinner badge bound to it; TabsAndPanelsFxTest.aBusyWindowBadgesItsButtonWithoutResizingIt"
+      "evidence": "src/main/java/com/example/app/ui/ToolWindow.java:29 busy property; ui/ToolWindowManager.java:240-263 spinner badge bound to it; TabsAndPanelsFxTest.aBusyWindowBadgesItsButtonWithoutResizingIt"
     },
     {
       "id": "TABS-23",
@@ -1181,13 +1181,13 @@
       "id": "MENU-16",
       "level": "MUST",
       "status": "pass",
-      "evidence": "app.css:363-377 pins Inter 14px on .context-menu, its rows and labels and 11px on .menu-item-chord, in px; Themes.zoom swaps in an app.css whose px values UiZoom.scale multiplies (src/main/java/com/example/app/ui/Themes.java:167-182, UiZoom.java:67-81), and popups copy the owner scene's sheets."
+      "evidence": "app.css:363-370,383-388 pins Inter 14px on .context-menu, its rows and labels and 11px on .menu-item-chord, in px; Themes.zoom swaps in an app.css whose px values UiZoom.scale multiplies (src/main/java/com/example/app/ui/Themes.java:209-229, UiZoom.java:67-81), and popups copy the owner scene's sheets."
     },
     {
       "id": "MENU-18",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:277 a 22 px icon column, 8 px to the title, the chord 18 px after; app.css .context-menu radius 8, shadow 16 at Y 16, rows padded 8 × 12"
+      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:285-291 a 22 px icon column, 8 px to the title, the chord 18 px after; app.css .context-menu radius 8, shadow 16 at Y 16, rows padded 8 × 12"
     },
     {
       "id": "MENU-01",
@@ -1199,13 +1199,13 @@
       "id": "MENU-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "No setAccelerator in src/main/java; in-window rows are CustomMenuItems of glyph, title, spacer, chord (src/main/java/com/example/app/ui/AppMenus.java:262-285); system-menu rows are plain MenuItems with the chord appended and no graphic (src/main/java/com/example/app/ui/AppMenus.java:253-255, 304-305)."
+      "evidence": "No setAccelerator in src/main/java; in-window rows are CustomMenuItems of glyph, title, spacer, chord (src/main/java/com/example/app/ui/AppMenus.java:272-303); system-menu rows are plain MenuItems with the chord appended and no graphic (src/main/java/com/example/app/ui/AppMenus.java:253-256, 355)."
     },
     {
       "id": "MENU-03",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:225-228 re-reads enablement on showing; :64,266-281 rewrite titles and chords on a keymap change (a language change needs a restart). Problem: src/main/resources/com/example/app/pauta.json:235-242 still lists it as pending (\"No test checks ... availability follows a change\"; a test is not required), url 4.1.0."
+      "evidence": "src/main/java/com/example/app/ui/AppMenus.java:243-246 re-reads enablement on showing; :64,343-359 rewrite titles and chords on a keymap change (a language change needs a restart)."
     },
     {
       "id": "MENU-04",
@@ -1235,7 +1235,7 @@
       "id": "MENU-07",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/ContextMenuDismissal.java:44-87: a MOUSE_PRESSED filter on every window hides an open right-click menu, owner control included, without consuming the press; installed at Startup.java:142; held by RightClickMenusFxTest.java:127."
+      "evidence": "src/main/java/com/example/app/ui/ContextMenuDismissal.java:44-87: a MOUSE_PRESSED filter on every window hides an open right-click menu, owner control included, without consuming the press; installed at Startup.java:147; held by RightClickMenusFxTest.java:127."
     },
     {
       "id": "MENU-08",
@@ -1247,13 +1247,13 @@
       "id": "MENU-09",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/RowContextMenu.java:133-169 answers the keyboard ContextMenuEvent by scrolling the selected row in and re-firing at that row; installed on every list with row menus (MessageLogView.java:74, SettingsWindow.java:161,285); the Debug Log console's setContextMenu answers the same keys; no macOS branch; held by RightClickMenusFxTest.java:157."
+      "evidence": "src/main/java/com/example/app/ui/RowContextMenu.java:29-65 answers the keyboard ContextMenuEvent by scrolling the selected row in and re-firing at that row; installed on every list with row menus (MessageLogView.java:77, SettingsWindow.java:173,326); the Debug Log console's setContextMenu answers the same keys; no macOS branch; held by RightClickMenusFxTest.java:157."
     },
     {
       "id": "MENU-10",
       "level": "SHOULD",
       "status": "manual",
-      "evidence": "In a list, select one row and right-click another: its menu acts on the clicked row (CommandMenu.java:91-95; tabs DocumentTabs.java:196); in the editor (stock TextArea menu, DocumentView.java:19) check the caret moves to a right-click outside the selection; not recorded"
+      "evidence": "In a list, select one row and right-click another: its menu acts on the clicked row (CommandMenu.java:92-98; tabs DocumentTabs.java:330); in the editor (its own command menu in place of the stock one, DocumentTabs.java:71-74,283) check the caret moves to a right-click outside the selection; not recorded"
     },
     {
       "id": "MENU-11",
@@ -1277,61 +1277,61 @@
       "id": "TRAY-01",
       "level": "MUST",
       "status": "limited",
-      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:192)"
     },
     {
       "id": "TRAY-02",
       "level": "MUST",
       "status": "limited",
-      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:192)"
     },
     {
       "id": "TRAY-03",
       "level": "MUST",
       "status": "limited",
-      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:192)"
     },
     {
       "id": "TRAY-04",
       "level": "MUST",
       "status": "limited",
-      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:192)"
     },
     {
       "id": "TRAY-05",
       "level": "SHOULD",
       "status": "limited",
-      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:192)"
     },
     {
       "id": "TRAY-06",
       "level": "SHOULD",
       "status": "limited",
-      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:192)"
     },
     {
       "id": "TRAY-07",
       "level": "SHOULD",
       "status": "limited",
-      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:192)"
     },
     {
       "id": "TRAY-12",
       "level": "MAY",
       "status": "limited",
-      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:192)"
     },
     {
       "id": "TRAY-13",
       "level": "SHOULD",
       "status": "limited",
-      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:192)"
     },
     {
       "id": "TRAY-14",
       "level": "SHOULD",
       "status": "limited",
-      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:169)"
+      "evidence": "no tray and no background work: no SystemTray, TrayIcon or Platform.setImplicitExit(false) in src/main; the window's close request quits (src/main/java/com/example/app/ui/MainWindow.java:192)"
     },
     {
       "id": "TRAY-09",
@@ -1379,7 +1379,7 @@
       "id": "SET-05",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "one ConfigStore announces every change (config/ConfigStore.java:106-127); the main window (ui/MainWindow.java:174) and Settings (ui/SettingsWindow.java:197) listen and apply"
+      "evidence": "one ConfigStore announces every change (config/ConfigStore.java:115-137); the main window (ui/MainWindow.java:197) and Settings (ui/SettingsWindow.java:211) listen and apply"
     },
     {
       "id": "SET-06",
@@ -1391,7 +1391,7 @@
       "id": "SET-07",
       "level": "MUST",
       "status": "pass",
-      "evidence": "One resolver: --config-dir, then --dev (<home>/.<app>-dev), then EXAMPLEAPP_CONFIG_DIR, then the property, then <home>/.<app>, no OS branch (src/main/java/com/example/app/config/ConfigDir.java:25-33); used by src/main/java/com/example/app/Main.java:68 and src/main/java/com/example/app/ui/Startup.java:119."
+      "evidence": "One resolver: --config-dir, then --dev (<home>/.<app>-dev), then EXAMPLEAPP_CONFIG_DIR, then the property, then <home>/.<app>, no OS branch (src/main/java/com/example/app/config/ConfigDir.java:25-33); used by src/main/java/com/example/app/Main.java:69 and src/main/java/com/example/app/ui/Startup.java:119."
     },
     {
       "id": "SET-08",
@@ -1415,7 +1415,7 @@
       "id": "SET-11",
       "level": "MUST",
       "status": "pass",
-      "evidence": "session.json is clamped as read (Window.clamp via Settings.clamped: Settings.java:150-152, documents filtered and capped at 100, activeDocument checked :236-245), an undecodable one (IOException or RuntimeException) goes to session.json.broken.bak (ConfigStore.java:220-223); textZoom clamped on read; account.txt with a mismatched URL or blank account reads as unpinned (AccountPin.java:57-67)."
+      "evidence": "session.json is clamped as read (Window.clamp via Settings.clamped: Settings.java:150-152, documents filtered and capped at 100, activeDocument checked :236-245), an undecodable one (IOException or RuntimeException) goes to session.json.broken.bak (ConfigStore.java:220-223); textZoom clamped on read; account.json with a mismatched URL or blank account reads as unpinned (AccountPin.java:67-85)."
     },
     {
       "id": "SET-22",
@@ -1427,7 +1427,7 @@
       "id": "SET-12",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/config/ConfigExporter.java:27-28 names the zip with a timestamp; config/ConfigImport.java:148-172 restores; tests ConfigExporterTest, ConfigImportTest"
+      "evidence": "src/main/java/com/example/app/config/ConfigExporter.java:27-28 names the zip with a timestamp; config/ConfigImport.java:148-170 restores; tests ConfigExporterTest, ConfigImportTest"
     },
     {
       "id": "SET-13",
@@ -1463,7 +1463,7 @@
       "id": "SET-19",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "sync after startup (ui/Startup.java:163 → ui/SyncController.java:102-110), after a local change (:59-65), sync.now (ui/Commands.java:87); only keybindings sync, never window or paths (sync/SyncEngine.java:18-25). src/main/resources/com/example/app/pauta.json still lists it as pending: stale"
+      "evidence": "sync after startup (ui/Startup.java:173 → ui/SyncController.java:102-110), after a local change (:59-65), sync.now (ui/Commands.java:130); only keybindings sync, never window or paths (sync/SyncEngine.java:18-25)."
     },
     {
       "id": "SET-20",
@@ -1475,7 +1475,7 @@
       "id": "SET-21",
       "level": "SHOULD",
       "status": "manual",
-      "evidence": "Point Sync at a missing repository: pill, echo and Message Log show the failure: src/main/java/com/example/app/ui/SettingsWindow.java:527-528 (pill), ui/SyncController.java:163 echo (AppServices.echo writes to the Message Log); not recorded"
+      "evidence": "Point Sync at a missing repository: pill, echo and Message Log show the failure: src/main/java/com/example/app/ui/SettingsWindow.java:572-573 (pill), ui/SyncController.java:165 echo (AppServices.echo writes to the Message Log); not recorded"
     },
     {
       "id": "DIAG-01",
@@ -1493,19 +1493,19 @@
       "id": "DIAG-03",
       "level": "MUST",
       "status": "pass",
-      "evidence": "A plain Stage, no initModality (src/main/java/com/example/app/ui/DebugLogWindow.java:30,79-81) with Refresh, Copy, Clear, Export and Report a Problem buttons, each a command (src/main/java/com/example/app/ui/DebugLogWindow.java:55-66)."
+      "evidence": "A plain Stage, no initModality (src/main/java/com/example/app/ui/DebugLogWindow.java:30,81-83) with Refresh, Copy, Clear, Export and Report a Problem buttons, each a command (src/main/java/com/example/app/ui/DebugLogWindow.java:55-66)."
     },
     {
       "id": "DIAG-04",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/Main.java:33 DebugLog.install() before argument handling (:34) and launch (:38); the handler logs and posts an ERROR echo (src/main/java/com/example/app/ui/DebugLog.java:101-105, src/main/java/com/example/app/ui/Startup.java:140-141); no dialog."
+      "evidence": "src/main/java/com/example/app/Main.java:34 DebugLog.install() before argument handling (:35) and launch (:39); the handler logs and posts an ERROR echo (src/main/java/com/example/app/ui/DebugLog.java:101-105, src/main/java/com/example/app/ui/Startup.java:144-145); no dialog."
     },
     {
       "id": "DIAG-05",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Automatic check after first paint plus a 5 s PauseTransition (src/main/java/com/example/app/ui/Startup.java:162, src/main/java/com/example/app/ui/UpdateCoordinator.java:38,97-108), once per process (scheduled flag), skipped within a day (persisted lastUpdateCheck, src/main/java/com/example/app/update/UpdateCheck.java:77-79) or when off (src/main/java/com/example/app/ui/UpdateCoordinator.java:93); asks releases/latest (src/main/java/com/example/app/update/UpdateService.java:47-60) and only shows the result. Test: StartupDeferralFxTest.java:103."
+      "evidence": "Automatic check after first paint plus a 5 s PauseTransition (src/main/java/com/example/app/ui/Startup.java:172, src/main/java/com/example/app/ui/UpdateCoordinator.java:38,97-108), once per process (scheduled flag), skipped within a day (persisted lastUpdateCheck, src/main/java/com/example/app/update/UpdateCheck.java:77-79) or when off (src/main/java/com/example/app/ui/UpdateCoordinator.java:93); asks releases/latest (src/main/java/com/example/app/update/UpdateService.java:47-60) and only shows the result. Test: StartupDeferralFxTest.java:103."
     },
     {
       "id": "DIAG-09",
@@ -1517,13 +1517,13 @@
       "id": "DIAG-10",
       "level": "MUST",
       "status": "pass",
-      "evidence": "help.checkForUpdates registered (src/main/java/com/example/app/ui/Commands.java:119-123) and in the Help menu (src/main/java/com/example/app/ui/AppMenus.java:129); Settings switch (src/main/java/com/example/app/ui/SettingsWindow.java:227); the scheduler skips while off (src/main/java/com/example/app/ui/UpdateCoordinator.java:93,98)."
+      "evidence": "help.checkForUpdates registered (src/main/java/com/example/app/ui/Commands.java:161-165) and in the Help menu (src/main/java/com/example/app/ui/AppMenus.java:147); Settings switch (src/main/java/com/example/app/ui/SettingsWindow.java:240); the scheduler skips while off (src/main/java/com/example/app/ui/UpdateCoordinator.java:93,98)."
     },
     {
       "id": "DIAG-06",
       "level": "MUST",
       "status": "pass",
-      "evidence": "help.reportProblem registered (src/main/java/com/example/app/ui/Commands.java:141) and in the Help menu (src/main/java/com/example/app/ui/AppMenus.java:132); the report carries version, OS, Java and JavaFX (src/main/java/com/example/app/AppInfo.java:118-125), a settings summary and the log tail (src/main/java/com/example/app/report/ProblemReport.java:24-35)."
+      "evidence": "help.reportProblem registered (src/main/java/com/example/app/ui/Commands.java:183) and in the Help menu (src/main/java/com/example/app/ui/AppMenus.java:150); the report carries version, OS, Java and JavaFX (src/main/java/com/example/app/AppInfo.java:118-125), a settings summary and the log tail (src/main/java/com/example/app/report/ProblemReport.java:24-35)."
     },
     {
       "id": "DIAG-11",
@@ -1553,7 +1553,7 @@
       "id": "DIAG-08",
       "level": "SHOULD",
       "status": "limited",
-      "evidence": "no user documents: tabs hold built-in sample texts (src/main/java/com/example/app/ui/SampleFiles.java, src/main/java/com/example/app/ui/DocumentTabs.java:69-71) and nothing opens or saves a user's file."
+      "evidence": "no user documents: tabs hold built-in sample texts (src/main/java/com/example/app/ui/SampleFiles.java, src/main/java/com/example/app/ui/DocumentTabs.java:100-122) and nothing opens or saves a user's file."
     },
     {
       "id": "CLI-01",
@@ -1565,7 +1565,7 @@
       "id": "CLI-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Both flags parsed and resolved before any config read (src/main/java/com/example/app/Main.java:53,68; DebugLog.install reads nothing); --dev gives Path.of(home, \".exampleapp-dev\") with no OS branch (src/main/java/com/example/app/config/ConfigDir.java:27)."
+      "evidence": "Both flags parsed and resolved before any config read (src/main/java/com/example/app/Main.java:55,69; DebugLog.install reads nothing); --dev gives Path.of(home, \".exampleapp-dev\") with no OS branch (src/main/java/com/example/app/config/ConfigDir.java:28)."
     },
     {
       "id": "CLI-03",
@@ -1577,13 +1577,13 @@
       "id": "CLI-04",
       "level": "SHOULD",
       "status": "manual",
-      "evidence": "Launch with --no-session and find only what the command line names: CommandLine.java:52 sets noSession, MainWindow is built with restoreSession=false (Startup.java:142) and DocumentTabs skips the last session's documents (DocumentTabs.java:102-120), but that path still opens the Welcome page and three sample documents (DocumentTabs.java:116-121); not recorded"
+      "evidence": "Launch with --no-session and find only what the command line names: CommandLine.java:52 sets noSession, MainWindow is built with restoreSession=false (Startup.java:142) and DocumentTabs skips the last session's documents (DocumentTabs.java:102-114) and opens only the Welcome page, the samples being a first run's alone (DocumentTabs.java:115-124); not recorded"
     },
     {
       "id": "CLI-05",
       "level": "MUST",
       "status": "pass",
-      "evidence": "main handles --report before launch (src/main/java/com/example/app/Main.java:69): writes problem-report.txt in the current folder, falls back to java.io.tmpdir, prints the path and opens the issue (src/main/java/com/example/app/report/ReportCommand.java:39-56)."
+      "evidence": "main handles --report before launch (src/main/java/com/example/app/Main.java:70): writes problem-report.txt in the current folder, falls back to java.io.tmpdir, prints the path and opens the issue (src/main/java/com/example/app/report/ReportCommand.java:40-53)."
     },
     {
       "id": "CLI-12",
@@ -1607,13 +1607,13 @@
       "id": "CLI-06",
       "level": "SHOULD",
       "status": "limited",
-      "evidence": "opens no files: files named on the command line are parsed (src/main/java/com/example/app/cli/CommandLine.java:39-41) but no code opens a user file (only a config import zip, src/main/java/com/example/app/ui/MainWindow.java:585). pauta.json has a pending entry (\"Files named on the command line are accepted but not opened\"), a problem for a limited rule."
+      "evidence": "opens no files: files named on the command line are parsed (src/main/java/com/example/app/cli/CommandLine.java:39-41) but no code opens a user file (only a config import zip, src/main/java/com/example/app/ui/MainWindow.java:764-765)."
     },
     {
       "id": "CLI-07",
       "level": "MUST",
       "status": "pass",
-      "evidence": "First launch listens on a Unix socket in the config folder (src/main/java/com/example/app/ui/Startup.java:126, src/main/java/com/example/app/instance/SingleInstance.java:74-90); a second launch without --new-instance hands off and exits (src/main/java/com/example/app/Main.java:73-76). The app opens no files from its command line (MainWindow.handOff ignores them, src/main/java/com/example/app/ui/MainWindow.java:743-748), so no macOS open-files handler is asked for."
+      "evidence": "First launch listens on a Unix socket in the config folder (src/main/java/com/example/app/ui/Startup.java:126, src/main/java/com/example/app/instance/SingleInstance.java:74-90); a second launch without --new-instance hands off and exits (src/main/java/com/example/app/Main.java:73-76). The app opens no files from its command line (MainWindow.handOff ignores them, src/main/java/com/example/app/ui/MainWindow.java:823-828), so no macOS open-files handler is asked for."
     },
     {
       "id": "CLI-08",
@@ -1631,7 +1631,7 @@
       "id": "CLI-10",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "git and gh (the only tools the app starts) get PATH = the login shell's PATH merged before the inherited one on macOS and Linux, the inherited one on Windows (src/main/java/com/example/app/sync/ShellPath.java:26-36; Git.java:72; GitHubCli.java:163; Executables.java:27); ShellPathTest. Browser.open (report/Browser.java) only hands a URL to the OS opener from the CLI."
+      "evidence": "git and gh (the only tools the app starts) get PATH = the login shell's PATH merged before the inherited one on macOS and Linux, the inherited one on Windows (src/main/java/com/example/app/sync/ShellPath.java:26-36; Git.java:72; GitHubCli.java:173; Executables.java:27); ShellPathTest. Browser.open (report/Browser.java) only hands a URL to the OS opener from the CLI."
     },
     {
       "id": "INTL-01",
@@ -1673,7 +1673,7 @@
       "id": "INTL-07",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "New UI text comes from the catalog (doctor.*, empty.title, palette.legend, settings.textZoom, status.textZoom ...); no new string literal in a control's constructor, setText, setPromptText, setTitle or tooltip. Doctor row names 'git', 'gh', 'Java', 'JavaFX' (Doctor.java:47-66) are product names, and the legend's '↑↓'/'Esc' (MainWindow.java:479-481) are key labels."
+      "evidence": "New UI text comes from the catalog (doctor.*, empty.title, palette.legend, settings.textZoom, status.textZoom ...); no new string literal in a control's constructor, setText, setPromptText, setTitle or tooltip. Doctor row names 'git', 'gh', 'Java', 'JavaFX' (Doctor.java:45-71) are product names, and the legend's '↑↓'/'Esc' (MainWindow.java:479-481) are key labels."
     },
     {
       "id": "INTL-08",
@@ -1691,7 +1691,7 @@
       "id": "INTL-10",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "No catalog placeholder takes an identifier (line, port): numeric ones are counts (src/main/resources/com/example/app/i18n/messages.properties:110,143,159,162-164,172,403), and versions/decision numbers are passed as strings. pauta.json still has a pending INTL-10 entry (\"No test checks … without digit grouping\"): an entry for a rule that passes."
+      "evidence": "No catalog placeholder takes a line number or a port, and every numeric one uses {0,number,#}, so none is digit-grouped: counts, percents and the Java version doctor.java.fix names (src/main/resources/com/example/app/i18n/messages.properties:112,145,161,164-166,174,299,447,450-451,453,512,527); other versions and decision numbers are passed as strings."
     },
     {
       "id": "INTL-11",
@@ -1715,25 +1715,25 @@
       "id": "INTL-14",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Messages.locale gives the four cases (system locale whole with no or system language chosen, bare language otherwise) and start() sets it as the JVM default when it differs (src/main/java/com/example/app/i18n/Messages.java:57-71), called at start (src/main/java/com/example/app/ui/Startup.java:121); render formats with new MessageFormat(value), the default locale (Messages.java:113-117)."
+      "evidence": "Messages.locale gives the four cases (system locale whole with no or system language chosen, bare language otherwise) and start() sets it as the JVM default when it differs (src/main/java/com/example/app/i18n/Messages.java:56-71), called at start (src/main/java/com/example/app/ui/Startup.java:122); render formats with new MessageFormat(value), the default locale (Messages.java:112-117)."
     },
     {
       "id": "PAL-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Commands.java:18 registers palette.show -> MainWindow.openPalette (src/main/java/com/example/app/ui/MainWindow.java:302), one Picker per main window's OverlayHost (built fresh on each open rather than once, still one palette per window)"
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:19 registers palette.show -> MainWindow.openPalette (src/main/java/com/example/app/ui/MainWindow.java:437), one Picker per main window's OverlayHost (built fresh on each open rather than once, still one palette per window)"
     },
     {
       "id": "PAL-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:304 rows from services.commands().all() with title, description and unavailableReason; unavailable rows stay listed, grayed (src/main/java/com/example/app/ui/Picker.java:232); description line under the list follows the selection (Picker.java:98-105)"
+      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:456 rows from services.commands().all() with title, description and unavailableReason; unavailable rows stay listed, grayed (src/main/java/com/example/app/ui/Picker.java:367); description line under the list follows the selection (Picker.java:123-130)"
     },
     {
       "id": "PAL-10",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Picker.java:48-50 WIDTH 620, ROW_HEIGHT 36, VISIBLE_ROWS 8; prompt from catalog palette.prompt=Run command… (src/main/resources/com/example/app/i18n/messages.properties:96, used at MainWindow.java:315)"
+      "evidence": "src/main/java/com/example/app/ui/Picker.java:60-62 WIDTH 620, ROW_HEIGHT 36, VISIBLE_ROWS 8; prompt from catalog palette.prompt=Run command… (src/main/resources/com/example/app/i18n/messages.properties:96, used at MainWindow.java:440)"
     },
     {
       "id": "PAL-04",
@@ -1745,7 +1745,7 @@
       "id": "PAL-05",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Picker.java:146-149 refresh() selects enabledFrom(0, 1), the first enabled row, after each filter; src/test/java/com/example/app/ui/PickerFxTest.java:37 covers skipping an unavailable row. pauta.json has a pending entry for a rule that passes (\"No test covers an unavailable command at the top…\"): a test is not required by 6.0.0"
+      "evidence": "src/main/java/com/example/app/ui/Picker.java:244-255 refresh() selects enabledFrom(0, 1), the first enabled row, after each filter; src/test/java/com/example/app/ui/PickerFxTest.java:37 covers skipping an unavailable row."
     },
     {
       "id": "PAL-06",
@@ -1775,7 +1775,7 @@
       "id": "QOPEN-01",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Picker.java:36 one generic Picker<T> for the palette, theme, keymap, language and key-binding choices (MainWindow.java:313, 327, 339, 352, 407); no ChoiceDialog in src/main"
+      "evidence": "src/main/java/com/example/app/ui/Picker.java:36 one generic Picker<T> for the palette, theme, keymap, language and key-binding choices (MainWindow.java:438, 490, 505, 521, 579); no ChoiceDialog in src/main"
     },
     {
       "id": "QOPEN-02",
@@ -1787,7 +1787,7 @@
       "id": "QOPEN-03",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:323-353 each picker command reads its items fresh and Picker.java:62 snapshots them (List.copyOf); no source answers late, so no reload is needed. pauta.json has a pending entry for a rule that passes (\"A picker's list cannot be reloaded while it is open.\")"
+      "evidence": "src/main/java/com/example/app/ui/MainWindow.java:485-529 each picker command reads its items fresh and Picker.java:82 snapshots them (List.copyOf); no source answers late, so no reload is needed; a keymap change does give an open picker fresh items, keeping the query (Picker.rebind, Picker.java:183-191)."
     },
     {
       "id": "QOPEN-04",
@@ -1829,7 +1829,7 @@
       "id": "QOPEN-10",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "no picker source can be empty: commands, ThemeChoice values, Keymap.PRESETS, and the language list that always holds System (src/main/java/com/example/app/ui/MainWindow.java:304-353)"
+      "evidence": "no picker source can be empty: commands, ThemeChoice values, Keymap.PRESETS, and the language list that always holds System (src/main/java/com/example/app/ui/MainWindow.java:456-529)"
     },
     {
       "id": "QOPEN-11",
@@ -1853,7 +1853,7 @@
       "id": "WELC-02",
       "level": "SHOULD",
       "status": "limited",
-      "evidence": "the window is not its content: it holds document tabs with a Welcome page (WELC-01). src/main/resources/com/example/app/pauta.json has a pending entry (\"The empty window's ways in... do not show their keys\"), which a limited rule does not take; its reason describes WELC-04"
+      "evidence": "the window is not its content: it holds document tabs with a Welcome page (WELC-01)."
     },
     {
       "id": "WELC-03",
@@ -1871,7 +1871,7 @@
       "id": "WELC-05",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Every show of the Welcome tab runs refreshWelcome (DocumentTabs.java:98,305 → MainWindow.java:292-305), which rebuilds the actions' titles and hint and re-requests the prior focus owner; SessionAndWelcomeFxTest.java:114-117."
+      "evidence": "Every show of the Welcome tab runs refreshWelcome (DocumentTabs.java:98,308 → MainWindow.java:292-304), which rebuilds the actions' titles and hint and re-requests the prior focus owner; SessionAndWelcomeFxTest.java:115-118."
     },
     {
       "id": "WELC-06",
@@ -1913,25 +1913,25 @@
       "id": "ABOUT-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "help.about registered (src/main/java/com/example/app/ui/Commands.java:116), rows in the Help menu of both tables (src/main/java/com/example/app/ui/AppMenus.java:153,181); on macOS MacAppMenu inserts About (and Settings) into Glass's application menu running help.about (src/main/java/com/example/app/ui/MacAppMenu.java:47-89, src/main/java/com/example/app/ui/MainWindow.java:198-214), with the mac launchers exporting com.sun.glass.ui.mac (pom.xml:493). macOS path read only."
+      "evidence": "help.about registered (src/main/java/com/example/app/ui/Commands.java:140), rows in the Help menu of both tables (src/main/java/com/example/app/ui/AppMenus.java:153,180); on macOS MacAppMenu inserts About (and Settings) into Glass's application menu running help.about (src/main/java/com/example/app/ui/MacAppMenu.java:47-89, src/main/java/com/example/app/ui/MainWindow.java:204-218), with the mac launchers exporting com.sun.glass.ui.mac (pom.xml:493). macOS path read only."
     },
     {
       "id": "ABOUT-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/AboutDialog.java:45, 68 version and build/commit, Java and JavaFX (AppInfo.java:108-121); license, homepage (repository, no website linked) and releases links (AboutDialog.java:61-63 -> Commands.java:107-109); every update state shown (AboutDialog.java:130-144)"
+      "evidence": "src/main/java/com/example/app/ui/AboutDialog.java:43, 66 version and build/commit, Java and JavaFX (AppInfo.java:109-124); license, homepage (repository, no website linked) and releases links (AboutDialog.java:59-61 -> Commands.java:149-151); every update state shown (AboutDialog.java:126-139)"
     },
     {
       "id": "ABOUT-03",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/AboutDialog.java:71-75 Copy details in the content runs help.copyDetails (environment block, MainWindow.java:448) and relabels to about.copied"
+      "evidence": "src/main/java/com/example/app/ui/AboutDialog.java:69-72 Copy details in the content runs help.copyDetails (environment block, MainWindow.java:623) and relabels to about.copied"
     },
     {
       "id": "ABOUT-04",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/AboutDialog.java:143 with no answer falls back to about.notChecked (or the last-checked time), never up to date"
+      "evidence": "src/main/java/com/example/app/ui/AboutDialog.java:139 with no answer falls back to about.notChecked (or the last-checked time), never up to date"
     },
     {
       "id": "ABOUT-10",
@@ -1955,7 +1955,7 @@
       "id": "ABOUT-07",
       "level": "MUST",
       "status": "pass",
-      "evidence": "About says \"Built to Pauta 6.0.0\": pauta.json has no pending MUST, so the helper gives Core (src/main/java/com/example/app/ui/AboutDialog.java:55,61,102-104; PautaConformance.java:200-210). Judged from this 72-rule scope only: no MUST here is fail or pending (REL-19 is app-only, PWIN-02 manual). The full audit's MUSTs settle it."
+      "evidence": "About says \"Built to Pauta 6.0.0\" and the conformance the helper computes: pauta.json has no pending entry, so Complete (src/main/java/com/example/app/ui/AboutDialog.java:55-63,101-104; PautaConformance.java:202-210)."
     },
     {
       "id": "ABOUT-08",
@@ -1973,7 +1973,7 @@
       "id": "PWIN-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Commands.java:111 help.pauta -> openPauta; row in the Help menu (src/main/java/com/example/app/ui/AppMenus.java:134); Simple mode's Help menu drops it, as DOCS-07 allows"
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:153 help.pauta -> openPauta; row in the Help menu (src/main/java/com/example/app/ui/AppMenus.java:152); Simple mode's Help menu drops it, as DOCS-07 allows"
     },
     {
       "id": "PWIN-02",
@@ -1991,7 +1991,7 @@
       "id": "PWIN-04",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Commands.java:112 help.pautaRules opens AppInfo.pautaUrl(); run by the edition links in PautaWindow.java:83 and AboutDialog.java:64; each rule ID opens its entry's url (PautaWindow.java:126)"
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:154 help.pautaRules opens AppInfo.pautaUrl(); run by the edition links in PautaWindow.java:82 and AboutDialog.java:62; each rule ID opens its entry's url (PautaWindow.java:125)"
     },
     {
       "id": "PWIN-05",
@@ -2009,7 +2009,7 @@
       "id": "PWIN-07",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Commands.java:113 help.pautaDocs opens AppInfo.pautaDocsUrl() = docsUrl() + /pauta/ (AppInfo.java:100-102), the same base as help.documentation (Commands.java:96)"
+      "evidence": "src/main/java/com/example/app/ui/Commands.java:155 help.pautaDocs opens AppInfo.pautaDocsUrl() = docsUrl() + /pauta/ (AppInfo.java:101-103), the same base as help.documentation (Commands.java:138)"
     },
     {
       "id": "PWIN-08",
@@ -2039,13 +2039,13 @@
       "id": "CONF-14",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Every dialog goes through Dialogs.styled, which words the stock OK/Cancel/Yes/No/Apply/Close from the catalog before show and on any later change (src/main/java/com/example/app/ui/Dialogs.java:31-60): the TextInputDialogs (src/main/java/com/example/app/ui/Prompts.java:34-53, SettingsWindow.java:516-521), Report a Problem's Cancel (ReportProblemWindow.java:49,54); Confirm builds both buttons from the catalog (Confirm.java:33-35)."
+      "evidence": "Every dialog goes through Dialogs.styled, which words the stock OK/Cancel/Yes/No/Apply/Close from the catalog before show and on any later change (src/main/java/com/example/app/ui/Dialogs.java:31-60): the TextInputDialogs (src/main/java/com/example/app/ui/Prompts.java:34-56, SettingsWindow.java:530-535), Report a Problem's Cancel (ReportProblemWindow.java:49,54); Confirm builds both buttons from the catalog (Confirm.java:33-35)."
     },
     {
       "id": "CONF-04",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Confirm.java:33 Cancel has CANCEL_CLOSE; :68 answer.orElse(cancel); tested at src/test/java/com/example/app/ui/DialogsFxTest.java:111"
+      "evidence": "src/main/java/com/example/app/ui/Confirm.java:34 Cancel has CANCEL_CLOSE; :74 answer.orElse(cancel); tested at src/test/java/com/example/app/ui/DialogsFxTest.java:111"
     },
     {
       "id": "CONF-13",
@@ -2075,7 +2075,7 @@
       "id": "CONF-08",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Confirm.java:63-69 true only on OK_DONE; callers act only on true (SettingsWindow.java:380, MainWindow.java:618); no other confirmation question"
+      "evidence": "src/main/java/com/example/app/ui/Confirm.java:69-75 true only on OK_DONE; callers act only on true (SettingsWindow.java:421, MainWindow.java:798,843); no other confirmation question"
     },
     {
       "id": "CONF-09",
@@ -2099,13 +2099,13 @@
       "id": "CONF-12",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Confirmations.java:131, 152 pure question builders; Host.confirm hook (src/main/java/com/example/app/ui/Host.java:30) answered by src/test/java/com/example/app/ui/FakeHost.java:39; src/test/java/com/example/app/ui/ConfirmationsTest.java:31"
+      "evidence": "src/main/java/com/example/app/ui/Confirmations.java:55, 80, 88 pure question builders; Host.confirm hook (src/main/java/com/example/app/ui/Host.java:30) answered by src/test/java/com/example/app/ui/FakeHost.java:39; src/test/java/com/example/app/ui/ConfirmationsTest.java:33"
     },
     {
       "id": "FIND-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Find bars as nodes in the window over each searchable text: documents (src/main/java/com/example/app/ui/DocumentView.java:26-28), Output console (src/main/java/com/example/app/ui/SamplePanels.java:174,188), Debug Log (src/main/java/com/example/app/ui/DebugLogWindow.java:32,70-71); no Popup or Stage. Message Log is a ListView; Report a Problem's text area is a dialog field."
+      "evidence": "Find bars as nodes in the window over each searchable text: documents (src/main/java/com/example/app/ui/DocumentView.java:26-28), Output console (src/main/java/com/example/app/ui/SamplePanels.java:192,209), Debug Log (src/main/java/com/example/app/ui/DebugLogWindow.java:32,70-71); no Popup or Stage. Message Log is a ListView; Report a Problem's text area is a dialog field."
     },
     {
       "id": "FIND-02",
@@ -2153,13 +2153,13 @@
       "id": "FIND-09",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "TextInputKeys gives the find fields the Emacs caret/editing chords (src/main/java/com/example/app/ui/TextInputKeys.java; installed for document, Output and Debug Log bars: DocumentTabs.java:281, MainWindow.java:141-143, DebugLogWindow.java:39) and KeyDispatcher leaves them to any text field (KeyDispatcher.java:43-49); find's chords still dispatch. Side effect: C-h counts as editing, so Emacs's C-h prefix (C-h e, C-h l, C-h C-a) is dead whenever any text field, the document TextArea included, has focus."
+      "evidence": "TextInputKeys gives the find fields the Emacs caret/editing chords (src/main/java/com/example/app/ui/TextInputKeys.java; installed for document, Output and Debug Log bars: DocumentTabs.java:284, MainWindow.java:141-143, DebugLogWindow.java:39) and KeyDispatcher leaves them to any text field (KeyDispatcher.java:43-49); find's chords still dispatch. Side effect: C-h counts as editing, so Emacs's C-h prefix (C-h e, C-h l, C-h C-a) is dead whenever any text field, the document TextArea included, has focus."
     },
     {
       "id": "FIND-10",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/DebugLogFindBar.java:235 no match shows the count find.none (No matches); nothing opens"
+      "evidence": "src/main/java/com/example/app/ui/FindBar.java:270 no match shows the count find.none (No matches); nothing opens"
     },
     {
       "id": "FIND-11",
@@ -2195,19 +2195,19 @@
       "id": "FIND-16",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/DebugLogFindBar.java:79-82 only Previous/Next/Close leave the Tab order, matched by Shift+Enter/Enter/Escape in the field (:88-96) and debugLog.findNext/findPrevious; Match case stays traversable; the Message Log filter is traversable"
+      "evidence": "src/main/java/com/example/app/ui/FindBar.java:98-101 only Previous/Next/Close leave the Tab order, matched by Shift+Enter/Enter/Escape in the field (:107-116) and debugLog.findNext/findPrevious; Match case stays traversable; the Message Log filter is traversable"
     },
     {
       "id": "MLOG-08",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "In-scene card on the overlay host, no Stage (src/main/java/com/example/app/ui/MessageLogView.java:109), WIDTH 773, LIST_HEIGHT 336 (src/main/java/com/example/app/ui/MessageLogView.java:32-33), cap 200 (src/main/java/com/example/app/ui/MessageLog.java:25)."
+      "evidence": "In-scene card on the overlay host, no Stage (src/main/java/com/example/app/ui/MessageLogView.java:112), WIDTH 773, LIST_HEIGHT 336 (src/main/java/com/example/app/ui/MessageLogView.java:32-33), cap 200 (src/main/java/com/example/app/ui/MessageLog.java:25)."
     },
     {
       "id": "MLOG-02",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "The unread count runs view.messageLog on click (src/main/java/com/example/app/ui/StatusBar.java:38); registered at src/main/java/com/example/app/ui/Commands.java:22."
+      "evidence": "The unread count runs view.messageLog on click (src/main/java/com/example/app/ui/StatusBar.java:61); registered at src/main/java/com/example/app/ui/Commands.java:23."
     },
     {
       "id": "MLOG-03",
@@ -2225,7 +2225,7 @@
       "id": "MLOG-05",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "One function: MessageLog.severityOf takes a status.* key's last segment, fail/error -> ERROR, cannot/invalid -> WARNING (src/main/java/com/example/app/ui/MessageLog.java:37-44), used by AppServices.echo (AppServices.java:105); PureUiTest.java:58-60."
+      "evidence": "One function: MessageLog.severityOf takes a status.* key's last segment, fail/error -> ERROR, cannot/invalid -> WARNING (src/main/java/com/example/app/ui/MessageLog.java:37-44), used by AppServices.echo (AppServices.java:125); PureUiTest.java:58-60."
     },
     {
       "id": "MLOG-06",
@@ -2249,7 +2249,7 @@
       "id": "SYNC-02",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/sync/SyncEngine.java:108-137 runs git (sync/Git.java:27-41) against the user's URL with their own credentials; Create on GitHub uses their gh (sync/GitHubCli.java:69-77); no server of the app's"
+      "evidence": "src/main/java/com/example/app/sync/SyncEngine.java:119-161 runs git (sync/Git.java:56-74) against the user's URL with their own credentials; Create on GitHub uses their gh (sync/GitHubCli.java:96-106); no server of the app's"
     },
     {
       "id": "REL-01",
@@ -2357,7 +2357,7 @@
       "id": "REL-18",
       "level": "MUST",
       "status": "pass",
-      "evidence": "release.yml:518-530 actions/attest-build-provenance over the dmg, msi, deb, rpm, AppImage, tar.gz, jar and asc patterns, the same files jreleaser.yml attaches (ReleaseSupplyChainTest.java:360 keeps them equal)."
+      "evidence": "release.yml:543-555 actions/attest-build-provenance over the dmg, msi, deb, rpm, AppImage, tar.gz, jar and asc patterns, the same files jreleaser.yml attaches (ReleaseSupplyChainTest.java:321 keeps them equal)."
     },
     {
       "id": "REL-19",
@@ -2429,7 +2429,7 @@
       "id": "REL-28",
       "level": "MUST",
       "status": "pass",
-      "evidence": "release.yml:141-148 macOS signing checks its secrets, skips on a dry run, fails on a tag; release.yml:356-370 the same for Linux; sign-mac-app.sh is a no-op without the identity (pom.xml:688-689)."
+      "evidence": "release.yml:141-148 macOS signing checks its secrets, skips on a dry run, fails on a tag; release.yml:379-392 Linux signing fails on a tag without its key and, on a dry run, signs with a throw-away key; sign-mac-app.sh is a no-op without the identity (pom.xml:744-745)."
     },
     {
       "id": "REL-29",
