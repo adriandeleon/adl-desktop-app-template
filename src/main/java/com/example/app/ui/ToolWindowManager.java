@@ -97,6 +97,7 @@ final class ToolWindowManager {
     private final Map<String, ToolWindow> byId = new LinkedHashMap<>();
     private final Map<ToolWindow, Button> stripeButtons = new HashMap<>();
     private final Map<ToolWindow, StringProperty> chords = new HashMap<>();
+    private final Map<String, StringProperty> headerChords = new HashMap<>();
     private final Map<ToolWindow, Region> panels = new HashMap<>();
     private final Map<ToolWindow.Side, List<ToolWindow>> open = new EnumMap<>(ToolWindow.Side.class);
     private final Map<ToolWindow, Stage> floating = new HashMap<>();
@@ -244,9 +245,15 @@ final class ToolWindowManager {
         StackPane icon = new StackPane(Icons.toolbarLine(tw.glyph()));
         ProgressIndicator badge = new ProgressIndicator();
         badge.getStyleClass().add("tool-stripe-busy");
-        badge.setMinSize(10, 10);
-        badge.setPrefSize(10, 10);
-        badge.setMaxSize(10, 10);
+        for (var size : List.of(
+                badge.minWidthProperty(),
+                badge.minHeightProperty(),
+                badge.prefWidthProperty(),
+                badge.prefHeightProperty(),
+                badge.maxWidthProperty(),
+                badge.maxHeightProperty())) {
+            UiZoom.bind(size, 10);
+        }
         badge.setMouseTransparent(true);
         badge.setTranslateX(4);
         badge.setTranslateY(4);
@@ -256,9 +263,16 @@ final class ToolWindowManager {
         return icon;
     }
 
-    /** Re-reads every stripe button's chord after a keymap change (TBAR-03). */
+    /** Re-reads every stripe and header button's chord after a keymap change (TBAR-03). */
     void refreshTooltips() {
         chords.forEach((tw, chord) -> chord.set(services.keybindings().label(tw.commandId())));
+        headerChords.forEach((id, chord) -> chord.set(services.keybindings().label(id)));
+    }
+
+    /** The chord of a panel header's command, one property per command that every header's button binds. */
+    private StringProperty headerChord(String id) {
+        return headerChords.computeIfAbsent(
+                id, k -> new SimpleStringProperty(services.keybindings().label(k)));
     }
 
     // ---- queries ----
@@ -869,9 +883,10 @@ final class ToolWindowManager {
             String glyph = Icons.forCommand(id);
             var command = services.commands().get(id);
             if (glyph == null || command == null) continue;
+            StringProperty chord = headerChord(id);
             Button button = Icons.button(
                     Icons.line(glyph),
-                    Icons.withChord(command.title(), services.keybindings().label(id)),
+                    Icons.withChord(command.title(), chord.get()),
                     () -> {
                         menuTarget = tw; // the header's buttons act on their own window
                         try {
@@ -884,6 +899,9 @@ final class ToolWindowManager {
                     "flat",
                     "tool-window-header-button");
             button.setFocusTraversable(false);
+            // The tooltip and the accessible name follow a keymap change (TBAR-03).
+            Icons.bindName(
+                    button, Bindings.createStringBinding(() -> Icons.withChord(command.title(), chord.get()), chord));
             header.getChildren().add(button);
         }
         Region content = tw.content();

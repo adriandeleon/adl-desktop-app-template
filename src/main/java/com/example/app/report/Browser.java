@@ -2,7 +2,8 @@ package com.example.app.report;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
+
+import com.example.app.Os;
 
 /**
  * Opens a URL in the default browser without JavaFX or AWT, for {@code --report}, which must work when
@@ -12,18 +13,19 @@ public final class Browser {
 
     private Browser() {}
 
-    /** The command that opens {@code url} on {@code osName}. */
-    static List<String> command(String osName, String url) {
-        String os = osName.toLowerCase(Locale.ROOT);
-        if (os.startsWith("mac")) return List.of("open", url);
-        if (os.startsWith("windows")) return List.of("rundll32", "url.dll,FileProtocolHandler", url);
-        return List.of("xdg-open", url);
+    /** The command that opens {@code url} on {@code os}: handing the URL to the OS's own opener. */
+    static List<String> command(Os.Kind os, String url) {
+        return switch (os) {
+            case MAC -> List.of("open", url);
+            case WINDOWS -> List.of("rundll32", "url.dll,FileProtocolHandler", url);
+            case LINUX -> List.of("xdg-open", url);
+        };
     }
 
     /** Starts the browser; false when it could not be started. */
     public static boolean open(String url) {
         try {
-            new ProcessBuilder(command(System.getProperty("os.name", ""), url))
+            new ProcessBuilder(command(Os.current(), url))
                     .redirectErrorStream(true)
                     .redirectOutput(ProcessBuilder.Redirect.DISCARD)
                     .start();

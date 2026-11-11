@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,6 +11,7 @@ import javafx.application.Platform;
 import javafx.stage.Stage;
 
 import com.example.app.AppInfo;
+import com.example.app.PautaConformance;
 import com.example.app.cli.CommandLine;
 import com.example.app.command.Keymap;
 import com.example.app.config.ConfigDir;
@@ -57,8 +57,9 @@ public final class Startup {
         public void close() {
             services.updates().cancel(); // a startup check still waiting would run after the app closed
             services.sync().stop();
-            services.store().flushOnExit();
-            if (instance != null) instance.close();
+            services.store().flush(); // the last save, the one wait stop() may make on the FX thread (PERF-01)
+            SingleInstance closing = instance;
+            if (closing != null) Background.run(closing::close); // the socket file goes off the FX thread
             DebugLog.onUncaught(null);
         }
     }
@@ -99,7 +100,7 @@ public final class Startup {
     public static synchronized void readAhead(CommandLine cli) {
         readAhead = java.util.concurrent.CompletableFuture.supplyAsync(
                 () -> prepare(cli),
-                runnable -> Thread.ofPlatform().name("read-ahead").start(runnable));
+                runnable -> Thread.ofPlatform().name("read-ahead").daemon().start(runnable));
     }
 
     /**
@@ -118,8 +119,9 @@ public final class Startup {
         Path dir = ConfigDir.resolve(cli.configDir(), cli.dev());
         DebugLog.attachFile(dir);
         ConfigStore store = ConfigStore.open(dir);
-        Messages.init(
-                Messages.resolve(store.settings().language, Locale.getDefault().getLanguage()));
+        Messages.start(store.settings().language);
+        PautaConformance.exceptions(); // pauta.json read and parsed now, so About and the Pauta window read none
+        Themes.prepareZoom(store.settings().uiZoom); // the scaled sheets, before the toolkit needs them
         HandOff handOff = new HandOff();
         SingleInstance instance = cli.newInstance() ? null : SingleInstance.listen(dir, handOff);
         return new Prepared(cli, dir, store, instance, handOff);
@@ -132,6 +134,7 @@ public final class Startup {
         Themes.installUiFont();
         Path dir = prepared.dir();
         ConfigStore store = prepared.store();
+        Themes.zoom(store.settings().uiZoom);
         Themes.apply(store.settings().theme);
 
         AppServices services = new AppServices(store, host);
@@ -156,7 +159,7 @@ public final class Startup {
         java.util.concurrent.atomic.AtomicBoolean afterFirstPaint = new java.util.concurrent.atomic.AtomicBoolean();
         FirstPaint.then(stage.getScene(), () -> {
             afterFirstPaint.set(true);
-            Fonts.loadDeferred();
+            Background.run(Fonts::loadDeferred); // registered off the FX thread (PERF-01)
             // Every keymap parsed now, off the FX thread, so picking one later parses nothing (PERF-01).
             Background.run(() -> Keymap.PRESETS.forEach(Keymap::load));
             services.updates().scheduleStartupCheck();

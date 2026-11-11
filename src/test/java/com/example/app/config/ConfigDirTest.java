@@ -12,11 +12,11 @@ class ConfigDirTest {
     private static final String HOME = Path.of("/home/u").toString();
 
     @Test
-    void flagThenEnvironmentThenPropertyThenTheDefault() {
+    void configDirThenDevThenEnvironmentThenPropertyThenTheDefault() {
         Map<String, String> env = Map.of(ConfigDir.ENV, "/from/env");
         assertEquals(Path.of("/flag").toAbsolutePath(), ConfigDir.resolve("/flag", true, env, "/prop", HOME));
-        // SET-07: --config-dir, then the environment variable, then the default (--dev only picks which).
-        assertEquals(Path.of("/from/env").toAbsolutePath(), ConfigDir.resolve(null, true, env, "/prop", HOME));
+        // SET-07: --config-dir, then --dev, then the environment variable, then the default.
+        assertEquals(Path.of(HOME, ".exampleapp-dev"), ConfigDir.resolve(null, true, env, "/prop", HOME));
         assertEquals(Path.of(HOME, ".exampleapp-dev"), ConfigDir.resolve(null, true, Map.of(), null, HOME));
         assertEquals(Path.of("/from/env").toAbsolutePath(), ConfigDir.resolve(" ", false, env, "/prop", HOME));
         assertEquals(Path.of("/prop").toAbsolutePath(), ConfigDir.resolve(null, false, Map.of(), "/prop", HOME));

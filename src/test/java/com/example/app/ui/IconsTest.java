@@ -61,11 +61,10 @@ class IconsTest {
         assertEquals(Icons.FOLDER, Icons.forCommand(SettingsWindow.Page.ADVANCED.command));
     }
 
-    /** ICON-22: a command with no fitting glyph, or no such command, draws none. */
+    /** A command no menu lists, or no such command, draws none. */
     @Test
     void aCommandWithNoGlyphDrawsNone() {
-        assertNull(Icons.forCommand("app.quit"));
-        assertNull(Icons.forCommand("settings.language"));
+        assertNull(Icons.forCommand("debugLog.findNext"));
         assertNull(Icons.commandGlyph("no.such.command"));
     }
 
@@ -80,5 +79,15 @@ class IconsTest {
         for (String command : Icons.commandGlyphs().keySet()) {
             assertTrue(catalog.containsKey("command." + command), command);
         }
+    }
+
+    /** ICON-23: a file's glyph comes from its name; a type the app does not know gets the generic one. */
+    @Test
+    void aFilesGlyphComesFromItsName() {
+        org.junit.jupiter.api.Assertions.assertEquals(Icons.FILE_TEXT, Icons.forFileName("README.md"));
+        org.junit.jupiter.api.Assertions.assertEquals(Icons.FILE_TEXT, Icons.forFileName("notes.TXT"));
+        org.junit.jupiter.api.Assertions.assertEquals(Icons.FILE, Icons.forFileName("photo.webp"));
+        org.junit.jupiter.api.Assertions.assertEquals(Icons.FILE, Icons.forFileName("Makefile"));
+        org.junit.jupiter.api.Assertions.assertEquals(Icons.FILE, Icons.forFileName(""));
     }
 }

@@ -31,7 +31,12 @@
         <!-- The Pauta edition this app implements (ABOUT-08): the one source for About, the
              environment block and the version flag. The README's badge and "Built to" line name the same
              number (EditionTest checks). -->
-        <pauta.version>4.1.0</pauta.version>
+        <pauta.version>6.0.0</pauta.version>
+        <!-- The release build (the dist profile) sets it: PautaConformanceTest then fails on what an app
+             inherited from the template, its app-only entries and the template's issues (PAUTA-16). -->
+        <pauta.release>false</pauta.release>
+        <!-- A harmless option off macOS; the os-mac profile exports Glass's mac package in its place. -->
+        <glass.mac.option>-Dexampleapp.glassMac=none</glass.mac.option>
 
         <!-- A floor too: JavaFX 27 brings the Headless glass platform the FX tests run on. -->
         <javafx.version>27.0.1</javafx.version>
@@ -209,6 +214,9 @@
                                 <arg>-XDcompilePolicy=simple</arg>
                                 <arg>--should-stop=ifError=FLOW</arg>
                                 <arg>-Xplugin:ErrorProne -XepDisableAllChecks -Xep:NullAway:ERROR -XepOpt:NullAway:OnlyNullMarked=true -XepOpt:NullAway:JSpecifyMode=true</arg>
+                                <!-- MacAppMenu puts About and Settings in macOS's application menu through
+                                     Glass (ABOUT-01, WIN-15). -->
+                                <arg>--add-exports=javafx.graphics/com.sun.glass.ui=com.example.app</arg>
                             </compilerArgs>
                             <annotationProcessorPaths>
                                 <path>
@@ -264,6 +272,7 @@
                              of anything a test builds lands here. -->
                         <exampleapp.configDir>${project.build.directory}/test-config</exampleapp.configDir>
                         <javafx.cachedir>${project.build.directory}/openjfx-cache</javafx.cachedir>
+                        <pauta.release>${pauta.release}</pauta.release>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -466,6 +475,8 @@
                     <options>
                         <option>--enable-native-access=javafx.graphics</option>
                         <option>-Dprism.order=${prism.pipeline}</option>
+                        <option>--add-exports=javafx.graphics/com.sun.glass.ui=com.example.app</option>
+                        <option>${glass.mac.option}</option>
                     </options>
                 </configuration>
             </plugin>
@@ -478,6 +489,8 @@
             <activation><os><family>mac</family></os></activation>
             <properties>
                 <prism.pipeline>mtl,es2,sw</prism.pipeline>
+                <!-- Only macOS's JavaFX has this package: MacAppMenu reaches the application menu through it. -->
+                <glass.mac.option>--add-exports=javafx.graphics/com.sun.glass.ui.mac=com.example.app</glass.mac.option>
                 <jpackage.icon>${project.basedir}/packaging/icons/exampleapp.icns</jpackage.icon>
                 <jpackage.imageName>ExampleApp.app</jpackage.imageName>
                 <skip.mac.steps>false</skip.mac.steps>
@@ -490,6 +503,31 @@
                 <prism.pipeline>d3d,es2,sw</prism.pipeline>
                 <jpackage.icon>${project.basedir}/packaging/icons/exampleapp.ico</jpackage.icon>
             </properties>
+            <build>
+                <plugins>
+                    <!-- CLI-11: beside the GUI launcher, a console launcher of the same main class, so the
+                         command-line flags print in the console they were typed in. Merged into the dist
+                         profile's app-image execution. -->
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <version>${jpackage.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>app-image</id>
+                                <configuration>
+                                    <launchers>
+                                        <launcher>
+                                            <name>exampleapp-cli</name>
+                                            <file>${project.basedir}/packaging/windows/exampleapp-cli.properties</file>
+                                        </launcher>
+                                    </launchers>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <!-- A runnable fat jar for this OS: ./mvnw -Pfatjar package => target/exampleapp-<version>-fat.jar.
@@ -549,6 +587,9 @@
         -->
         <profile>
             <id>dist</id>
+            <properties>
+                <pauta.release>true</pauta.release>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -613,6 +654,8 @@
                                     <javaOptions>
                                         <javaOption>--enable-native-access=javafx.graphics</javaOption>
                                         <javaOption>-Dprism.order=${prism.pipeline}</javaOption>
+                                        <javaOption>--add-exports=javafx.graphics/com.sun.glass.ui=com.example.app</javaOption>
+                                        <javaOption>${glass.mac.option}</javaOption>
                                         <!-- The AOT cache scripts/aot-train.sh records into the image ($APPDIR is
                                              the installed app directory). Under the default AOTMode=auto a missing
                                              or stale cache is a warning and a normal, slower start. -->

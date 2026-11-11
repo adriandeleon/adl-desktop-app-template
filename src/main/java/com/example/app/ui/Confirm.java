@@ -7,6 +7,7 @@ import java.util.Optional;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -21,7 +22,7 @@ import org.jspecify.annotations.Nullable;
  * The one confirm helper: a question before a destructive action. The action button names the
  * action from the catalog in the {@code danger} style; Cancel has the {@code CANCEL_CLOSE} role, so
  * Escape and the window's close button both answer Cancel, and anything but the action button is a
- * Cancel. Callers reach it through {@link Host#confirm}, which the headless tests answer.
+ * Cancel. Cancel is the default button and has the focus when the question opens (CONF-13). Callers reach it through {@link Host#confirm}, which the headless tests answer.
  */
 public final class Confirm {
 
@@ -55,7 +56,12 @@ public final class Confirm {
                             () -> boxes.stream().noneMatch(CheckBox::isSelected),
                             boxes.stream().map(CheckBox::selectedProperty).toArray(Observable[]::new)));
         }
-        alert.getDialogPane().lookupButton(action).getStyleClass().add("danger");
+        Button act = (Button) alert.getDialogPane().lookupButton(action);
+        act.getStyleClass().add("danger");
+        // CONF-13: Cancel is the one default button, so the dialog opens with the focus on it and Enter keeps
+        // what the user has. The red action runs only from its own button: a click, or Tab to it and Space.
+        act.setDefaultButton(false);
+        ((Button) alert.getDialogPane().lookupButton(cancel)).setDefaultButton(true);
         return Dialogs.styled(alert, owner);
     }
 

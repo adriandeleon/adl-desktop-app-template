@@ -192,7 +192,7 @@ class AppToolbarFxTest {
         assertFalse(open(theme));
     }
 
-    /** TBAR-17 (Pauta 5.0.0): a button is disabled while its command can't run, and follows the change. */
+    /** TBAR-17: a button is disabled while its command can't run, and follows the change. */
     @Test
     void syncNowWaitsForARepository() throws Exception {
         Button sync = button("sync.now");
@@ -231,7 +231,7 @@ class AppToolbarFxTest {
         }
     }
 
-    /** TBAR-18 (Pauta 5.0.0): a command and a setting hide the toolbar, and the choice is kept. */
+    /** TBAR-18: a command and a setting hide the toolbar, and the choice is kept. */
     @Test
     void theCommandAndTheSettingHideTheToolbar() throws Exception {
         run(() -> services.commands().run("view.toggleToolbar"));
@@ -278,7 +278,7 @@ class AppToolbarFxTest {
         assertEquals(0, call(() -> openMenus().size()), "a press elsewhere closes it");
     }
 
-    /** TBAR-15 (Pauta 5.0.0): a narrow window overflows the cluster's icons, never the tail. */
+    /** TBAR-15: a narrow window overflows the cluster's icons, never the tail. */
     @Test
     void aNarrowWindowOverflowsTheClusterNotTheTail() throws Exception {
         Button settings = button("app.settings");

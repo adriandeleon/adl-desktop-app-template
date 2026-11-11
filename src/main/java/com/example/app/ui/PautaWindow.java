@@ -1,6 +1,5 @@
 package com.example.app.ui;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -89,7 +88,7 @@ public final class PautaWindow {
         content.getChildren().addAll(links, copy);
         content.getStyleClass().add("about-content");
         content.setPadding(new Insets(6, 8, 2, 8));
-        content.setPrefWidth(560);
+        UiZoom.bind(content.prefWidthProperty(), 560);
 
         dialog.getDialogPane().setContent(content);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
@@ -124,10 +123,10 @@ public final class PautaWindow {
         Hyperlink id = new Hyperlink(entry.rule());
         id.getStyleClass().add("pauta-rule");
         id.setOnAction(e -> services.host().openUrl(entry.url()));
-        id.setMinWidth(80);
+        UiZoom.bind(id.minWidthProperty(), 80);
         Label level = new Label(entry.level());
         level.getStyleClass().addAll("muted", "pauta-level");
-        level.setMinWidth(56);
+        UiZoom.bind(level.minWidthProperty(), 56);
         TextFlow reason = new TextFlow(new Text(entry.reason()));
         reason.getStyleClass().add("pauta-reason");
         String target = entry.link();
@@ -152,15 +151,13 @@ public final class PautaWindow {
     }
 
     private static Node mark() {
-        try (InputStream in = PautaWindow.class.getResourceAsStream("/com/example/app/icons/pauta-128.png")) {
-            if (in != null) {
-                ImageView view = new ImageView(new Image(in, 72, 72, true, true));
-                view.setFitWidth(72);
-                view.setFitHeight(72);
-                return view;
-            }
-        } catch (java.io.IOException e) {
-            // no mark: the edition stands alone
+        // Loaded in the background: opening the window reads no file on the FX thread (PERF-01).
+        java.net.URL url = PautaWindow.class.getResource("/com/example/app/icons/pauta-128.png");
+        if (url != null) {
+            ImageView view = new ImageView(new Image(url.toExternalForm(), 72, 72, true, true, true));
+            view.setFitWidth(72);
+            view.setFitHeight(72);
+            return view;
         }
         return new Label();
     }

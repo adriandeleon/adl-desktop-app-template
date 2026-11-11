@@ -111,6 +111,61 @@ class DialogsFxTest {
         assertFalse(Confirm.confirmed(alert, java.util.Optional.empty()), "Escape or the close button");
     }
 
+    /** CONF-13: Cancel is the one default button, so Enter in a question that just opened keeps everything. */
+    @Test
+    void theConfirmDialogsDefaultIsCancelNeverTheRedAction() throws Exception {
+        Confirmations.Question question = Confirmations.importConfig(
+                "backup.zip", java.util.List.of(com.example.app.config.ConfigImport.Part.PREFERENCES));
+        javafx.scene.control.Alert alert =
+                call(() -> Confirm.dialog(question, app.window().stage()));
+        var action = alert.getButtonTypes().get(0);
+        var cancel = alert.getButtonTypes().get(1);
+        assertFalse(call(
+                () -> ((javafx.scene.control.Button) alert.getDialogPane().lookupButton(action)).isDefaultButton()));
+        assertTrue(call(
+                () -> ((javafx.scene.control.Button) alert.getDialogPane().lookupButton(cancel)).isDefaultButton()));
+    }
+
+    /**
+     * WIN-11 and CONF-14: every dialog gets one button order, Cancel before every action, and JavaFX's stock
+     * buttons are worded from the catalog, not in the JVM's locale.
+     */
+    @Test
+    void everyDialogHasOneButtonOrderAndCatalogWords() throws Exception {
+        java.util.Locale was = java.util.Locale.getDefault();
+        try {
+            java.util.Locale.setDefault(java.util.Locale.GERMAN); // what JavaFX would word OK and Cancel in
+            javafx.scene.control.TextInputDialog prompt = call(() -> Dialogs.styled(
+                    new javafx.scene.control.TextInputDialog("x"), app.window().stage()));
+            javafx.scene.control.ButtonBar bar = call(() ->
+                    (javafx.scene.control.ButtonBar) prompt.getDialogPane().lookup(".button-bar"));
+            String order = call(bar::getButtonOrder);
+            assertEquals(Dialogs.BUTTON_ORDER, order);
+            for (char action : "UYNOA".toCharArray()) {
+                assertTrue(order.indexOf('C') < order.indexOf(action), "Cancel before " + action);
+            }
+            assertEquals(
+                    "OK",
+                    call(() -> ((javafx.scene.control.Button)
+                                    prompt.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK))
+                            .getText()));
+            assertEquals(
+                    "Cancel",
+                    call(() -> ((javafx.scene.control.Button)
+                                    prompt.getDialogPane().lookupButton(javafx.scene.control.ButtonType.CANCEL))
+                            .getText()));
+            // A stock button added after the dialog was styled is worded too.
+            run(() -> prompt.getDialogPane().getButtonTypes().add(javafx.scene.control.ButtonType.APPLY));
+            assertEquals(
+                    "Apply",
+                    call(() -> ((javafx.scene.control.Button)
+                                    prompt.getDialogPane().lookupButton(javafx.scene.control.ButtonType.APPLY))
+                            .getText()));
+        } finally {
+            java.util.Locale.setDefault(was);
+        }
+    }
+
     @Test
     void aboutShowsEveryUpdateState() throws Exception {
         AboutDialog about = call(() -> new AboutDialog(services, app.window().stage()));
@@ -147,7 +202,7 @@ class DialogsFxTest {
 
     private static Entry entry(String rule, String level, Kind kind, @Nullable String link) {
         return new Entry(
-                rule, level, "https://pauta-project.dev/4.1.0/x/#" + rule.toLowerCase(), kind, rule + " reason.", link);
+                rule, level, "https://pauta-project.dev/6.0.0/x/#" + rule.toLowerCase(), kind, rule + " reason.", link);
     }
 
     private static @Nullable Stage pautaStage() {
@@ -205,7 +260,7 @@ class DialogsFxTest {
         assertTrue(rows.contains("TEST-04|#7|TEST-02|#5|TEST-03|Decision 0003|TEST-01|"), rows);
 
         run(() -> window.list().lookupAll(".hyperlink").forEach(n -> ((Hyperlink) n).fire()));
-        assertTrue(host.opened.contains("https://pauta-project.dev/4.1.0/x/#test-04"));
+        assertTrue(host.opened.contains("https://pauta-project.dev/6.0.0/x/#test-04"));
         assertTrue(host.opened.contains("https://github.com/a/b/issues/7"));
         run(() -> window.dialog().getDialogPane().lookupAll(".hyperlink").forEach(n -> {
             String link = ((Hyperlink) n).getText();
@@ -223,11 +278,11 @@ class DialogsFxTest {
         String markdown = PautaWindow.markdown(list);
         assertTrue(markdown.startsWith("# Pauta " + AppInfo.PAUTA_EDITION + ": Partial\n"), markdown);
         assertTrue(
-                markdown.contains("\n## Pending\n\n- [TEST-04](https://pauta-project.dev/4.1.0/x/#test-04) MUST: "
+                markdown.contains("\n## Pending\n\n- [TEST-04](https://pauta-project.dev/6.0.0/x/#test-04) MUST: "
                         + "TEST-04 reason. [#7](https://github.com/a/b/issues/7)\n"),
                 markdown);
         assertTrue(
-                markdown.contains("- [TEST-03](https://pauta-project.dev/4.1.0/x/#test-03) SHOULD: TEST-03 reason. "
+                markdown.contains("- [TEST-03](https://pauta-project.dev/6.0.0/x/#test-03) SHOULD: TEST-03 reason. "
                         + "[Decision 0003](https://github.com/a/b/blob/master/docs/decisions/0003-x.md)\n"),
                 markdown);
         assertTrue(markdown.contains("\n## Not applicable\n\n- [TEST-01]"), markdown);

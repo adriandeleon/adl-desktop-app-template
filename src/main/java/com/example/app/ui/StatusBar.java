@@ -20,8 +20,31 @@ import org.jspecify.annotations.Nullable;
 public final class StatusBar extends HBox {
 
     private final AppServices services;
-    private final Label echo = new Label();
-    private final Label unread = new Label();
+    private final Label echo = new ButtonLabel(() -> services().commands().run("view.messageLog"));
+    private final Label unread = new ButtonLabel(() -> services().commands().run("view.messageLog"));
+
+    private AppServices services() {
+        return services;
+    }
+
+    /**
+     * A label that a click runs: a screen reader hears a button, and its press is the same command (ACC-02).
+     */
+    private static final class ButtonLabel extends Label {
+        private final Runnable action;
+
+        ButtonLabel(Runnable action) {
+            this.action = action;
+            setAccessibleRole(javafx.scene.AccessibleRole.BUTTON);
+        }
+
+        @Override
+        public void executeAccessibleAction(javafx.scene.AccessibleAction action, Object... parameters) {
+            if (action == javafx.scene.AccessibleAction.FIRE) this.action.run();
+            else super.executeAccessibleAction(action, parameters);
+        }
+    }
+
     private final Hyperlink update = new Hyperlink();
     private final Label keymap = new Label();
 

@@ -114,7 +114,7 @@ public final class SyncEngine {
             if (!step.ok()) return new Result(null, step.output());
 
             Map<String, String> remote = SyncData.read(repo.resolve(DATA_FILE));
-            Map<String, String> base = SyncData.read(syncDir.resolve(BASE_FILE));
+            Map<String, String> base = SyncData.readBase(syncDir.resolve(BASE_FILE));
             Map<String, String> merged = SyncMerge.merge(base, local, remote);
             SyncData.write(repo.resolve(DATA_FILE), merged);
 

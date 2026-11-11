@@ -45,6 +45,12 @@ public final class Main {
 
     /** As {@link #run(String[], PrintStream, PrintStream)}, opening links with {@code browser}. */
     static int run(String[] args, PrintStream out, PrintStream err, java.util.function.Predicate<String> browser) {
+        return run(args, out, err, browser, Path.of("").toAbsolutePath());
+    }
+
+    /** As above, with {@code here} as the current folder, where {@code --report} writes (CLI-05). */
+    static int run(
+            String[] args, PrintStream out, PrintStream err, java.util.function.Predicate<String> browser, Path here) {
         CommandLine cli = CommandLine.parse(args);
         if (cli.error() != null) {
             err.println(AppInfo.ID + ": " + cli.error());
@@ -60,7 +66,7 @@ public final class Main {
             return 0;
         }
         Path dir = ConfigDir.resolve(cli.configDir(), cli.dev());
-        if (cli.report()) return ReportCommand.run(dir, out, browser); // never the GUI (CLI-05)
+        if (cli.report()) return ReportCommand.run(dir, here, out, browser); // never the GUI (CLI-05)
         List<String> files = cli.files().stream()
                 .map(f -> Path.of(f).toAbsolutePath().toString())
                 .toList();

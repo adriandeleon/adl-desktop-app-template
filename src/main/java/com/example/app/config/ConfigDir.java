@@ -18,16 +18,18 @@ public final class ConfigDir {
     private ConfigDir() {}
 
     /**
-     * One resolver, in the order {@code --config-dir}, the environment variable, the system property,
-     * then the default: {@code ~/.<app>}, or {@code ~/.<app>-dev} with {@code --dev} (SET-07).
+     * One resolver, in the order {@code --config-dir}, {@code --dev} ({@code ~/.<app>-dev}), the
+     * environment variable, the system property, then the default {@code ~/.<app>} (SET-07): a flag is
+     * typed for this run, so it wins over the variable. The same on every OS.
      */
     public static Path resolve(
             @Nullable String flag, boolean dev, Map<String, String> env, @Nullable String property, String home) {
         if (flag != null && !flag.isBlank()) return Path.of(flag).toAbsolutePath();
+        if (dev) return Path.of(home, "." + AppInfo.ID + "-dev");
         String fromEnv = env.get(ENV);
         if (fromEnv != null && !fromEnv.isBlank()) return Path.of(fromEnv).toAbsolutePath();
         if (property != null && !property.isBlank()) return Path.of(property).toAbsolutePath();
-        return Path.of(home, "." + AppInfo.ID + (dev ? "-dev" : ""));
+        return Path.of(home, "." + AppInfo.ID);
     }
 
     /** {@link #resolve} with this process's environment, properties and home folder. */

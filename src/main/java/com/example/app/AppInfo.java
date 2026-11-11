@@ -3,7 +3,6 @@ package com.example.app;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -19,7 +18,9 @@ public final class AppInfo {
     /** The lower-case name: launcher, config folder ({@code ~/.exampleapp}) and file prefixes. */
     public static final String ID = "exampleapp";
 
+    /** The tagline in English, for {@code --help}; a window shows the catalog's {@code app.tagline} (INTL-07). */
     public static final String TAGLINE = "A keyboard-first JavaFX desktop app.";
+
     public static final String COPYRIGHT = "© 2026 Adrián Arturo De León Saldivar";
     public static final String LICENSE = "MIT License";
 
@@ -119,8 +120,7 @@ public final class AppInfo {
         return versionText() + "\n"
                 + "Java: " + System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ")\n"
                 + "JavaFX: " + System.getProperty("javafx.runtime.version", "not started") + "\n"
-                + "OS: " + System.getProperty("os.name") + " " + System.getProperty("os.version") + " ("
-                + System.getProperty("os.arch") + ")\n"
+                + "OS: " + Os.description() + "\n"
                 + "Config: " + tildeHome(configDir.toString());
     }
 
@@ -129,10 +129,5 @@ public final class AppInfo {
         String home = System.getProperty("user.home", "");
         if (!home.isEmpty() && path.startsWith(home)) return "~" + path.substring(home.length());
         return path;
-    }
-
-    /** Whether this JVM runs on macOS: the one place the check lives. */
-    public static boolean isMac() {
-        return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).startsWith("mac");
     }
 }

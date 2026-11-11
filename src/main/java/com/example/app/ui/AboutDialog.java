@@ -1,7 +1,5 @@
 package com.example.app.ui;
 
-import java.io.InputStream;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -44,7 +42,7 @@ public final class AboutDialog {
         name.getStyleClass().add("about-name");
         Label version = new Label(Messages.tr("about.version", AppInfo.VERSION));
         version.getStyleClass().add("about-version");
-        Label tagline = new Label(AppInfo.TAGLINE);
+        Label tagline = new Label(Messages.tr("app.tagline"));
         tagline.getStyleClass().add("about-tagline");
         tagline.setWrapText(true);
         HBox head = new HBox(16, icon(), new VBox(2, name, version, tagline));
@@ -75,7 +73,7 @@ public final class AboutDialog {
         VBox content = new VBox(14, head, updateBlock, copyright, links, environment, copy);
         content.getStyleClass().add("about-content");
         content.setPadding(new Insets(6, 8, 2, 8));
-        content.setPrefWidth(460);
+        UiZoom.bind(content.prefWidthProperty(), 460);
 
         dialog.getDialogPane().setContent(content);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
@@ -88,21 +86,19 @@ public final class AboutDialog {
     }
 
     private Node icon() {
-        try (InputStream in = AboutDialog.class.getResourceAsStream("/com/example/app/icons/app-128.png")) {
-            if (in != null) {
-                ImageView view = new ImageView(new Image(in, 72, 72, true, true));
-                view.setFitWidth(72);
-                view.setFitHeight(72);
-                return view;
-            }
-        } catch (java.io.IOException e) {
-            // no icon: the name stands alone
+        // Loaded in the background: opening the window reads no file on the FX thread (PERF-01).
+        java.net.URL url = AboutDialog.class.getResource("/com/example/app/icons/app-128.png");
+        if (url != null) {
+            ImageView view = new ImageView(new Image(url.toExternalForm(), 72, 72, true, true, true));
+            view.setFitWidth(72);
+            view.setFitHeight(72);
+            return view;
         }
         return new Label();
     }
 
     /**
-     * The edition's link: "Built to Pauta 4.1.0", or at Partial "Working toward Pauta 4.1.0", since the
+     * The edition's link: "Built to Pauta 6.0.0", or at Partial "Working toward Pauta 6.0.0", since the
      * app does not meet that edition yet (ABOUT-07, ABOUT-09).
      */
     static String editionKey(Conformance conformance) {

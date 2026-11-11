@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Simple mode in a real headless toolkit: one setting that shortens the menus and empties the toolbar, one
- * test per rule it shows (MENU-04, TBAR-05, TBAR-07, and Pauta 5.0.0's TBAR-16 and TBAR-19).
+ * test per rule it shows (MENU-04, TBAR-05, TBAR-07, and TBAR-16 and TBAR-19).
  */
 @Tag("fx")
 class SimpleModeFxTest {
@@ -196,7 +196,7 @@ class SimpleModeFxTest {
         assertFalse(lit(toggle));
     }
 
-    /** TBAR-16 (Pauta 5.0.0): Settings ends the bar with the toggle just before it, after the tail's gap. */
+    /** TBAR-16: Settings ends the bar with the toggle just before it, after the tail's gap. */
     @Test
     void theToggleSitsJustBeforeSettingsEitherWay() throws Exception {
         for (boolean on : List.of(false, true)) {
@@ -213,7 +213,7 @@ class SimpleModeFxTest {
         }
     }
 
-    /** TBAR-19 (Pauta 5.0.0): the bar keeps its height, so the tab strip's top edge stays where it was. */
+    /** TBAR-19: the bar keeps its height, so the tab strip's top edge stays where it was. */
     @Test
     void theBarKeepsItsHeight() throws Exception {
         double height = call(() -> toolbar.node().getHeight());

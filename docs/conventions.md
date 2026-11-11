@@ -75,7 +75,15 @@ Do not suppress a report.
   Window menu row and a glyph. A tool window's command is `tool.<id>`, and its stripe button runs it; its
   content is built on its first open, never at start (TABS-14).
 - On/off rows use `SettingSwitch` (keyboard-operable), not a bare `ToggleSwitch`.
-- Platform differences live behind one check (`AppInfo.isMac()`, `Host`), never scattered.
+- Platform differences live behind one check (`Os.isMac()` / `isWindows()` / `isLinux()`, `Host`), never
+  scattered, and only where Pauta's "Where the OS's way wins" lets the OS have its way (OS-04). A command,
+  setting or window the OS can't serve stays, disabled, saying why (OS-01). `SameOnEveryOsFxTest` runs
+  the app as each OS.
+- Every control a person can reach has a name a screen reader says: its text, a row title's `labelFor`
+  (`SettingsWindow.addRow` sets it), or `setAccessibleText` (`NamedControlsFxTest`, ACC-01). Every menu
+  row wears its command's glyph (`Icons.forCommand`): a new command a menu lists gets one (MENU-14).
+- Sizes in code are bound to the UI zoom (`UiZoom.bind(property, px)`), never set in plain pixels; the
+  stylesheet's pixel sizes scale on their own (WIN-12).
 
 ## Logging and failures
 

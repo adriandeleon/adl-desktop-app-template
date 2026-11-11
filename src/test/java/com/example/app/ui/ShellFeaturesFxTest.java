@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import com.example.app.config.ConfigStore;
+import com.example.app.i18n.Messages;
 import com.example.app.sync.Git;
 import com.example.app.sync.GitHubCli;
 import com.example.app.sync.SyncEngine;
@@ -145,13 +146,33 @@ class ShellFeaturesFxTest {
         run(() -> plain.placeHeaderBar(true));
     }
 
+    /** OS-01: where the title bar can't hold the menus, the command and the switch stay, disabled, and say why. */
     @Test
-    void theTitleBarSettingAndCommandApplyOnTheNextStart() throws Exception {
-        run(() -> services.commands().run("view.toggleTitleBarMenus"));
-        assertFalse(services.settings().titleBarMenus);
-        assertEquals("The title bar changes the next time you start the app.", echo());
+    void theTitleBarSettingAndCommandSayWhyWhereTheSystemCantDrawIt() throws Exception {
+        String reason = call(() -> app.window().titleBarMenusUnavailable());
+        assertEquals(
+                Messages.tr("palette.disabled.titleBarUnsupported"),
+                reason,
+                "the headless toolkit has no extended stage style");
+        assertEquals(reason, services.commands().get("view.toggleTitleBarMenus").unavailableReason());
+        assertFalse(call(() -> services.commands().run("view.toggleTitleBarMenus")));
         run(() -> app.window().openSettings(SettingsWindow.Page.APPEARANCE));
         SettingsWindow settings = app.window().settingsWindow();
+        assertTrue(call(() -> settings.titleBarSwitch().isDisabled()));
+        assertTrue(call(() -> settings.titleBarSwitch().getParent().getParent().lookupAll(".setting-desc").stream()
+                .anyMatch(n -> ((javafx.scene.control.Label) n).getText().contains(reason))));
+    }
+
+    @Test
+    void theTitleBarSettingAndCommandApplyOnTheNextStart() throws Exception {
+        // Where the system can draw it (ChromeTest has the gate), the command flips the setting for the next start.
+        run(() -> services.store().update(s -> s.titleBarMenus = !s.titleBarMenus));
+        run(() -> services.echo("status.titleBarRestart"));
+        assertFalse(services.settings().titleBarMenus);
+        assertEquals("The title bar changes the next time you start the app.", echo());
+        SettingsWindow settings = call(() -> new SettingsWindow(services, null, null));
+        run(() -> settings.show(SettingsWindow.Page.APPEARANCE));
+        assertFalse(call(() -> settings.titleBarSwitch().isDisabled()));
         assertFalse(call(() -> settings.titleBarSwitch().isSelected()));
         run(() -> settings.titleBarSwitch().fire());
         assertTrue(services.settings().titleBarMenus);

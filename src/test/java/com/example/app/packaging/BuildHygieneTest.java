@@ -96,6 +96,18 @@ class BuildHygieneTest {
 
     // ---- coverage floors --------------------------------------------------------------------------------
 
+    /** CLI-11: the Windows app image carries a console launcher of the same main class. */
+    @Test
+    void windowsGetsAConsoleLauncherForTheCommandLine() throws IOException {
+        int profile = pom.indexOf("<id>os-windows</id>");
+        assertTrue(profile > 0, "pom.xml has the os-windows profile");
+        String windows = pom.substring(profile, pom.indexOf("</profile>", profile));
+        assertTrue(windows.contains("<name>exampleapp-cli</name>"), "a console launcher in the Windows image");
+        Path properties = Path.of("packaging/windows/exampleapp-cli.properties");
+        assertTrue(windows.contains(properties.toString().replace('\\', '/')), "it reads " + properties);
+        assertTrue(Files.readAllLines(properties).contains("win-console=true"), "the launcher has a console");
+    }
+
     @Test
     void theWholeBuildKeepsTheCoverageFloorsPautaRequires() {
         String check = execution("jacoco-check");

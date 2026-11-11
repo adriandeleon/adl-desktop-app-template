@@ -63,6 +63,8 @@ public final class Picker<T> {
         this.onChoose = onChoose;
 
         query.setPromptText(prompt);
+        query.setAccessibleText(prompt); // the prompt goes when typing starts; the name stays (ACC-01)
+        list.setAccessibleText(prompt);
         query.getStyleClass().add("palette-query");
         HBox.setHgrow(query, Priority.ALWAYS);
         HBox inputRow = new HBox(8, query);
@@ -70,8 +72,8 @@ public final class Picker<T> {
         if (!opener.isEmpty()) inputRow.getChildren().addFirst(chip(opener, "opener-chip"));
 
         list.setCellFactory(v -> new Row());
-        list.setFixedCellSize(ROW_HEIGHT);
-        list.setPrefHeight(ROW_HEIGHT * VISIBLE_ROWS + 2);
+        UiZoom.bind(list.fixedCellSizeProperty(), ROW_HEIGHT); // sizes follow the UI zoom (WIN-12)
+        UiZoom.bind(list.prefHeightProperty(), ROW_HEIGHT * VISIBLE_ROWS + 2);
         list.setFocusTraversable(false);
         list.setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() >= 1) choose();
@@ -84,8 +86,8 @@ public final class Picker<T> {
 
         card = new VBox(6, inputRow, list, description, hint);
         card.getStyleClass().add("command-palette");
-        card.setPrefWidth(WIDTH);
-        card.setMaxWidth(WIDTH);
+        UiZoom.bind(card.prefWidthProperty(), WIDTH);
+        UiZoom.bind(card.maxWidthProperty(), WIDTH);
         card.setMaxHeight(Region.USE_PREF_SIZE);
 
         // Ranking waits for typing to pause (PERF-06); a key that acts on the list flushes it first.
@@ -163,7 +165,10 @@ public final class Picker<T> {
             return;
         }
         list.getSelectionModel().select(index);
+        list.getFocusModel().focus(index);
         list.scrollTo(Math.max(0, index - VISIBLE_ROWS / 2));
+        // The focus stays in the field: the list tells a screen reader which row the arrows moved to (ACC-08).
+        list.notifyAccessibleAttributeChanged(javafx.scene.AccessibleAttribute.FOCUS_ITEM);
     }
 
     private void move(int delta) {
@@ -229,10 +234,14 @@ public final class Picker<T> {
             line.setAlignment(Pos.CENTER_LEFT);
             if (!row.item().chip().isEmpty())
                 line.getChildren().add(chip(row.item().chip(), "row-chip"));
-            if (row.item().unavailable() != null) {
+            String unavailable = row.item().unavailable();
+            if (unavailable != null) {
                 getStyleClass().add("unavailable");
-                setTooltip(new Tooltip(row.item().unavailable()));
+                setTooltip(new Tooltip(unavailable));
             }
+            // The row reads as its title, its keys, and why it can't run when it can't (ACC-08).
+            line.setAccessibleText(
+                    Icons.withChord(text, row.item().chip()) + (unavailable == null ? "" : ". " + unavailable));
             setText(null);
             setGraphic(line);
         }

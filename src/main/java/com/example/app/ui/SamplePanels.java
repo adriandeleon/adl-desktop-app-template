@@ -43,34 +43,34 @@ final class SamplePanels {
     /** The sample project, a row per file in its Git status color. */
     static final class Documents {
         private final ListView<SampleFiles.Sample> list = new ListView<>();
+        private final DocumentTabs tabs;
         private final VBox node;
 
-        Documents(DocumentTabs tabs) {
+        /** {@code rowMenu} is each row's right-click menu (MENU-05): {@code documents.open} and its kin. */
+        Documents(DocumentTabs tabs, java.util.function.Supplier<CommandMenu> rowMenu) {
+            this.tabs = tabs;
             list.getStyleClass().add("documents-list");
+            list.setAccessibleText(Messages.tr("tool.documents"));
             list.getItems().setAll(SampleFiles.all());
-            list.setCellFactory(v -> new ListCell<>() {
-                @Override
-                protected void updateItem(SampleFiles.@Nullable Sample sample, boolean empty) {
-                    super.updateItem(sample, empty);
-                    getStyleClass().removeIf(c -> c.startsWith("git-status-"));
-                    if (empty || sample == null) {
-                        setText(null);
-                        setGraphic(null);
-                        return;
-                    }
-                    setText(sample.name());
-                    setGraphic(Icons.line(Icons.FILE));
-                    String status = TabGitStatus.classFor(sample);
-                    if (status != null) getStyleClass().add(status);
-                }
-            });
-            Runnable openSelected = () -> {
-                SampleFiles.Sample sample = list.getSelectionModel().getSelectedItem();
-                if (sample == null) return;
-                Tab tab = tabs.open(sample);
-                DocumentView document = tabs.document(tab);
-                if (document != null) document.text().requestFocus();
-            };
+            list.setCellFactory(v -> CommandMenu.onRow(
+                    new ListCell<>() {
+                        @Override
+                        protected void updateItem(SampleFiles.@Nullable Sample sample, boolean empty) {
+                            super.updateItem(sample, empty);
+                            getStyleClass().removeIf(c -> c.startsWith("git-status-"));
+                            if (empty || sample == null) {
+                                setText(null);
+                                setGraphic(null);
+                                return;
+                            }
+                            setText(sample.name());
+                            setGraphic(Icons.line(Icons.forFileName(sample.name())));
+                            String status = TabGitStatus.classFor(sample);
+                            if (status != null) getStyleClass().add(status);
+                        }
+                    },
+                    rowMenu));
+            Runnable openSelected = this::openSelected;
             list.setOnMouseClicked(e -> {
                 if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) openSelected.run();
             });
@@ -88,6 +88,19 @@ final class SamplePanels {
             return node;
         }
 
+        /** Opens the selected file in a tab and gives it the keyboard ({@code documents.open}). */
+        void openSelected() {
+            SampleFiles.Sample sample = list.getSelectionModel().getSelectedItem();
+            if (sample == null) return;
+            Tab tab = tabs.open(sample);
+            DocumentView document = tabs.document(tab);
+            if (document != null) document.text().requestFocus();
+        }
+
+        boolean hasSelection() {
+            return list.getSelectionModel().getSelectedItem() != null;
+        }
+
         ListView<SampleFiles.Sample> list() {
             return list;
         }
@@ -98,15 +111,20 @@ final class SamplePanels {
         private final DocumentTabs tabs;
         private final ListView<String> list = new ListView<>();
         private final VBox node;
+        /** Where each listed heading's line starts, in the list's order. */
+        private List<Integer> offsets = List.of();
+        /** The scan of the text runs off the FX thread; only the latest one lands (PERF-01, PERF-03). */
+        private final LatestOnly scans = new LatestOnly(Background::run, javafx.application.Platform::runLater);
 
         Outline(DocumentTabs tabs) {
             this.tabs = tabs;
             list.getStyleClass().add("outline-list");
+            list.setAccessibleText(Messages.tr("tool.outline"));
             list.setPlaceholder(new Label(Messages.tr("outline.empty")));
-            list.setOnMouseClicked(e -> reveal(list.getSelectionModel().getSelectedItem()));
+            list.setOnMouseClicked(e -> reveal(list.getSelectionModel().getSelectedIndex()));
             list.setOnKeyPressed(e -> {
                 if (e.getCode() == KeyCode.ENTER) {
-                    reveal(list.getSelectionModel().getSelectedItem());
+                    reveal(list.getSelectionModel().getSelectedIndex());
                     e.consume();
                 }
             });
@@ -115,26 +133,36 @@ final class SamplePanels {
             refresh();
         }
 
-        /** Lists the active document's headings again (TABS-23). */
+        /**
+         * Lists the active document's headings again (TABS-23): the text is scanned off the FX thread, and the
+         * list and the offsets are set together when the scan lands.
+         */
         void refresh() {
             DocumentView document = tabs.activeDocument();
-            list.getItems()
-                    .setAll(
-                            document == null
-                                    ? List.of()
-                                    : SampleFiles.headings(document.text().getText()));
+            if (document == null) {
+                scans.cancel();
+                offsets = List.of();
+                list.getItems().clear();
+                return;
+            }
+            String text = document.text().getText();
+            scans.submit(() -> SampleFiles.headingsAt(text), found -> {
+                offsets = found.stream().map(SampleFiles.Heading::offset).toList();
+                list.getItems()
+                        .setAll(found.stream().map(SampleFiles.Heading::title).toList());
+            });
         }
 
-        private void reveal(@Nullable String heading) {
+        /** Whether a scan is still running: the tests wait on it. */
+        boolean scanning() {
+            return scans.pending();
+        }
+
+        private void reveal(int index) {
             DocumentView document = tabs.activeDocument();
-            if (heading == null || document == null) return;
-            String text = document.text().getText();
-            int at = 0;
-            for (String line : text.split("\n", -1)) {
-                if (line.startsWith("#") && line.replaceFirst("^#+\\s*", "").equals(heading)) break;
-                at += line.length() + 1;
-            }
-            document.text().positionCaret(Math.min(at, text.length()));
+            if (index < 0 || index >= offsets.size() || document == null) return;
+            document.text()
+                    .positionCaret(Math.min(offsets.get(index), document.text().getLength()));
             document.text().requestFocus();
         }
 
@@ -152,13 +180,20 @@ final class SamplePanels {
         /** The lines the sample task writes, one per step. */
         static final int STEPS = 5;
 
+        /** The console keeps this many lines; past it the oldest go first (PERF-11). */
+        static final int MAX_LINES = 1000;
+
         private final TextArea console = new TextArea();
+        /** The console's find bar (FIND-01): {@code output.find} opens it. */
+        private final FindBar findBar = new FindBar(console, "output.findNext", "output.findPrevious");
+
         private final BooleanProperty running = new SimpleBooleanProperty(this, "running");
         private final VBox node;
         private @Nullable Timeline task;
 
         Output() {
             console.setEditable(false);
+            console.setAccessibleText(Messages.tr("tool.output"));
             console.getStyleClass().addAll("output-console", "debug-log-text");
             console.setPromptText(Messages.tr("output.empty"));
             Label hint = new Label(Messages.tr("output.hint"));
@@ -167,24 +202,40 @@ final class SamplePanels {
             bar.setAlignment(Pos.CENTER_LEFT);
             bar.getStyleClass().add("output-bar");
             VBox.setVgrow(console, Priority.ALWAYS);
-            node = new VBox(bar, console);
+            node = new VBox(bar, findBar, console);
         }
 
         /** Runs the sample task: a line now and then, the window busy until the last (TABS-22). */
         void run() {
             if (running.get()) return;
             running.set(true);
-            console.appendText(Messages.tr("output.started") + "\n");
+            append(Messages.tr("output.started") + "\n");
             Timeline timeline = new Timeline();
             for (int i = 1; i <= STEPS; i++) {
                 int step = i;
                 timeline.getKeyFrames().add(new KeyFrame(Duration.millis(600.0 * i), e -> {
-                    console.appendText(Messages.tr("output.step", step, STEPS) + "\n");
+                    append(Messages.tr("output.step", step, STEPS) + "\n");
                     if (step == STEPS) finish();
                 }));
             }
             task = timeline;
             timeline.play();
+        }
+
+        /** Adds a line, then drops the oldest lines past {@link #MAX_LINES}: the newest are kept (PERF-11). */
+        void append(String line) {
+            console.appendText(line);
+            int extra = console.getParagraphs().size() - 1 - MAX_LINES; // the text ends with a newline
+            if (extra <= 0) return;
+            String text = console.getText();
+            int cut = 0;
+            for (int i = 0; i < extra; i++) cut = text.indexOf('\n', cut) + 1;
+            console.deleteText(0, cut);
+        }
+
+        /** Empties the console ({@code output.clear}). */
+        void clear() {
+            console.clear();
         }
 
         /** Ends the task now: the last line, and the window no longer busy. */
@@ -193,12 +244,16 @@ final class SamplePanels {
             task = null;
             if (timeline != null) timeline.stop();
             if (!running.get()) return;
-            console.appendText(Messages.tr("output.done") + "\n");
+            append(Messages.tr("output.done") + "\n");
             running.set(false);
         }
 
         BooleanProperty runningProperty() {
             return running;
+        }
+
+        FindBar findBar() {
+            return findBar;
         }
 
         TextArea console() {

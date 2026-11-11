@@ -33,6 +33,19 @@ public final class Keybindings {
         keymap.bindings().forEach((id, text) -> {
             if (!user.containsKey(id)) bind(id, text);
         });
+        // A keymap's further chords for a command run it too; the first stays the one a menu shows. A user
+        // binding of the command replaces them all.
+        keymap.alsoBound().forEach((id, texts) -> {
+            if (!user.containsKey(id)) texts.forEach(text -> bindAlso(id, text));
+        });
+    }
+
+    private void bindAlso(String id, String text) {
+        List<KeyStroke> parsed = KeyStroke.parseSequence(text);
+        if (parsed == null) return;
+        List<KeyStroke> sequence = parsed.stream().map(s -> s.resolve(mac)).toList();
+        if (bySequence.putIfAbsent(sequence, id) != null) return;
+        for (int i = 1; i < sequence.size(); i++) prefixes.add(sequence.subList(0, i));
     }
 
     private void bind(String id, String text) {
@@ -72,6 +85,16 @@ public final class Keybindings {
             }
         });
         return out;
+    }
+
+    /** Whether {@code event} is the one key {@code commandId} is bound to (a single stroke, not a sequence). */
+    public boolean isKeyOf(String commandId, javafx.scene.input.KeyEvent event) {
+        List<KeyStroke> sequence = byCommand.get(commandId);
+        KeyStroke pressed = KeyStroke.of(event);
+        return sequence != null
+                && sequence.size() == 1
+                && pressed != null
+                && sequence.getFirst().equals(pressed);
     }
 
     /** The label of a command's binding in the active notation, or empty when unbound. */

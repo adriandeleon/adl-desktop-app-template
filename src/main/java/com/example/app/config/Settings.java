@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
 public final class Settings {
 
     /** Bump with every change to the shape of this file, and add the matching {@link Migrations} step. */
-    public static final int SCHEMA_VERSION = 6;
+    public static final int SCHEMA_VERSION = 7;
 
     public int schemaVersion = SCHEMA_VERSION;
 
@@ -39,7 +39,7 @@ public final class Settings {
     /** When the update check last ran, epoch milliseconds; 0 for never. */
     public long lastUpdateCheck;
 
-    /** The main toolbar under the menus (TBAR-18, Pauta 5.0.0). */
+    /** The main toolbar under the menus (TBAR-18). */
     public boolean showToolbar = true;
 
     public boolean showStatusBar = true;
@@ -58,6 +58,21 @@ public final class Settings {
      * changes another preference, so turning it off brings back the window as it was.
      */
     public boolean simpleMode;
+
+    /** The UI zoom (WIN-12), in percent: it scales the whole chrome, the menus included. */
+    public int uiZoom = DEFAULT_UI_ZOOM;
+
+    /** The UI zoom's default and its range, in percent. */
+    public static final int DEFAULT_UI_ZOOM = 100;
+
+    public static final int MIN_UI_ZOOM = 80;
+
+    public static final int MAX_UI_ZOOM = 200;
+
+    /** {@code percent} within the UI zoom's range. */
+    public static int clampUiZoom(int percent) {
+        return Math.min(MAX_UI_ZOOM, Math.max(MIN_UI_ZOOM, percent));
+    }
 
     /** Machine-local: never synced. */
     public Window window = new Window();
@@ -112,6 +127,7 @@ public final class Settings {
         }
         keybindings = bindings;
         lastUpdateCheck = Math.max(0, lastUpdateCheck);
+        uiZoom = clampUiZoom(uiZoom);
         if (window == null) window = new Window();
         window.clamp();
         if (sync == null) sync = new Sync();
@@ -135,6 +151,7 @@ public final class Settings {
         c.theme = theme;
         c.language = language;
         c.keymap = keymap;
+        c.uiZoom = uiZoom;
         c.keybindings = new TreeMap<>(keybindings);
         c.checkForUpdates = checkForUpdates;
         c.lastUpdateCheck = lastUpdateCheck;

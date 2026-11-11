@@ -1,6 +1,7 @@
 # 2. The tab strip sits over the documents, not in the title bar
 
-- Status: accepted
+- Status: accepted; its rule, TABS-11, was retired in Pauta 6.0.0 with nothing in its place, so the
+  layout stands with no deviation to record
 - Date: 2026-11-10
 
 ## Context

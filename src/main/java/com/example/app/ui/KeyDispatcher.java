@@ -9,7 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyEvent;
 
-import com.example.app.AppInfo;
+import com.example.app.Os;
 import com.example.app.command.KeyStroke;
 import com.example.app.i18n.Messages;
 
@@ -47,7 +47,7 @@ public final class KeyDispatcher {
             Map<String, String> next = services.keybindings().continuations(sequence);
             services.echo(
                     "status.prefix",
-                    KeyStroke.label(sequence, emacs, AppInfo.isMac()),
+                    KeyStroke.label(sequence, emacs, Os.isMac()),
                     next.entrySet().stream()
                             .map(e -> e.getValue() + " " + Messages.tr("command." + e.getKey()))
                             .collect(Collectors.joining(" · ")));
@@ -64,7 +64,7 @@ public final class KeyDispatcher {
             }
         } else if (sequence.size() > 1) {
             event.consume();
-            services.echo("status.undefinedKey", KeyStroke.label(sequence, emacs, AppInfo.isMac()));
+            services.echo("status.undefinedKey", KeyStroke.label(sequence, emacs, Os.isMac()));
         }
     }
 }

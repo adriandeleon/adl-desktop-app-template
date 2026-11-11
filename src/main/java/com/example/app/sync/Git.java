@@ -20,20 +20,34 @@ public final class Git {
         }
     }
 
-    private final String executable;
+    private final java.util.function.Supplier<String> finder;
+    private volatile @org.jspecify.annotations.Nullable String executable;
 
-    /** The user's git, found even from a Finder-launched app (see {@link Executables}). */
+    /**
+     * The user's git, found even from a Finder-launched app (see {@link Executables}): on its first run,
+     * on the thread that runs it, never while the window is built (PERF-01).
+     */
     public Git() {
-        this(Executables.find("git"));
+        this.finder = () -> Executables.find("git");
     }
 
     public Git(String executable) {
+        this.finder = () -> executable;
         this.executable = executable;
+    }
+
+    private String executable() {
+        String found = executable;
+        if (found == null) {
+            found = finder.get();
+            executable = found;
+        }
+        return found;
     }
 
     public Result run(Path dir, String... args) {
         List<String> command = new ArrayList<>();
-        command.add(executable);
+        command.add(executable());
         command.add("-c");
         command.add("core.quotepath=off");
         command.addAll(List.of(args));

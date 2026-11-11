@@ -52,6 +52,7 @@ public final class MessageLogView {
         Label title = new Label(Messages.tr("messagelog.title"));
         title.getStyleClass().add("message-log-title");
         filter.setPromptText(Messages.tr("messagelog.filter"));
+        filter.setAccessibleText(Messages.tr("messagelog.filter"));
         Debounce filtering = new Debounce(this::refresh);
         filter.textProperty().addListener((obs, old, text) -> filtering.request());
         filter.setOnKeyPressed(e -> {
@@ -65,6 +66,8 @@ public final class MessageLogView {
         });
 
         list.getStyleClass().add("message-log-list");
+
+        list.setAccessibleText(Messages.tr("messagelog.title"));
         list.setPrefHeight(LIST_HEIGHT);
         list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         list.setPlaceholder(new Label(Messages.tr("messagelog.empty")));
@@ -168,6 +171,7 @@ public final class MessageLogView {
             text.setWrapText(true);
             text.getStyleClass().add(entry.severity().name().toLowerCase(Locale.ROOT));
             HBox row = new HBox(10, time, text);
+            row.setAccessibleText(time.getText() + " " + entry.text()); // the row reads as its message (ACC-01)
             row.setAlignment(Pos.TOP_LEFT);
             setText(null);
             setGraphic(row);

@@ -121,6 +121,7 @@ public final class SettingsWindow {
     private final SettingSwitch simpleMode = new SettingSwitch(Messages.tr("settings.simpleMode.title"));
     private final SettingSwitch statusBar = new SettingSwitch(Messages.tr("settings.statusBar.title"));
     private final ComboBox<ThemeChoice> theme = new ComboBox<>();
+    private final ComboBox<Integer> uiZoom = new ComboBox<>();
     private final SettingSwitch titleBar = new SettingSwitch(Messages.tr("settings.titleBar.title"));
     private final ComboBox<String> keymap = new ComboBox<>();
     private final TextField syncUrl = new TextField();
@@ -130,9 +131,16 @@ public final class SettingsWindow {
     private final Label syncPill = new Label();
     private final Consumer<Settings> storeListener = s -> load();
     private final Runnable syncListener = this::loadSyncStatus;
+    private final @Nullable String noTitleBar;
 
     public SettingsWindow(AppServices services, @Nullable Window owner) {
+        this(services, owner, Chrome.titleBarMenusUnavailable());
+    }
+
+    /** With {@code noTitleBar}, why this window's title bar can't hold the menus, or null when it can (OS-01). */
+    SettingsWindow(AppServices services, @Nullable Window owner, @Nullable String noTitleBar) {
         this.services = services;
+        this.noTitleBar = noTitleBar;
         for (Page page : Page.values()) {
             VBox content = new VBox(14);
             content.getStyleClass().add("settings-page");
@@ -150,6 +158,7 @@ public final class SettingsWindow {
 
         search.setPromptText(Messages.tr("settings.search"));
         search.getStyleClass().add("settings-search");
+        search.setAccessibleText(Messages.tr("settings.search"));
         Debounce searching = new Debounce(() -> applySearch(search.getText()));
         search.textProperty().addListener((obs, old, text) -> searching.request());
         sidebar.getItems().setAll(Page.values());
@@ -160,6 +169,7 @@ public final class SettingsWindow {
         });
         RowContextMenu.install(sidebar);
         sidebar.getStyleClass().add("settings-sidebar");
+        sidebar.setAccessibleText(Messages.tr("settings.title"));
         sidebar.getSelectionModel().selectedItemProperty().addListener((obs, old, page) -> {
             if (page != null) scroll.setContent(pages.get(page));
         });
@@ -168,7 +178,7 @@ public final class SettingsWindow {
 
         VBox side = new VBox(8, search, sidebar);
         side.setPadding(new Insets(10));
-        side.setPrefWidth(220);
+        UiZoom.bind(side.prefWidthProperty(), 220);
         VBox.setVgrow(sidebar, Priority.ALWAYS);
 
         Label note = new Label(Messages.tr("settings.footer"));
@@ -253,13 +263,30 @@ public final class SettingsWindow {
                         picked, s -> s.theme, v -> services.store().update(s -> s.theme = v)));
         VBox card = card(Page.APPEARANCE, null);
         row(card, Page.APPEARANCE, "settings.theme", theme, "dark light mode colour color");
+        // The UI zoom (WIN-12): every step the zoom commands take, applied as it is picked.
+        for (int p = Settings.MIN_UI_ZOOM; p <= Settings.MAX_UI_ZOOM; p += UiZoom.STEP)
+            uiZoom.getItems().add(p);
+        uiZoom.setConverter(converter(p -> Messages.tr("settings.uiZoom.value", p)));
+        uiZoom.valueProperty()
+                .addListener((obs, old, picked) -> commitIfChanged(
+                        picked, s -> s.uiZoom, v -> services.store().update(s -> s.uiZoom = v)));
+        row(card, Page.APPEARANCE, "settings.uiZoom", uiZoom, "zoom scale size larger smaller bigger interface font");
         titleBar.setOnAction(e -> {
             services.store().update(s -> s.titleBarMenus = titleBar.isSelected());
             services.echo("status.titleBarRestart");
         });
-        row(card, Page.APPEARANCE, "settings.titleBar", titleBar, "header bar window title menus");
+        // OS-01: on every OS; where the system can't draw the menus there, disabled and saying why.
+        titleBar.setDisable(noTitleBar != null);
+        addRow(
+                card,
+                Page.APPEARANCE,
+                Messages.tr("settings.titleBar.title"),
+                Messages.tr("settings.titleBar.desc") + (noTitleBar == null ? "" : "\n" + noTitleBar),
+                titleBar,
+                "header bar window title menus");
         loaders.add(() -> {
             theme.setValue(services.settings().theme);
+            uiZoom.setValue(services.settings().uiZoom);
             titleBar.setSelected(services.settings().titleBarMenus);
         });
     }
@@ -278,6 +305,7 @@ public final class SettingsWindow {
         // ListView with a fixed cell size, filtered by the search (PERF-08).
         VBox bindings = card(Page.KEYMAP, Messages.tr("settings.bindings.heading"));
         bindingList.getStyleClass().add("binding-list");
+        bindingList.setAccessibleText(Messages.tr("settings.bindings.heading"));
         bindingList.setFixedCellSize(BINDING_ROW_HEIGHT);
         CommandMenu rowMenu =
                 new CommandMenu(services, java.util.Arrays.asList("keymap.changeBinding", null, "keymap.resetBinding"));
@@ -406,13 +434,14 @@ public final class SettingsWindow {
         page(Page.SYNC).getChildren().add(subtitle);
 
         VBox repo = card(Page.SYNC, null);
-        syncUrl.setPromptText("git@github.com:you/" + AppInfo.ID + "-sync.git");
+        syncUrl.setPromptText(Messages.tr("settings.sync.repo.prompt", AppInfo.ID));
         syncUrl.setOnAction(e -> commitUrl());
         syncUrl.focusedProperty().addListener((obs, was, focused) -> {
             if (!focused) commitUrl();
         });
         row(repo, Page.SYNC, "settings.sync.repo", syncUrl, "git github repository url");
         syncBranch.setPrefColumnCount(8);
+        syncBranch.setAccessibleText(Messages.tr("settings.sync.branch.title")); // it shares its row (ACC-01)
         syncBranch.setOnAction(e -> commitBranch());
         syncBranch.focusedProperty().addListener((obs, was, focused) -> {
             if (!focused) commitBranch();
@@ -441,6 +470,7 @@ public final class SettingsWindow {
         VBox automatic = card(Page.SYNC, null);
         syncAuto.setOnAction(e -> services.store().update(s -> s.sync.auto = syncAuto.isSelected()));
         syncInterval.setPrefColumnCount(3);
+        syncInterval.setAccessibleText(Messages.tr("settings.sync.interval.prompt"));
         syncInterval.setOnAction(e -> commitInterval());
         syncInterval.focusedProperty().addListener((obs, was, focused) -> {
             if (!focused) commitInterval();
@@ -488,6 +518,7 @@ public final class SettingsWindow {
         dialog.setTitle(Messages.tr("settings.sync.createGithub.title"));
         dialog.setHeaderText(null);
         dialog.setContentText(Messages.tr("settings.sync.createGithub.prompt"));
+        dialog.getEditor().setAccessibleText(Messages.tr("settings.sync.createGithub.prompt")); // ACC-01
         Dialogs.styled(dialog, stage);
         dialog.setOnHidden(e -> {
             String name = dialog.getResult();
@@ -584,6 +615,10 @@ public final class SettingsWindow {
             Label label = new Label(title);
             label.getStyleClass().add("setting-title");
             label.setWrapText(true);
+            // The row's title names its control for a screen reader (ACC-01).
+            if (control instanceof javafx.scene.control.Control named && !(control instanceof Label)) {
+                label.setLabelFor(named);
+            }
             text.getChildren().add(label);
         }
         if (!description.isEmpty() && !(control instanceof Label)) {
@@ -740,6 +775,10 @@ public final class SettingsWindow {
 
     SettingSwitch titleBarSwitch() {
         return titleBar;
+    }
+
+    ComboBox<Integer> uiZoomBox() {
+        return uiZoom;
     }
 
     SettingSwitch simpleModeSwitch() {

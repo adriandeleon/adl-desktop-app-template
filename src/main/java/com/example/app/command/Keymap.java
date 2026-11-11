@@ -18,7 +18,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @param emacs whether labels use Emacs notation ({@code C-x}) rather than CUA ({@code Ctrl+X})
  */
-public record Keymap(String id, String name, boolean emacs, Map<String, String> bindings) {
+public record Keymap(
+        String id, String name, boolean emacs, Map<String, String> bindings, Map<String, List<String>> alsoBound) {
 
     /** The bundled presets, in picker order. CUA is the default. */
     public static final List<String> PRESETS = List.of("cua", "emacs");
@@ -29,7 +30,7 @@ public record Keymap(String id, String name, boolean emacs, Map<String, String> 
 
     /** Loads a bundled preset for this OS; an unknown id loads the default. */
     public static Keymap load(String id) {
-        return load(id, com.example.app.AppInfo.isMac());
+        return load(id, com.example.app.Os.isMac());
     }
 
     /** Each preset parsed once: a keymap or settings change on the FX thread parses no JSON (PERF-01). */
@@ -49,14 +50,26 @@ public record Keymap(String id, String name, boolean emacs, Map<String, String> 
             if (in == null) throw new IOException("missing keymap resource " + chosen);
             JsonNode tree = JSON.readTree(in);
             Map<String, String> bindings = new LinkedHashMap<>();
-            tree.path("bindings")
-                    .properties()
-                    .forEach(e -> bindings.put(e.getKey(), e.getValue().asText()));
+            Map<String, List<String>> also = new LinkedHashMap<>();
+            // A command takes one chord, or a list: the first is the one menus show, the rest also run it
+            // (find.show is Ctrl/Cmd+F and F3 in CUA: FIND-04).
+            tree.path("bindings").properties().forEach(e -> {
+                JsonNode value = e.getValue();
+                if (value.isArray() && !value.isEmpty()) {
+                    bindings.put(e.getKey(), value.get(0).asText());
+                    List<String> rest = new java.util.ArrayList<>();
+                    for (int i = 1; i < value.size(); i++) rest.add(value.get(i).asText());
+                    also.put(e.getKey(), List.copyOf(rest));
+                } else {
+                    bindings.put(e.getKey(), value.asText());
+                }
+            });
             return new Keymap(
                     chosen,
                     tree.path("name").asText(chosen),
                     "emacs".equals(tree.path("notation").asText()),
-                    java.util.Collections.unmodifiableMap(bindings));
+                    java.util.Collections.unmodifiableMap(bindings),
+                    java.util.Collections.unmodifiableMap(also));
         } catch (IOException e) {
             throw new IllegalStateException("cannot read keymap " + chosen, e);
         }

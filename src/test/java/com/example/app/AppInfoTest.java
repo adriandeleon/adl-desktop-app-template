@@ -62,9 +62,4 @@ class AppInfoTest {
         assertEquals(AppInfo.RELEASES_PAGE, AppInfo.releaseNotesUrl("0.0.0"));
         assertEquals(AppInfo.RELEASES_PAGE + "/tag/v1.2.0", AppInfo.releaseNotesUrl("1.2.0"));
     }
-
-    @Test
-    void macCheckFollowsTheOsName() {
-        assertEquals(System.getProperty("os.name").toLowerCase().startsWith("mac"), AppInfo.isMac());
-    }
 }

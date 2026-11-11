@@ -55,6 +55,7 @@ rename_path packaging/linux/ExampleApp.desktop "packaging/linux/$name.desktop"
 rename_path packaging/linux/io.github.adriandeleon.ExampleApp.metainfo.xml \
     "packaging/linux/io.github.adriandeleon.$name.metainfo.xml"
 rename_path packaging/macos/ExampleApp.entitlements "packaging/macos/$name.entitlements"
+rename_path packaging/windows/exampleapp-cli.properties "packaging/windows/$lower-cli.properties"
 rename_path src/jreleaser/distributions/exampleapp-windows "src/jreleaser/distributions/$lower-windows"
 rename_path src/jreleaser/distributions/exampleapp "src/jreleaser/distributions/$lower"
 
@@ -90,7 +91,10 @@ if command -v java >/dev/null 2>&1; then
     fi
 fi
 
-# 5. Remove what only the template needs.
+# 5. Remove what only the template needs. The app is no longer a template (PAUTA-16): its everyday
+#    build lists the app-only entries and template issues it inherited, and its release build fails
+#    until each one is met or pending on an issue of the app's own.
+perl -pi -e 's/"template": true/"template": false/' "src/main/resources/$path/pauta.json"
 perl -0pi -e 's/<!-- template:start -->.*?<!-- template:end -->\n*//s' README.md
 perl -0pi -e 's/\n *# template:start.*?# template:end\n/\n/s' .github/workflows/ci.yml
 rm -f scripts/rename.sh

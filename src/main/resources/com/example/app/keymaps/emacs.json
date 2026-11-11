@@ -24,6 +24,9 @@
     "view.resizeBottomToolWindowLess": "C-x -",
     "view.resizeHorizontalToolWindowGreater": "C-x S-.",
     "view.resizeHorizontalToolWindowLess": "C-x S-,",
-    "output.runSample": "C-c r"
+    "output.runSample": "C-c r",
+    "find.show": "C-s",
+    "find.previous": "C-r",
+    "edit.cancel": "C-g"
   }
 }

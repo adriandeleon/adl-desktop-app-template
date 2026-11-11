@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +31,23 @@ class StyleContrastTest {
     private static final List<String> FLAGSHIP = List.of("editora-light", "editora-dark");
     private static final List<String> ROLES = List.of("accent", "success", "warning", "danger");
     private static final Pattern HEX = Pattern.compile("#[0-9a-fA-F]{3,8}\\b");
+    /** Any fixed color (ICON-08): a hex, an rgb()/rgba()/hsb()/hsba() value or a named color. */
+    private static final Pattern FIXED = Pattern.compile(
+            "#[0-9a-fA-F]{3,8}\\b|\\b(rgba?|hsba?)\\s*\\(|:\\s*(white|black|red|green|blue|gray|grey)\\s*;");
+
+    /**
+     * The only selectors whose text may be the ~3:1 subtle ink (ICON-09): disabled or decorative text. The
+     * test walks every rule of the app's stylesheets and fails any other that sets a text fill to it.
+     */
+    private static final Set<String> SUBTLE_TEXT = Set.of(
+            ".command-palette .list-cell.unavailable .plain", // a command that can't run now: disabled
+            ".command-palette .list-cell.unavailable .match",
+            ".settings-sidebar .list-cell.no-match", // a page the search ruled out: disabled
+            ".text-subtle", // the control themes' decorative utility class
+            ".label.text-subtle",
+            ".label.text-subtle .font-icon",
+            ".label.text-subtle .ikonli-font-icon");
+
     private static final Pattern RULE = Pattern.compile("([^{}]+)\\{([^{}]*)\\}");
 
     /** A stylesheet's text, comments removed. */
@@ -105,6 +123,16 @@ class StyleContrastTest {
     /** ICON-03, ICON-09: readable text is muted or stronger, and muted is 4.5:1 on every ground. */
     @Test
     void textThatMustBeReadUsesTheMutedRoleNotSubtle() throws Exception {
+        Pattern subtle = Pattern.compile("-fx-(text-)?fill\\s*:\\s*-color-fg-subtle\\b");
+        for (String file : List.of("app.css", Themes.LIGHT_THEME, Themes.DARK_THEME)) {
+            for (Rule rule : rules(read(file))) {
+                if (!subtle.matcher(rule.body()).find()) continue;
+                for (String selector : rule.selectors().split(",")) {
+                    String s = selector.strip().replaceAll("\\s+", " ");
+                    assertTrue(SUBTLE_TEXT.contains(s), file + ": " + s + " sets readable text in the subtle role");
+                }
+            }
+        }
         String app = read("app.css");
         for (String selector : List.of(
                 ".muted",
@@ -227,7 +255,10 @@ class StyleContrastTest {
         }
     }
 
-    /** ICON-08: severity colors are state tokens, never a role or a hex; no hex outside the token block. */
+    /**
+     * ICON-07, ICON-08: severity colors are state tokens, never a role or a fixed color; no hex, rgb(), rgba(),
+     * hsb() or named color outside the token block.
+     */
     @Test
     void severityColorsComeFromTheStateTokens() throws Exception {
         String app = read("app.css");
@@ -255,7 +286,7 @@ class StyleContrastTest {
         });
         List<Rule> rules = rules(app);
         for (Rule rule : rules.subList(1, rules.size())) {
-            assertFalse(HEX.matcher(rule.body()).find(), rule.selectors() + " has a fixed color: " + rule.body());
+            assertFalse(FIXED.matcher(rule.body()).find(), rule.selectors() + " has a fixed color: " + rule.body());
             assertFalse(
                     Pattern.compile("-color-(danger|warning|success)-")
                             .matcher(rule.body())

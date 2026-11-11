@@ -16,6 +16,14 @@
     "tool.documents": "Alt+1",
     "tool.outline": "Alt+2",
     "tool.output": "Alt+3",
-    "view.closeFocusedToolWindow": "Shift+Esc"
+    "view.closeFocusedToolWindow": "Shift+Esc",
+    "find.show": [
+      "Shortcut+F",
+      "F3"
+    ],
+    "find.previous": "Shift+F3",
+    "view.uiZoomIn": "Shortcut+Alt+=",
+    "view.uiZoomOut": "Shortcut+Alt+-",
+    "view.uiZoomReset": "Shortcut+Alt+0"
   }
 }

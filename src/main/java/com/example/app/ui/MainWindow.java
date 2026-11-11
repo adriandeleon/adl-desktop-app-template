@@ -24,6 +24,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import com.example.app.AppInfo;
+import com.example.app.Os;
 import com.example.app.PautaConformance;
 import com.example.app.command.Command;
 import com.example.app.command.KeyStroke;
@@ -68,8 +69,11 @@ public final class MainWindow {
     private final ToolWindow outputWindow;
     private SamplePanels.@Nullable Outline outline;
     private SamplePanels.@Nullable Output output;
+    private SamplePanels.@Nullable Documents documents;
     private @Nullable Switcher switcher;
     private final @Nullable HeaderBar headerBar;
+    private final boolean systemMenu;
+    private final boolean extendedSupported;
     private final StatusBar statusBar;
     /** The latest Import Configuration; a scan or result for an older one is dropped (PERF-03). */
     private final java.util.concurrent.atomic.AtomicLong imports = new java.util.concurrent.atomic.AtomicLong();
@@ -83,12 +87,7 @@ public final class MainWindow {
     private @Nullable DebugLogWindow debugLog;
 
     public MainWindow(Stage stage, AppServices services, boolean restoreSession) {
-        this(
-                stage,
-                services,
-                restoreSession,
-                AppInfo.isMac(),
-                Platform.isSupported(ConditionalFeature.EXTENDED_WINDOW));
+        this(stage, services, restoreSession, Os.isMac(), Platform.isSupported(ConditionalFeature.EXTENDED_WINDOW));
     }
 
     /**
@@ -100,10 +99,13 @@ public final class MainWindow {
         this.stage = stage;
         this.services = services;
         this.overlays = new OverlayHost(layout);
+        overlays.cancelOn(e -> services.keybindings().isKeyOf("edit.cancel", e));
         this.statusBar = new StatusBar(services);
         Commands.register(this, services);
         this.toggles = new OverlayToggles(overlays, services.commands());
 
+        this.systemMenu = systemMenu;
+        this.extendedSupported = extendedSupported;
         this.menus = new AppMenus(services, systemMenu);
         this.toolbar = new AppToolbar(services, toggles);
         // The stage style is fixed before the window first shows, so this is decided once per window.
@@ -118,11 +120,12 @@ public final class MainWindow {
         this.tabs = new DocumentTabs(services, placeholder(), stage::setTitle);
         this.toolWindows = new ToolWindowManager(services, tabs.tabPane());
         this.documentsWindow = new ToolWindow(
-                "documents",
-                Messages.tr("tool.documents"),
-                ToolWindow.Side.LEFT,
-                Icons.DOCUMENTS,
-                () -> new SamplePanels.Documents(tabs).node());
+                "documents", Messages.tr("tool.documents"), ToolWindow.Side.LEFT, Icons.DOCUMENTS, () -> {
+                    SamplePanels.Documents built = new SamplePanels.Documents(
+                            tabs, () -> new CommandMenu(services, java.util.Arrays.asList("documents.open")));
+                    documents = built;
+                    return built.node();
+                });
         this.outlineWindow =
                 new ToolWindow("outline", Messages.tr("tool.outline"), ToolWindow.Side.RIGHT, Icons.OUTLINE, () -> {
                     SamplePanels.Outline built = new SamplePanels.Outline(tabs);
@@ -133,6 +136,19 @@ public final class MainWindow {
                         "output", Messages.tr("tool.output"), ToolWindow.Side.BOTTOM, Icons.OUTPUT, () -> {
                             SamplePanels.Output built = new SamplePanels.Output();
                             output = built;
+                            // A read-only console: its right-click menu is the Output's commands (MENU-05).
+                            CommandMenu.onConsole(
+                                    built.console(),
+                                    new CommandMenu(
+                                            services,
+                                            java.util.Arrays.asList(
+                                                    "edit.copy",
+                                                    "edit.selectAll",
+                                                    null,
+                                                    "output.find",
+                                                    null,
+                                                    "output.runSample",
+                                                    "output.clear")));
                             outputWindow().busyProperty().bind(built.runningProperty());
                             return built.node();
                         })
@@ -141,6 +157,8 @@ public final class MainWindow {
         // The Outline follows the active tab (TABS-23); with no document to outline it is unavailable, which
         // hides its stripe button without touching the user's own show or hide (TABS-20).
         tabs.onActiveChanged(this::followActiveTab);
+        // An edit re-reads the headings once typing pauses, and a burst of requests redraws once (PERF-06, PERF-08).
+        tabs.onActiveTextChanged(outlineEdited::request);
         followActiveTab();
         toolWindows.restore();
         layout.setCenter(toolWindows.node());
@@ -178,11 +196,30 @@ public final class MainWindow {
 
     public void show() {
         stage.show();
+        if (systemMenu && !appMenuInstalled) {
+            // macOS: About and Settings in the application menu (ABOUT-01, WIN-15), with Settings' chord in its
+            // title, written again after a keymap change.
+            appMenuInstalled = true;
+            String done = MacAppMenu.install(
+                    Messages.tr("command.help.about"),
+                    () -> services.commands().run("help.about"),
+                    () -> {
+                        String title = Messages.tr("command.app.settings");
+                        String chord = services.keybindings().label("app.settings");
+                        return chord.isEmpty() ? title : title + "   " + chord;
+                    },
+                    () -> services.commands().run("app.settings"));
+            java.util.logging.Logger.getLogger(MainWindow.class.getName()).fine("Application menu: " + done);
+            services.onKeybindingsChanged(MacAppMenu::refresh);
+        }
     }
+
+    private boolean appMenuInstalled;
 
     /** Applies the settings that live in this window: the theme, the bars and Simple mode. */
     private void apply(Settings settings) {
         if (settings.theme != Themes.choice()) Themes.apply(settings.theme);
+        if (settings.uiZoom != Themes.zoom()) zoomTo(settings.uiZoom);
         toolbar.node().setVisible(settings.showToolbar);
         toolbar.node().setManaged(settings.showToolbar);
         // Simple mode: fewer toolbar groups, the toggle lit, and the shorter menu, rebuilt only on a change.
@@ -193,17 +230,36 @@ public final class MainWindow {
         tabs.setTabBarShown(settings.showTabBar);
     }
 
+    /** Scales the sheets off the FX thread, then swaps them in at once on it (WIN-12, PERF-01). */
+    private void zoomTo(int percent) {
+        Background.run(() -> {
+            Themes.prepareZoom(percent);
+            Platform.runLater(() -> {
+                if (services.settings().uiZoom == percent) Themes.zoom(percent);
+            });
+        });
+    }
+
     private void followActiveTab() {
         toolWindows.setAvailable(outlineWindow, tabs.activeDocument() != null);
+        outlineEdited.cancel();
+        outlineRedraw.request();
+    }
+
+    /** Lists the active document's headings again: one pass per pulse however many ask (PERF-06). */
+    private final Redraw outlineRedraw = new Redraw(() -> {
         SamplePanels.Outline built = outline;
         if (built != null) built.refresh();
-    }
+    });
+
+    /** An edit's request, held until typing pauses: the headings come from the whole text (PERF-08). */
+    private final Debounce outlineEdited = new Debounce(outlineRedraw::request);
 
     /** The Welcome tab's page; the app's own content goes in tabs beside it. */
     private VBox placeholder() {
         Label title = new Label(AppInfo.NAME);
         title.getStyleClass().add("welcome-title");
-        Label tagline = new Label(AppInfo.TAGLINE);
+        Label tagline = new Label(Messages.tr("app.tagline"));
         tagline.getStyleClass().add("muted");
         refreshWelcomeHint();
         HBox actions = new HBox(8);
@@ -229,6 +285,12 @@ public final class MainWindow {
     }
 
     /** Whether this window draws its own title bar: the pure rule in {@link Chrome#usesHeaderBar}. */
+    /** Why the title-bar menus can't be had in this window, or null (OS-01). */
+    @Nullable
+    String titleBarMenusUnavailable() {
+        return Chrome.titleBarMenusUnavailable(systemMenu, extendedSupported);
+    }
+
     static boolean usesHeaderBar(boolean systemMenu, boolean setting, boolean extendedSupported) {
         return Chrome.usesHeaderBar(systemMenu, setting, extendedSupported);
     }
@@ -285,6 +347,44 @@ public final class MainWindow {
     /** Runs {@code action} on the tool window a command acts on, if there is one. */
     void onToolWindow(@Nullable ToolWindow tw, java.util.function.Consumer<ToolWindow> action) {
         if (tw != null) action.accept(tw);
+    }
+
+    // ---- the text commands (MENU-05): on the text control that has the keyboard ----
+
+    /** The text field or area of this window that has the keyboard, or null. */
+    javafx.scene.control.@Nullable TextInputControl focusedText() {
+        return stage.getScene() != null
+                        && stage.getScene().getFocusOwner() instanceof javafx.scene.control.TextInputControl text
+                ? text
+                : null;
+    }
+
+    /** The Documents window's list, once built. */
+    SamplePanels.@Nullable Documents documents() {
+        return documents;
+    }
+
+    // ---- find (FIND-01, FIND-04) ----
+
+    /** The active document's find bar, or null on the Welcome tab. */
+    @Nullable
+    FindBar documentFindBar() {
+        DocumentView document = tabs.activeDocument();
+        return document == null ? null : document.findBar();
+    }
+
+    /** The Output console's find bar, or null before the window was first opened. */
+    @Nullable
+    FindBar outputFindBar() {
+        SamplePanels.Output built = output;
+        return built == null ? null : built.findBar();
+    }
+
+    /** Find in the Output: opens the window and its bar, or steps to the next match when the bar is open. */
+    void findInOutput() {
+        if (!toolWindows.isOpen(outputWindow)) toolWindows.openWindow(outputWindow, false);
+        FindBar bar = outputFindBar();
+        if (bar != null) bar.openOrNext();
     }
 
     /** Run Sample Task: opens the Output window and runs the task in it. */
@@ -516,7 +616,7 @@ public final class MainWindow {
     void openSettings(SettingsWindow.Page page) {
         SettingsWindow window = settings;
         if (window == null) {
-            window = new SettingsWindow(services, stage);
+            window = new SettingsWindow(services, stage, titleBarMenusUnavailable());
             settings = window;
         }
         window.show(page);
@@ -652,7 +752,15 @@ public final class MainWindow {
      * closes the app's other windows and dialogs first, so no nested event loop is left running, then
      * saves the window geometry and the settings, then exits (TRAY-04).
      */
+    /**
+     * The one quit method (WIN-13): the Quit row, {@code app.quit}, the window's close button and, on macOS,
+     * the application menu's and the Dock's Quit (JavaFX turns those into this window's close request) all
+     * come here. It asks before the session's typing is lost (CONF-01), then closes every other window and
+     * makes the save a close makes.
+     */
     void quit() {
+        List<String> unsaved = tabs.unsavedNames();
+        if (!unsaved.isEmpty() && !services.host().confirm(stage, Confirmations.quitUnsaved(unsaved))) return;
         imports.incrementAndGet(); // an import still in flight is never applied
         toolWindows.saveForQuit(); // before the floating windows close with the rest
         for (javafx.stage.Window other : List.copyOf(javafx.stage.Window.getWindows())) {
@@ -662,6 +770,7 @@ public final class MainWindow {
         // The last save is waited for off the FX thread (PERF-01); the exit comes back to it.
         Background.run(() -> {
             services.store().flush();
+            DebugLog.flushFile(); // the log's last lines, before the JVM goes
             Platform.runLater(services.host()::exit);
         });
     }
