@@ -64,6 +64,67 @@ public final class Settings {
 
     public Sync sync = new Sync();
 
+    /** The window's size as read from the file is kept within these, in pixels (SET-11). */
+    public static final double MIN_WINDOW_SIZE = 320;
+
+    public static final double MAX_WINDOW_SIZE = 16_384;
+
+    /** A saved position further from the origin than this is dropped, and the OS places the window. */
+    public static final double MAX_WINDOW_POSITION = 100_000;
+
+    /** The longest sync interval: a day. */
+    public static final int MAX_SYNC_INTERVAL_MINUTES = 24 * 60;
+
+    /** A tool window's share of the window, and a side's split, are kept within these. */
+    public static final double MIN_SHARE = 0.05;
+
+    public static final double MAX_SHARE = 0.95;
+
+    /** The sides a tool window can be moved to ({@code ToolWindow.Side}'s names). */
+    static final java.util.Set<String> SIDES = java.util.Set.of("LEFT", "RIGHT", "BOTTOM");
+
+    /**
+     * Brings every value read from the file into its range (SET-11): the file is plain JSON that people edit
+     * by hand, so a number out of range is clamped, and a value this version does not know (a keymap, a
+     * language, a chord, a branch name, a side) falls back to its default, as does a {@code null} that
+     * Jackson writes into a field when the file says so. Called on every read, not only when a value is set
+     * from the UI. Returns this.
+     */
+    public Settings clamped() {
+        if (theme == null) theme = ThemeChoice.DEFAULT;
+        if (language == null
+                || !(language.isEmpty()
+                        || com.example.app.i18n.Messages.available().containsKey(language))) {
+            language = "";
+        }
+        if (keymap == null || !com.example.app.command.Keymap.PRESETS.contains(keymap)) {
+            keymap = com.example.app.command.Keymap.DEFAULT;
+        }
+        Map<String, String> bindings = new TreeMap<>();
+        if (keybindings != null) {
+            keybindings.forEach((id, chord) -> {
+                // A blank chord unbinds; any other must be keys this version knows.
+                if (id == null || id.isBlank() || chord == null) return;
+                if (chord.isBlank() || com.example.app.command.KeyStroke.parseSequence(chord) != null) {
+                    bindings.put(id, chord);
+                }
+            });
+        }
+        keybindings = bindings;
+        lastUpdateCheck = Math.max(0, lastUpdateCheck);
+        if (window == null) window = new Window();
+        window.clamp();
+        if (sync == null) sync = new Sync();
+        sync.clamp();
+        return this;
+    }
+
+    /** {@code value} within {@code [min, max]}; {@code fallback} when it is not a number at all. */
+    static double clamp(double value, double min, double max, double fallback) {
+        if (Double.isNaN(value)) return fallback;
+        return Math.min(max, Math.max(min, value));
+    }
+
     /**
      * A deep copy, made on the FX thread so the writer serializes a snapshot off it (PERF-01). A new
      * field is copied here too: {@code ConfigStoreTest} fails when the copy's JSON differs.
@@ -109,6 +170,22 @@ public final class Settings {
 
         /** The tool windows' arrangement, restored on the next launch (TABS-15). */
         public ToolWindows toolWindows = new ToolWindows();
+
+        void clamp() {
+            Window defaults = new Window();
+            width = Settings.clamp(width, MIN_WINDOW_SIZE, MAX_WINDOW_SIZE, defaults.width);
+            height = Settings.clamp(height, MIN_WINDOW_SIZE, MAX_WINDOW_SIZE, defaults.height);
+            if (!onScreen(x) || !onScreen(y)) {
+                x = null;
+                y = null;
+            }
+            if (toolWindows == null) toolWindows = new ToolWindows();
+            toolWindows.clamp();
+        }
+
+        private static boolean onScreen(@Nullable Double position) {
+            return position != null && Double.isFinite(position) && Math.abs(position) <= MAX_WINDOW_POSITION;
+        }
     }
 
     /**
@@ -139,6 +216,47 @@ public final class Settings {
 
         /** The maximized window's id, or blank. */
         public String maximized = "";
+
+        void clamp() {
+            open = known(open);
+            order = known(order);
+            hidden = known(hidden);
+            floating = known(floating);
+            Map<String, String> keptSides = new TreeMap<>();
+            if (sides != null) {
+                sides.forEach((id, side) -> {
+                    if (id != null && side != null && SIDES.contains(side)) keptSides.put(id, side);
+                });
+            }
+            sides = keptSides;
+            sizes = shares(sizes);
+            splits = shares(splits);
+            if (maximized == null || !open.contains(maximized)) maximized = "";
+        }
+
+        /** The list without nulls, blanks or repeats. */
+        private static List<String> known(@Nullable List<String> ids) {
+            List<String> kept = new ArrayList<>();
+            if (ids != null) {
+                for (String id : ids) {
+                    if (id != null && !id.isBlank() && !kept.contains(id)) kept.add(id);
+                }
+            }
+            return kept;
+        }
+
+        /** Each share within {@link #MIN_SHARE} and {@link #MAX_SHARE}; one that is not a number is dropped. */
+        private static Map<String, Double> shares(@Nullable Map<String, Double> raw) {
+            Map<String, Double> kept = new TreeMap<>();
+            if (raw != null) {
+                raw.forEach((id, share) -> {
+                    if (id != null && share != null && !share.isNaN()) {
+                        kept.put(id, Settings.clamp(share, MIN_SHARE, MAX_SHARE, share));
+                    }
+                });
+            }
+            return kept;
+        }
 
         public ToolWindows copy() {
             ToolWindows c = new ToolWindows();
@@ -174,5 +292,12 @@ public final class Settings {
         }
         /** The last successful sync, epoch milliseconds; 0 for never. */
         public long lastSync;
+
+        void clamp() {
+            if (repoUrl == null) repoUrl = "";
+            if (branch == null || com.example.app.sync.SyncEngine.checkBranch(branch) != null) branch = "main";
+            intervalMinutes = Math.min(MAX_SYNC_INTERVAL_MINUTES, Math.max(1, intervalMinutes));
+            lastSync = Math.max(0, lastSync);
+        }
     }
 }

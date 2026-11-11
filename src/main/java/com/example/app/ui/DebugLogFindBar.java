@@ -1,10 +1,8 @@
 package com.example.app.ui;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -18,6 +16,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
 import com.example.app.i18n.Messages;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The find bar of the Debug Log, a read-only console (Pauta's find bar template, after Editora's
@@ -26,15 +25,27 @@ import com.example.app.i18n.Messages;
  * previous one, wrapping (FIND-06); Escape or Close drops a pending search, clears the match and gives
  * the keyboard back to the log (FIND-07).
  *
- * <p>Stateless between steps: each search scans the log's current text, so lines that arrive while the
- * bar is open are searched too.
+ * <p>The search runs off the FX thread and only its latest request is applied (PERF-01, PERF-03); a
+ * query that grows is narrowed from the matches it already has, never the whole log again (PERF-08,
+ * {@link LogSearch}). The steps use those matches; a step asked for while a search runs waits for it.
+ * A Refresh or Clear changes the log's text, and the open bar searches the new text.
  */
 final class DebugLogFindBar extends HBox {
 
     /** More matches than this are counted as "{@value}+". */
-    static final int MAX_MATCHES = 10_000;
+    static final int MAX_MATCHES = LogSearch.MAX_OCCURRENCES;
 
     private final TextArea target;
+    private final LatestOnly searches = new LatestOnly(Background::run, Platform::runLater);
+    /** The log's text, and how many times it has changed: what a search and a narrowing are for. */
+    private String text;
+
+    private long textVersion;
+    /** The matches of the last search applied, or null before the first. */
+    private @Nullable LogSearch result;
+    /** A step asked for while a search was running: true forward, false back, null none. */
+    private @Nullable Boolean pendingStep;
+
     private final TextField query = new TextField();
     private final CheckBox matchCase = new CheckBox(Messages.tr("find.matchCase"));
     private final Label count = new Label();
@@ -50,6 +61,12 @@ final class DebugLogFindBar extends HBox {
     DebugLogFindBar(TextArea target) {
         super(6);
         this.target = target;
+        this.text = target.getText();
+        target.textProperty().addListener((o, was, now) -> {
+            text = now == null ? "" : now;
+            textVersion++;
+            if (isOpen()) refine(); // the new text is searched, off the FX thread
+        });
         getStyleClass().add("find-bar");
         setAlignment(Pos.CENTER_LEFT);
         query.setPromptText(Messages.tr("find.prompt"));
@@ -101,6 +118,8 @@ final class DebugLogFindBar extends HBox {
     /** Closes the bar: the pending search is dropped, the match cleared, and the log has the keyboard. */
     void close() {
         searching.cancel();
+        searches.cancel();
+        pendingStep = null;
         setVisible(false);
         setManaged(false);
         target.deselect();
@@ -115,30 +134,73 @@ final class DebugLogFindBar extends HBox {
         return count.getText();
     }
 
-    /** The match at or after the selection, else the first: what typing keeps in view. */
+    /** Whether a search is waiting for the typing pause or running: the tests wait on it. */
+    boolean searching() {
+        return searching.pending() || searches.pending();
+    }
+
+    /**
+     * Searches for the query as it is now: narrowed from the last search when the query only grew, on the
+     * FX thread in O(matches); otherwise in the background, its result applied only if no later request
+     * superseded it.
+     */
     private void refine() {
         if (!isOpen()) return;
-        List<int[]> matches = matches(target.getText());
-        if (matches.isEmpty()) {
-            show(matches, -1);
+        String needle = query.getText();
+        boolean matchCaseNow = matchCase.isSelected();
+        LogSearch last = result;
+        LogSearch narrowed = last == null ? null : last.narrow(textVersion, needle, matchCaseNow);
+        if (narrowed != null || needle.isEmpty()) {
+            searches.cancel();
+            found(narrowed != null ? narrowed : LogSearch.of(text, textVersion, needle, matchCaseNow));
             return;
         }
-        int from = target.getSelection().getStart();
-        int at = 0;
-        for (int i = 0; i < matches.size(); i++) {
-            if (matches.get(i)[0] >= from) {
-                at = i;
-                break;
+        String searched = text;
+        long version = textVersion;
+        searches.submit(() -> LogSearch.of(searched, version, needle, matchCaseNow), this::found);
+    }
+
+    /** Applies a search: the match at or after the selection, else the first, is what typing keeps in view. */
+    private void found(LogSearch search) {
+        result = search;
+        List<int[]> matches = search.matches();
+        if (matches.isEmpty()) {
+            show(search, -1);
+        } else {
+            int from = target.getSelection().getStart();
+            int at = 0;
+            for (int i = 0; i < matches.size(); i++) {
+                if (matches.get(i)[0] >= from) {
+                    at = i;
+                    break;
+                }
             }
+            select(search, at);
         }
-        select(matches, at);
+        Boolean step = pendingStep;
+        pendingStep = null;
+        if (step != null) step(step);
+    }
+
+    /** Whether the last search applied is for the text, the query and the case setting as they are now. */
+    private boolean current(@Nullable LogSearch search) {
+        return search != null
+                && search.version() == textVersion
+                && search.needle().equals(query.getText())
+                && search.matchCase() == matchCase.isSelected();
     }
 
     /** The next match after the selection ({@code forward}) or the last one before it, wrapping around. */
     void step(boolean forward) {
-        List<int[]> matches = matches(target.getText());
+        LogSearch search = result;
+        if (search == null || searches.pending() || !current(search)) {
+            pendingStep = forward; // taken up when the search lands
+            if (!searches.pending()) refine();
+            return;
+        }
+        List<int[]> matches = search.matches();
         if (matches.isEmpty()) {
-            show(matches, -1);
+            show(search, -1);
             return;
         }
         IndexRange selection = target.getSelection();
@@ -158,34 +220,23 @@ final class DebugLogFindBar extends HBox {
                 }
             }
         }
-        select(matches, at);
+        select(search, at);
     }
 
-    private void select(List<int[]> matches, int at) {
-        int[] match = matches.get(at);
+    private void select(LogSearch search, int at) {
+        int[] match = search.matches().get(at);
         target.selectRange(match[0], match[1]);
-        show(matches, at);
+        show(search, at);
     }
 
-    private void show(List<int[]> matches, int at) {
-        if (query.getText().isEmpty()) count.setText("");
+    private void show(LogSearch search, int at) {
+        List<int[]> matches = search.matches();
+        if (search.needle().isEmpty()) count.setText("");
         else if (matches.isEmpty()) count.setText(Messages.tr("find.none"));
         else {
-            String total = matches.size() >= MAX_MATCHES ? MAX_MATCHES + "+" : Integer.toString(matches.size());
+            String total = search.capped() ? matches.size() + "+" : Integer.toString(matches.size());
             count.setText(Messages.tr("find.count", at + 1, total));
         }
-    }
-
-    /** Every {@code [start, end)} of the query in {@code text}, at most {@link #MAX_MATCHES}. */
-    List<int[]> matches(String text) {
-        String needle = query.getText();
-        List<int[]> out = new ArrayList<>();
-        if (needle.isEmpty() || text.isEmpty()) return out;
-        // A quoted pattern, not a lower-cased indexOf: case folding can change a string's length.
-        int flags = matchCase.isSelected() ? 0 : Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
-        Matcher m = Pattern.compile(Pattern.quote(needle), flags).matcher(text);
-        while (m.find() && out.size() < MAX_MATCHES) out.add(new int[] {m.start(), m.end()});
-        return out;
     }
 
     CheckBox matchCase() {

@@ -24,10 +24,14 @@ public final class ReportCommand {
 
     /** Runs the command; returns the process exit code. */
     public static int run(Path configDir, PrintStream out, Predicate<String> browser) {
+        return run(configDir, out, browser, Redactor.forThisMachine());
+    }
+
+    /** Runs the command with {@code redactor}: the tests give one for a made-up home, user and host. */
+    static int run(Path configDir, PrintStream out, Predicate<String> browser, Redactor redactor) {
         ConfigStore store = new ConfigStore(configDir);
         store.reload();
         String log = read(configDir.resolve(DebugLog.PREVIOUS_FILE)) + read(configDir.resolve(DebugLog.FILE));
-        Redactor redactor = Redactor.forThisMachine();
         String environment = redactor.redact(AppInfo.environment(configDir));
         String report = redactor.redact(ProblemReport.build(store.settings(), log));
         Path file = configDir.resolve(FILE);

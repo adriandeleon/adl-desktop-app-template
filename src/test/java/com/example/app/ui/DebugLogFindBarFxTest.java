@@ -62,6 +62,7 @@ class DebugLogFindBarFxTest {
 
         // FIND-02: searching as you type (debounced) updates the count.
         run(() -> bar.field().setText("alpha"));
+        FxTestSupport.waitUntil(() -> !bar.searching());
         String text = call(() -> window.text().getText());
         int first = text.indexOf("alpha one");
         int second = text.indexOf("Alpha two");
@@ -87,6 +88,7 @@ class DebugLogFindBarFxTest {
 
         run(() -> bar.matchCase().setSelected(true));
         run(() -> bar.field().setText("zzz-not-there"));
+        FxTestSupport.waitUntil(() -> !bar.searching());
         assertEquals("No matches", call(bar::countText));
 
         // FIND-07: Escape closes it, drops a pending search, clears the match, and the log has focus.
@@ -99,5 +101,48 @@ class DebugLogFindBarFxTest {
         assertEquals("No matches", call(bar::countText), "a pending search ran after the bar closed");
         assertTrue(call(() -> window.stage().getScene().getFocusOwner() == window.text()));
         assertNotNull(app.services().commands().get("debugLog.findNext").unavailableReason(), "closed bar");
+    }
+
+    @Test
+    void aNewQueryIsSearchedOffTheFxThreadAndAGrowingOneIsNarrowedInPlace() throws Exception {
+        run(() -> app.services().commands().run("debugLog.find"));
+        DebugLogWindow window = app.window().debugLogWindow();
+        assertNotNull(window);
+        DebugLogFindBar bar = window.findBar();
+
+        // PERF-01: a query the bar has no matches for goes to the background; this FX turn sees it pending.
+        assertTrue(call(() -> {
+            bar.field().setText("al");
+            return bar.searching();
+        }));
+        FxTestSupport.waitUntil(() -> !bar.searching());
+        String two = call(bar::countText);
+        assertTrue(two.matches("\\d+ of \\d+"), two);
+
+        // PERF-08: a letter more is answered from those matches in the same turn, without a search.
+        String narrowed = call(() -> {
+            bar.field().setText("alpha t");
+            return bar.searching() ? "searching" : bar.countText();
+        });
+        assertTrue(narrowed.matches("1 of \\d+"), narrowed);
+        int growing = Integer.parseInt(narrowed.replaceAll(".* of ", ""));
+        assertTrue(growing <= Integer.parseInt(two.replaceAll(".* of ", "")));
+        assertTrue(call(() -> window.text().getSelectedText()).equalsIgnoreCase("alpha t"));
+
+        // A step asked for while a search runs waits for it, then steps on its matches.
+        call(() -> {
+            bar.field().setText("beta");
+            bar.step(true);
+            return null;
+        });
+        FxTestSupport.waitUntil(() -> !bar.searching());
+        assertTrue(call(() -> window.text().getSelectedText()).equalsIgnoreCase("beta"));
+        int betas = Integer.parseInt(call(bar::countText).replaceAll(".* of ", ""));
+
+        // PERF-03: a Refresh brings a new text; the open bar searches it, never the old one's matches.
+        Logger.getLogger("findbar.test").warning("beta again");
+        run(window::refresh);
+        FxTestSupport.waitUntil(() -> !bar.searching());
+        assertTrue(call(bar::countText).endsWith(" of " + (betas + 1)), call(bar::countText));
     }
 }

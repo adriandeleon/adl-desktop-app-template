@@ -109,6 +109,11 @@ public final class SyncController {
         if (isConfigured() && services.settings().sync.auto) syncNow(false);
     }
 
+    /** Whether the automatic runs have started: not before the first paint (PERF-15). */
+    boolean automaticStarted() {
+        return interval != null;
+    }
+
     /** Stops the automatic runs; a sync or create still in flight is never applied. */
     public void stop() {
         if (interval != null) interval.stop();
@@ -153,7 +158,8 @@ public final class SyncController {
             if (manual) services.echo("status.sync.done");
         } else {
             String error = result.error() == null ? "?" : result.error();
-            lastError = error.startsWith("url.") ? Messages.tr("settings.sync." + error) : error;
+            boolean known = error.startsWith("url.") || error.startsWith("data.");
+            lastError = known ? Messages.tr("settings.sync." + error, AppInfo.NAME) : error;
             if (manual || !wasFailing) services.echo("status.sync.syncFailed", lastError);
         }
         running = false;

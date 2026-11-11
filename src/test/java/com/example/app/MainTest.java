@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,6 +36,26 @@ class MainTest {
         assertEquals(0, run("--version"));
         // ABOUT-02: --version prints the text the About environment block opens with.
         assertEquals(AppInfo.versionText(), out.toString(StandardCharsets.UTF_8).strip());
+    }
+
+    @Test
+    void theReportFlagWritesTheReportAndNeverStartsTheGui(@TempDir Path dir) throws Exception {
+        List<String> opened = new CopyOnWriteArrayList<>();
+        int code = Main.run(
+                new String[] {"--report", "--config-dir", dir.toString()},
+                new PrintStream(out, true, StandardCharsets.UTF_8),
+                new PrintStream(err, true, StandardCharsets.UTF_8),
+                url -> opened.add(url));
+        assertEquals(0, code, "an exit code, not LAUNCH: main exits before the toolkit starts");
+        assertTrue(java.nio.file.Files.isRegularFile(dir.resolve(com.example.app.report.ReportCommand.FILE)));
+        assertEquals(1, opened.size(), "the prefilled issue is opened");
+        String home = System.getProperty("user.home");
+        if (home.length() > 1) {
+            assertFalse(
+                    java.nio.file.Files.readString(dir.resolve(com.example.app.report.ReportCommand.FILE))
+                            .contains(home),
+                    "the home path is redacted");
+        }
     }
 
     @Test

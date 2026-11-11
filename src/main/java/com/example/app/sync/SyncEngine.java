@@ -2,17 +2,14 @@ package com.example.app.sync;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.example.app.AppInfo;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -21,11 +18,14 @@ import org.jspecify.annotations.Nullable;
  * <p>The repository is cloned into {@code <config>/sync/repo}. What syncs is the user's own key
  * bindings ({@code keybindings.json}); which keymap is in use, window placement and every other
  * machine-local preference stay on each computer. {@code base.json} remembers the last synced state
- * for the three-way {@link SyncMerge}. Blocking: callers run it off the FX thread.
+ * for the three-way {@link SyncMerge}. Both files are {@link SyncData}, versioned. Blocking: callers run it off the FX thread.
  */
 public final class SyncEngine {
 
     public static final String DATA_FILE = "keybindings.json";
+
+    /** The last synced state, beside the clone, for the three-way merge. */
+    public static final String BASE_FILE = "base.json";
 
     /** What a sync did: the merged bindings to apply locally, or the reason it failed. */
     public record Result(
@@ -35,9 +35,12 @@ public final class SyncEngine {
         }
     }
 
-    private static final Pattern CREDENTIALS = Pattern.compile("^[a-z][a-z0-9+.-]*://[^/@]*:[^/@]*@.*");
-    private static final ObjectMapper JSON = new ObjectMapper().enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
-    private static final TypeReference<TreeMap<String, String>> MAP = new TypeReference<>() {};
+    /** A scheme and the user-info before the host: {@code https://user:secret@host/…}. */
+    private static final Pattern USER_INFO = Pattern.compile("^\\s*([A-Za-z][A-Za-z0-9+.-]*)://([^/@?#]*)@");
+
+    /** A user name that is a token: GitHub's and GitLab's prefixes, or any long run of token characters. */
+    private static final Pattern TOKEN =
+            Pattern.compile("(ghp|gho|ghu|ghs|ghr)_\\w+|github_pat_\\w+|glpat-[\\w-]+|[\\w-]{30,}");
 
     private final Path syncDir;
     private final Git git;
@@ -51,12 +54,32 @@ public final class SyncEngine {
         return syncDir.resolve("repo");
     }
 
-    /** Why a repository URL is refused, or null when it is usable. A password or token in it is refused. */
+    /**
+     * Why a repository URL is refused, as a catalog suffix, or null when it is usable. A password or token
+     * in it is refused (SET-15, SYNC-02): it would sit in plain text in the settings file, its exports and
+     * the clone's {@code .git/config}. The page and the palette prompt check it, and so does every sync.
+     */
     public static @Nullable String checkUrl(String url) {
         String trimmed = url.trim();
         if (trimmed.isEmpty()) return "empty";
-        if (CREDENTIALS.matcher(trimmed).matches()) return "credentials";
+        if (hasCredentials(trimmed)) return "credentials";
         return null;
+    }
+
+    /**
+     * Whether {@code url} carries a secret: {@code user:password@} in any scheme, or a token as the user
+     * name of an HTTP(S) URL ({@code https://ghp_…@github.com/…}). An SSH user ({@code git@host:…},
+     * {@code ssh://git@host/…}) is never a secret. After Editora's {@code SyncEngine.hasCredentials}.
+     */
+    public static boolean hasCredentials(String url) {
+        Matcher m = USER_INFO.matcher(url);
+        if (!m.find()) return false; // no scheme (scp-like git@host:path) or no user-info
+        String scheme = m.group(1).toLowerCase(Locale.ROOT);
+        String userInfo = m.group(2);
+        int colon = userInfo.indexOf(':');
+        if (colon >= 0) return colon < userInfo.length() - 1; // "user:secret"
+        return (scheme.equals("http") || scheme.equals("https"))
+                && TOKEN.matcher(userInfo).matches();
     }
 
     /**
@@ -83,17 +106,17 @@ public final class SyncEngine {
 
     /** One sync of {@code local} against the repository's {@code branch}. */
     public Result sync(String url, String branch, Map<String, String> local) {
-        String refused = checkUrl(url);
+        String refused = checkUrl(url); // again here: a URL can reach the file by hand or by an import
         if (refused != null) return new Result(null, "url." + refused);
         try {
             Path repo = repoDir();
             Git.Result step = prepare(repo, url.trim(), branch);
             if (!step.ok()) return new Result(null, step.output());
 
-            Map<String, String> remote = read(repo.resolve(DATA_FILE));
-            Map<String, String> base = read(syncDir.resolve("base.json"));
+            Map<String, String> remote = SyncData.read(repo.resolve(DATA_FILE));
+            Map<String, String> base = SyncData.read(syncDir.resolve(BASE_FILE));
             Map<String, String> merged = SyncMerge.merge(base, local, remote);
-            write(repo.resolve(DATA_FILE), merged);
+            SyncData.write(repo.resolve(DATA_FILE), merged);
 
             git.run(repo, "add", DATA_FILE);
             if (!git.run(repo, "diff", "--cached", "--quiet").ok()) {
@@ -111,8 +134,11 @@ public final class SyncEngine {
                 step = git.run(repo, "push", "-q", "origin", "HEAD:refs/heads/" + branch);
                 if (!step.ok()) return new Result(null, step.output());
             }
-            write(syncDir.resolve("base.json"), merged);
+            SyncData.write(syncDir.resolve(BASE_FILE), merged);
             return new Result(merged, null);
+        } catch (SyncData.NewerException e) {
+            // Another computer runs a newer build: nothing here is written over its data.
+            return new Result(null, "data.newer");
         } catch (IOException e) {
             return new Result(null, e.getMessage());
         }
@@ -135,21 +161,6 @@ public final class SyncEngine {
         return remoteBranch
                 ? git.run(repo, "checkout", "-q", "-B", branch, "origin/" + branch)
                 : git.run(repo, "checkout", "-q", "-B", branch);
-    }
-
-    /** A synced data file larger than this is refused before it is read (PERF-12): bindings are tiny. */
-    public static final long MAX_DATA_BYTES = 1024 * 1024;
-
-    static Map<String, String> read(Path file) throws IOException {
-        if (!Files.isRegularFile(file)) return new TreeMap<>();
-        if (Files.size(file) > MAX_DATA_BYTES) throw new IOException(file.getFileName() + " is larger than 1 MB");
-        return JSON.readValue(Files.readString(file, StandardCharsets.UTF_8), MAP);
-    }
-
-    private static void write(Path file, Map<String, String> map) throws IOException {
-        Path parent = file.getParent();
-        if (parent != null) Files.createDirectories(parent);
-        Files.writeString(file, JSON.writerWithDefaultPrettyPrinter().writeValueAsString(map) + "\n");
     }
 
     private static String hostName() {

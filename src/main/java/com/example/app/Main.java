@@ -12,6 +12,7 @@ import com.example.app.instance.SingleInstance;
 import com.example.app.report.Browser;
 import com.example.app.report.ReportCommand;
 import com.example.app.ui.DebugLog;
+import com.example.app.ui.Startup;
 
 /**
  * The entry point. Not an {@code Application} subclass, so the fat jar can start JavaFX from the
@@ -32,11 +33,18 @@ public final class Main {
         DebugLog.install();
         int code = run(args, System.out, System.err);
         if (code != LAUNCH) System.exit(code);
+        // The settings file is read on its own thread while the toolkit starts (PERF-16).
+        Startup.readAhead(CommandLine.parse(args));
         Application.launch(App.class, args);
     }
 
     /** Handles the command line; returns an exit code, or {@link #LAUNCH} to start the GUI. */
     static int run(String[] args, PrintStream out, PrintStream err) {
+        return run(args, out, err, Browser::open);
+    }
+
+    /** As {@link #run(String[], PrintStream, PrintStream)}, opening links with {@code browser}. */
+    static int run(String[] args, PrintStream out, PrintStream err, java.util.function.Predicate<String> browser) {
         CommandLine cli = CommandLine.parse(args);
         if (cli.error() != null) {
             err.println(AppInfo.ID + ": " + cli.error());
@@ -52,7 +60,7 @@ public final class Main {
             return 0;
         }
         Path dir = ConfigDir.resolve(cli.configDir(), cli.dev());
-        if (cli.report()) return ReportCommand.run(dir, out, Browser::open);
+        if (cli.report()) return ReportCommand.run(dir, out, browser); // never the GUI (CLI-05)
         List<String> files = cli.files().stream()
                 .map(f -> Path.of(f).toAbsolutePath().toString())
                 .toList();

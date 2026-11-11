@@ -21,11 +21,18 @@ class with a unit test; the toolkit code around it stays thin.**
 1. `Main.main`: `java.awt.headless=true` first, then `DebugLog.install()` (logging + the uncaught
    exception handler), then `Main.run`: `--help`, `--version` and `--report` answer and exit; a second
    launch hands its arguments to the running app (`SingleInstance.handOff`) and exits.
-2. `App.start` calls `Startup.start`: fonts (and the UI-font listener on every window), config folder, session log file, settings (migrated),
-   language, theme, `AppServices`, `MainWindow`, the single-instance listener, the update check
-   (once per session, at most daily, 5 s after the first frame) and Settings Sync.
+2. Just before `launch`, `main` calls `Startup.readAhead`, which runs `Startup.prepare` on a thread of its
+   own while the toolkit starts: config folder, session log file, settings (migrated, and every value
+   clamped to its range), language and the single-instance listener. None of that file work is on the
+   FX thread; `prepare` refuses to run there.
+3. `App.init`, on the launcher thread, takes what was read (`Startup.takePrepared`).
+4. `App.start` calls `Startup.start`: fonts (and the UI-font listener on every window), theme,
+   `AppServices`, `MainWindow`. After the first frame has painted: the deferred fonts, the keymaps, the
+   update check (once per session, at most daily, 5 s later) and Settings Sync's automatic runs.
+5. At exit, `Startup.Running.close` waits for the last settings save on a thread of its own
+   (`ConfigStore.flushOnExit`), never on the FX thread.
 
-The tests start the app through the same `Startup.start`, with a `FakeHost`.
+The tests start the app through the same `Startup.prepare` and `Startup.start`, with a `FakeHost`.
 
 ## The UI package
 
@@ -84,4 +91,7 @@ The tests start the app through the same `Startup.start`, with a `FakeHost`.
 
 `~/.exampleapp` (`--config-dir`, then `EXAMPLEAPP_CONFIG_DIR`, then the default, `~/.exampleapp-dev` with `--dev`): `settings.json`,
 `exampleapp-session.log` (+ `.prev.log`), `instance.sock`, `sync/`, and backups
-(`settings.json.v<n>.bak`, `settings.json.broken.bak`).
+(`settings.json.v<n>.bak`, `settings.json.broken.bak`). Every JSON file there has a `schemaVersion` and a
+migration step per version: `settings.json` (`Settings`, `Migrations`) and Settings Sync's
+`keybindings.json` and `base.json` (`SyncData`). A sync file from a newer build is refused, never
+overwritten.

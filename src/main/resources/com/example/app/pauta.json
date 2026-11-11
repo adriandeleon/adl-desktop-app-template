@@ -9,14 +9,6 @@
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
     },
     {
-      "rule": "CLI-05",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/command-line/#cli-05",
-      "kind": "pending",
-      "reason": "Problem reports are redacted, but no test checks the report the command line writes.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/16"
-    },
-    {
       "rule": "CLI-07",
       "level": "MUST",
       "url": "https://pauta-project.dev/4.1.0/command-line/#cli-07",
@@ -89,38 +81,6 @@
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
     },
     {
-      "rule": "PERF-01",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/performance/#perf-01",
-      "kind": "pending",
-      "reason": "Starting and quitting read and write the settings file on the window's thread, and finding in the Debug Log searches there too.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
-      "rule": "PERF-03",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/performance/#perf-03",
-      "kind": "pending",
-      "reason": "A configuration import that finishes late can still apply an out-of-date result.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
-      "rule": "PERF-08",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/performance/#perf-08",
-      "kind": "pending",
-      "reason": "Finding in the Debug Log searches the whole log again after each pause in typing.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
-      "rule": "PERF-15",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/performance/#perf-15",
-      "kind": "pending",
-      "reason": "Settings Sync's first automatic sync starts before the window has drawn.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
       "rule": "REL-19",
       "level": "MUST",
       "url": "https://pauta-project.dev/4.1.0/release/#rel-19",
@@ -135,30 +95,6 @@
       "kind": "pending",
       "reason": "The README shows placeholder screenshots until the app has real ones.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/13"
-    },
-    {
-      "rule": "SET-09",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/settings/#set-09",
-      "kind": "pending",
-      "reason": "The files Settings Sync keeps carry no version number, so a later format change could not upgrade them.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
-    },
-    {
-      "rule": "SET-11",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/settings/#set-11",
-      "kind": "pending",
-      "reason": "Out-of-range values in the settings file, such as a window size, are used as they are instead of being corrected.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
-    },
-    {
-      "rule": "SET-15",
-      "level": "MUST",
-      "url": "https://pauta-project.dev/4.1.0/settings/#set-15",
-      "kind": "pending",
-      "reason": "A sync repository address with an access token in it is accepted instead of refused.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
     },
     {
       "rule": "CLI-04",
@@ -393,14 +329,6 @@
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
     },
     {
-      "rule": "PERF-16",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/performance/#perf-16",
-      "kind": "pending",
-      "reason": "The settings file is not read ahead while the window is still starting.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
       "rule": "PERF-17",
       "level": "SHOULD",
       "url": "https://pauta-project.dev/4.1.0/performance/#perf-17",
@@ -423,14 +351,6 @@
       "kind": "pending",
       "reason": "There is no switch that records what keeps the window busy.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/18"
-    },
-    {
-      "rule": "PLAT-14",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/platform/#plat-14",
-      "kind": "pending",
-      "reason": "The files Settings Sync keeps in the config folder have no version number.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
     },
     {
       "rule": "QOPEN-02",
@@ -542,14 +462,6 @@
       "url": "https://pauta-project.dev/4.1.0/settings/#set-20",
       "kind": "pending",
       "reason": "Settings Sync replaces your key bindings without keeping a copy of the old ones first.",
-      "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
-    },
-    {
-      "rule": "SYNC-02",
-      "level": "SHOULD",
-      "url": "https://pauta-project.dev/4.1.0/templates/settings-sync/#sync-02",
-      "kind": "pending",
-      "reason": "A sync repository address with an access token in it is not refused.",
       "link": "https://github.com/adriandeleon/adl-desktop-app-template/issues/15"
     },
     {
