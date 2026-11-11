@@ -35,6 +35,14 @@ final class Commands {
             services.echo(services.settings().showStatusBar ? "status.statusBarOn" : "status.statusBarOff");
         });
 
+        r.register("view.toggleTabBar", () -> {
+            services.store().update(s -> s.showTabBar = !s.showTabBar);
+            services.echo(services.settings().showTabBar ? "status.tabBarOn" : "status.tabBarOff");
+        });
+
+        registerTabs(window, r);
+        registerToolWindows(window, r);
+
         r.register("settings.theme", window::chooseTheme);
         r.register("settings.keymap", window::chooseKeymap);
         r.register("settings.language", window::chooseLanguage);
@@ -126,5 +134,150 @@ final class Commands {
         r.register("debugLog.clear", window::clearDebugLog);
         r.register("debugLog.export", window::exportDebugLog);
         r.register("help.reportProblem", window::openReportProblem);
+    }
+
+    /**
+     * Every tab operation is a command (TABS-01): bound to a chord, in the palette, a row in the Window menu,
+     * and the per-tab ones on the tab's right-click menu ({@link TabContextMenu}). Each acts on the selected
+     * tab. The ids are Editora's.
+     */
+    private static void registerTabs(MainWindow window, CommandRegistry r) {
+        r.register(
+                "buffer.close",
+                () -> window.onSelectedTab(t -> window.tabs().closeTab(t)),
+                () -> window.tabs().closeUnavailable());
+        for (String id : java.util.List.of(
+                "buffer.closeOthers",
+                "buffer.closeAll",
+                "buffer.closeUnmodified",
+                "buffer.closeLeft",
+                "buffer.closeRight")) {
+            r.register(
+                    id,
+                    () -> window.onSelectedTab(t -> {
+                        switch (id) {
+                            case "buffer.closeOthers" -> window.tabs().closeOtherTabs(t);
+                            case "buffer.closeAll" -> window.tabs().closeAllTabs();
+                            case "buffer.closeUnmodified" -> window.tabs().closeUnmodifiedTabs();
+                            case "buffer.closeLeft" -> window.tabs().closeTabsToLeft(t);
+                            default -> window.tabs().closeTabsToRight(t);
+                        }
+                    }),
+                    () -> window.tabs().nothingToClose(id));
+        }
+        r.register(
+                "buffer.togglePin",
+                () -> window.onSelectedTab(t -> window.tabs().togglePin(t)),
+                () -> window.tabs().closeUnavailable());
+        r.register(
+                "buffer.reopenClosed",
+                () -> window.tabs().reopenClosed(),
+                () -> window.tabs().reopenUnavailable());
+        r.register(
+                "buffer.next",
+                () -> window.tabs().selectNext(1),
+                () -> window.tabs().cycleUnavailable());
+        r.register(
+                "buffer.previous",
+                () -> window.tabs().selectNext(-1),
+                () -> window.tabs().cycleUnavailable());
+        r.register("switcher.show", window::showSwitcher, () -> window.tabs().closeUnavailable());
+        r.register("help.welcome", () -> window.tabs().showWelcome());
+    }
+
+    /**
+     * Each tool window's {@code tool.<id>} command (TABS-13), which its stripe button runs, and the commands
+     * that float, maximize, resize, close and re-show them from the keyboard (TABS-18). Those act on the
+     * window whose stripe menu or header was used, else the one holding focus, else the last one opened.
+     */
+    private static void registerToolWindows(MainWindow window, CommandRegistry r) {
+        for (String id : java.util.List.of("documents", "outline", "output")) {
+            r.register(
+                    "tool." + id,
+                    () -> window.toolWindows().toggle(toolWindow(window, id)),
+                    () -> window.toolWindows().unavailableReason(toolWindow(window, id)));
+        }
+        r.register(
+                "toolWindow.openInSplit",
+                () -> window.onToolWindow(
+                        window.toolWindows().target(),
+                        tw -> window.toolWindows().openInSplit(tw)),
+                () -> Chrome.splitUnavailable(splitTarget(window)));
+        r.register(
+                "toolWindow.hide",
+                () -> window.onToolWindow(
+                        window.toolWindows().target(),
+                        tw -> window.toolWindows().setVisible(tw, false)),
+                () -> Chrome.toolWindowUnavailable(window.toolWindows().target() != null));
+        r.register(
+                "view.restoreStripeButtons",
+                () -> window.toolWindows()
+                        .all()
+                        .forEach(tw -> window.toolWindows().setVisible(tw, true)),
+                () -> Chrome.restoreStripeButtonsUnavailable(window.toolWindows().all().stream()
+                        .anyMatch(tw -> !window.toolWindows().isVisible(tw))));
+        r.register(
+                "view.floatToolWindow",
+                () -> window.onToolWindow(
+                        window.toolWindows().target(),
+                        tw -> window.toolWindows().toggleFloating(tw)),
+                () -> Chrome.toolWindowUnavailable(window.toolWindows().target() != null));
+        r.register(
+                "view.maximizeToolWindow",
+                () -> window.onToolWindow(
+                        window.toolWindows().target(),
+                        tw -> window.toolWindows().toggleMaximized(tw)),
+                () -> Chrome.toolWindowUnavailable(
+                        docked(window, window.toolWindows().target())));
+        r.register(
+                "view.closeFocusedToolWindow",
+                () -> window.onToolWindow(
+                        window.toolWindows().target(),
+                        tw -> window.toolWindows().close(tw)),
+                () -> Chrome.toolWindowUnavailable(window.toolWindows().target() != null));
+        r.register(
+                "view.resizeHorizontalToolWindowGreater",
+                () -> window.onToolWindow(
+                        window.toolWindows().horizontalTarget(),
+                        tw -> window.toolWindows().resize(tw, ToolWindowManager.RESIZE_STEP)),
+                () -> Chrome.toolWindowUnavailable(window.toolWindows().horizontalTarget() != null));
+        r.register(
+                "view.resizeHorizontalToolWindowLess",
+                () -> window.onToolWindow(
+                        window.toolWindows().horizontalTarget(),
+                        tw -> window.toolWindows().resize(tw, -ToolWindowManager.RESIZE_STEP)),
+                () -> Chrome.toolWindowUnavailable(window.toolWindows().horizontalTarget() != null));
+        r.register(
+                "view.resizeBottomToolWindow",
+                () -> window.onToolWindow(
+                        window.toolWindows().bottomTarget(),
+                        tw -> window.toolWindows().resize(tw, ToolWindowManager.RESIZE_STEP)),
+                () -> Chrome.toolWindowUnavailable(window.toolWindows().bottomTarget() != null));
+        r.register(
+                "view.resizeBottomToolWindowLess",
+                () -> window.onToolWindow(
+                        window.toolWindows().bottomTarget(),
+                        tw -> window.toolWindows().resize(tw, -ToolWindowManager.RESIZE_STEP)),
+                () -> Chrome.toolWindowUnavailable(window.toolWindows().bottomTarget() != null));
+        r.register(
+                "output.runSample",
+                window::runSampleTask,
+                () -> Chrome.sampleTaskUnavailable(window.isSampleTaskRunning()));
+    }
+
+    private static ToolWindow toolWindow(MainWindow window, String id) {
+        return java.util.Objects.requireNonNull(window.toolWindows().get(id), id);
+    }
+
+    /** The window Open in Split would open: the stripe button's whose menu is open, if it can. */
+    private static boolean splitTarget(MainWindow window) {
+        ToolWindow tw = window.toolWindows().target();
+        return tw != null && window.toolWindows().canSplitWith(tw);
+    }
+
+    private static boolean docked(MainWindow window, @org.jspecify.annotations.Nullable ToolWindow tw) {
+        return tw != null
+                && window.toolWindows().isOpen(tw)
+                && !window.toolWindows().isFloating(tw);
     }
 }

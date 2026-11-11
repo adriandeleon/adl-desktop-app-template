@@ -7,6 +7,15 @@
     "app.quit": "Cmd+Q",
     "view.messageLog": "Cmd+Shift+M",
     "help.debugLog": "Cmd+Shift+L",
-    "help.about": "F12"
+    "help.about": "F12",
+    "buffer.close": "Cmd+W",
+    "buffer.reopenClosed": "Cmd+Shift+T",
+    "buffer.next": "Cmd+PAGE_DOWN",
+    "buffer.previous": "Cmd+PAGE_UP",
+    "switcher.show": "Cmd+E",
+    "tool.documents": "Cmd+1",
+    "tool.outline": "Cmd+2",
+    "tool.output": "Cmd+3",
+    "view.closeFocusedToolWindow": "Shift+Esc"
   }
 }

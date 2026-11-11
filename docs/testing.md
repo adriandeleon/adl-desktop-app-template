@@ -36,6 +36,7 @@
 | Test | Guards |
 |---|---|
 | `CommandSweepFxTest` | Every registered command runs in a real headless window, and has a title and description |
+| `TabsAndPanelsTest`, `TabsAndPanelsFxTest` | Pauta's Tabs and tool panels, a test per rule a test can check: bulk closes skip pinned tabs, Reopen Closed Tab's list, no tool window built before the first paint, the arrangement back after a restart, the stripe's first icon on the first line of text |
 | `MessagesTest` | Every catalog has every key; apostrophes follow the pattern rule; translations are not English copies |
 | `ConfigStoreTest#everySettingSurvivesARestart` | The settings round trip |
 | `MigrationsTest` | Every schema version has a migration step |

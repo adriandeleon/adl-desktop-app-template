@@ -84,6 +84,85 @@ public final class Icons {
     /** The Pauta window: a ruled page with a tick, the rules and how the app meets them. */
     public static final String CONFORMANCE = "M3.5 2.5h9v11h-9zM5.3 6.2l1.1 1.1 2.1-2.3M5.5 9.5h5M5.5 11.5h3.5";
 
+    /** A file: a page with a folded corner. The tab header's file glyph. */
+    public static final String FILE = "M4 1.75h5.5l3 3v9.5H4zM9.5 1.75v3h3";
+
+    /** Pin or Unpin Tab: a pushpin, as in Editora; a pinned tab's header wears it too. */
+    public static final String PIN = "M9.5 2l4.5 4.5-2.6.6-2.5 2.5.3 3.4-2.7-2.7L3 14M6.5 7.3L4 4.8l3-.5z";
+
+    /** Close Tab: an X. */
+    public static final String CLOSE = "M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6";
+
+    /**
+     * The close variants keep a smaller X as the family's anchor and add one mark, so the six read as a family
+     * and stay apart at menu size (as in Editora): a square for the others, three for all, a tick for the
+     * unmodified, a triangle for the direction.
+     */
+    public static final String CLOSE_OTHERS = "M2.5 5.5l6 6M8.5 5.5l-6 6M11 2.5h3v3h-3z";
+
+    public static final String CLOSE_ALL =
+            "M5 2.5l6 6M11 2.5l-6 6M2.5 12h2.5v2H2.5zM6.75 12h2.5v2h-2.5zM11 12h2.5v2H11z";
+
+    public static final String CLOSE_UNMODIFIED = "M2.5 3.5l6 6M8.5 3.5l-6 6M9.5 12.2l1.8 1.8 3.2-3.5";
+
+    public static final String CLOSE_LEFT = "M7 5l6 6M13 5l-6 6M1.5 8l3-2.75v5.5z";
+
+    public static final String CLOSE_RIGHT = "M3 5l6 6M9 5l-6 6M14.5 8l-3-2.75v5.5z";
+
+    /** Reopen Closed Tab: an arrow turning back. */
+    public static final String REOPEN = "M3.4 9.6A4.9 4.9 0 1 0 4.5 4.4M4.3 1.8v2.8h2.8";
+
+    /** Next Tab and Previous Tab: a chevron each way. */
+    public static final String NEXT = "M6 3.5l4.5 4.5L6 12.5";
+
+    public static final String PREVIOUS = "M10 3.5L5.5 8l4.5 4.5";
+
+    /** The tab switcher: two pages, one over the other. */
+    public static final String SWITCHER = "M2.5 5.5h8v8h-8zM5.5 2.5h8v8";
+
+    /** Toggle Tab Bar: a window whose top row is a tab. */
+    public static final String TAB_BAR = "M1.75 2.75H14.25V13.25H1.75ZM1.75 6.25H14.25M6.25 2.75V6.25";
+
+    /** The Welcome tab: a house. */
+    public static final String HOME = "M2.5 7.5L8 2.5l5.5 5M4 6.5v7h8v-7M6.75 13.5v-3.5h2.5v3.5";
+
+    /** The Documents tool window: a tree of files. */
+    public static final String DOCUMENTS = "M2.5 2.5h4M4 2.5v10h3.5M4 7.5h3.5M8.5 6h5v3h-5zM8.5 11h5v3h-5z";
+
+    /** The Outline tool window: bullets and their lines (dots by round caps). */
+    public static final String OUTLINE = "M2.5 4h.2M2.5 8h.2M2.5 12h.2M5.5 4h8M5.5 8h8M5.5 12h8";
+
+    /** The Output tool window: a console. */
+    public static final String OUTPUT = "M1.75 2.75H14.25V13.25H1.75ZM4.5 6.25L6.5 8L4.5 9.75M8.5 9.75H11.5";
+
+    /** Run Sample Task: a play triangle. */
+    public static final String RUN = "M5 3.25v9.5L12.5 8z";
+
+    /** Open in Split: a frame divided across. */
+    public static final String SPLIT = "M2.5 3h11v10h-11zM2.5 8h11";
+
+    /** Hide (a stripe button): an eye, struck through. */
+    public static final String HIDE =
+            "M1.5 8s2.4-4 6.5-4 6.5 4 6.5 4-2.4 4-6.5 4-6.5-4-6.5-4zM6.3 8a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0 -3.4 0M2.5 13.5l11-11";
+
+    /** Float or Dock Tool Window: a small window lifted off a large one. */
+    public static final String FLOAT = "M2.5 5.5h7v8h-7zM6.5 2.5h7v7h-4";
+
+    /** Maximize Tool Window: four corners. */
+    public static final String MAXIMIZE = "M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10";
+
+    /** Close Tool Window: a frame with an X in it. */
+    public static final String CLOSE_PANEL = "M2.5 2.5h11v11h-11zM5.5 5.5l5 5M10.5 5.5l-5 5";
+
+    /** The resize commands: arrows out (larger) or in (smaller), across or up and down. */
+    public static final String WIDER = "M1.5 8h13M4 5.5L1.5 8 4 10.5M12 5.5l2.5 2.5-2.5 2.5";
+
+    public static final String NARROWER = "M1 8h4.5M10.5 8h4.5M3.5 5.5L6 8l-2.5 2.5M12.5 5.5L10 8l2.5 2.5";
+
+    public static final String TALLER = "M8 1.5v13M5.5 4L8 1.5 10.5 4M5.5 12L8 14.5l2.5-2.5";
+
+    public static final String SHORTER = "M8 1v4.5M8 10.5V15M5.5 3.5L8 6l2.5-2.5M5.5 12.5L8 10l2.5 2.5";
+
     /**
      * The glyph of each command that has one. A command with no fitting glyph is left out and draws
      * none: a near miss teaches the wrong meaning.
@@ -102,7 +181,33 @@ public final class Icons {
             Map.entry("help.pauta", CONFORMANCE),
             Map.entry("help.debugLog", LOG),
             Map.entry("view.messageLog", MESSAGES),
-            Map.entry("view.toggleToolbar", TOOLBAR));
+            Map.entry("view.toggleToolbar", TOOLBAR),
+            Map.entry("view.toggleTabBar", TAB_BAR),
+            Map.entry("help.welcome", HOME),
+            Map.entry("buffer.close", CLOSE),
+            Map.entry("buffer.closeOthers", CLOSE_OTHERS),
+            Map.entry("buffer.closeAll", CLOSE_ALL),
+            Map.entry("buffer.closeUnmodified", CLOSE_UNMODIFIED),
+            Map.entry("buffer.closeLeft", CLOSE_LEFT),
+            Map.entry("buffer.closeRight", CLOSE_RIGHT),
+            Map.entry("buffer.togglePin", PIN),
+            Map.entry("buffer.reopenClosed", REOPEN),
+            Map.entry("buffer.next", NEXT),
+            Map.entry("buffer.previous", PREVIOUS),
+            Map.entry("switcher.show", SWITCHER),
+            Map.entry("tool.documents", DOCUMENTS),
+            Map.entry("tool.outline", OUTLINE),
+            Map.entry("tool.output", OUTPUT),
+            Map.entry("output.runSample", RUN),
+            Map.entry("toolWindow.openInSplit", SPLIT),
+            Map.entry("toolWindow.hide", HIDE),
+            Map.entry("view.floatToolWindow", FLOAT),
+            Map.entry("view.maximizeToolWindow", MAXIMIZE),
+            Map.entry("view.closeFocusedToolWindow", CLOSE_PANEL),
+            Map.entry("view.resizeHorizontalToolWindowGreater", WIDER),
+            Map.entry("view.resizeHorizontalToolWindowLess", NARROWER),
+            Map.entry("view.resizeBottomToolWindow", TALLER),
+            Map.entry("view.resizeBottomToolWindowLess", SHORTER));
 
     /** The on-screen size of a glyph, in pixels. */
     private static final double SIZE = 18;
@@ -182,6 +287,21 @@ public final class Icons {
             control.setTooltip(tooltip);
         }
         tooltip.setText(name);
+    }
+
+    /**
+     * Names a control from a value that changes (a tool window's title and chord): its tooltip and its
+     * accessible text both bound to it, one string (TBAR-01, TBAR-12).
+     */
+    public static void bindName(Control control, javafx.beans.value.ObservableValue<String> name) {
+        Tooltip tooltip = control.getTooltip();
+        if (tooltip == null) {
+            tooltip = new Tooltip();
+            tooltip.setShowDelay(TOOLTIP_DELAY);
+            control.setTooltip(tooltip);
+        }
+        tooltip.textProperty().bind(name);
+        control.accessibleTextProperty().bind(name);
     }
 
     /**

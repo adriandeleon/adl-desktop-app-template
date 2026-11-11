@@ -16,8 +16,15 @@ public final class Migrations {
     /** A file with no {@code schemaVersion} predates versioning and is version 1. */
     static final int UNVERSIONED = 1;
 
-    private static final Map<Integer, UnaryOperator<ObjectNode>> STEPS =
-            Map.of(1, Migrations::v1ToV2, 2, UnaryOperator.identity(), 3, UnaryOperator.identity());
+    private static final Map<Integer, UnaryOperator<ObjectNode>> STEPS = Map.of(
+            1,
+            Migrations::v1ToV2,
+            2,
+            UnaryOperator.identity(),
+            3,
+            UnaryOperator.identity(),
+            4,
+            UnaryOperator.identity());
 
     private Migrations() {}
 
@@ -47,8 +54,8 @@ public final class Migrations {
         return true;
     }
 
-    // Version 2 to 3 added titleBarMenus, and 3 to 4 showToolbar: purely additive, so the identity steps
-    // above; their defaults fill in.
+    // Version 2 to 3 added titleBarMenus, 3 to 4 showToolbar, and 4 to 5 showTabBar and the tool windows'
+    // state (window.toolWindows): purely additive, so the identity steps above; their defaults fill in.
 
     /** Version 1 had a {@code darkMode} switch; version 2 has a three-way {@code theme}. */
     static ObjectNode v1ToV2(ObjectNode tree) {

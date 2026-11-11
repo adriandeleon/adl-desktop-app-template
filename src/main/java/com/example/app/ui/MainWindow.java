@@ -58,6 +58,17 @@ public final class MainWindow {
     private final VBox band = new VBox();
 
     private final Label welcomeHint = new Label();
+    /** The document tabs: the welcome page and the sample documents (Pauta's Tabs and tool panels). */
+    private final DocumentTabs tabs;
+    /** The tool windows round the tabs, each built on its first open (TABS-14). */
+    private final ToolWindowManager toolWindows;
+
+    private final ToolWindow documentsWindow;
+    private final ToolWindow outlineWindow;
+    private final ToolWindow outputWindow;
+    private SamplePanels.@Nullable Outline outline;
+    private SamplePanels.@Nullable Output output;
+    private @Nullable Switcher switcher;
     private final @Nullable HeaderBar headerBar;
     private final StatusBar statusBar;
     /** Built on first open, not before the first frame (PERF-14). */
@@ -99,14 +110,42 @@ public final class MainWindow {
         band.getChildren().setAll(headerBar != null ? headerBar : menus.bar(), toolbar.node());
         layout.setTop(band);
         if (headerBar != null) stage.fullScreenProperty().addListener((o, was, full) -> placeHeaderBar(full));
-        layout.setCenter(placeholder());
+        this.tabs = new DocumentTabs(services, placeholder(), stage::setTitle);
+        this.toolWindows = new ToolWindowManager(services, tabs.tabPane());
+        this.documentsWindow = new ToolWindow(
+                "documents",
+                Messages.tr("tool.documents"),
+                ToolWindow.Side.LEFT,
+                Icons.DOCUMENTS,
+                () -> new SamplePanels.Documents(tabs).node());
+        this.outlineWindow =
+                new ToolWindow("outline", Messages.tr("tool.outline"), ToolWindow.Side.RIGHT, Icons.OUTLINE, () -> {
+                    SamplePanels.Outline built = new SamplePanels.Outline(tabs);
+                    outline = built;
+                    return built.node();
+                });
+        this.outputWindow = new ToolWindow(
+                        "output", Messages.tr("tool.output"), ToolWindow.Side.BOTTOM, Icons.OUTPUT, () -> {
+                            SamplePanels.Output built = new SamplePanels.Output();
+                            output = built;
+                            outputWindow().busyProperty().bind(built.runningProperty());
+                            return built.node();
+                        })
+                .firstOpenShare(0.36); // a console at a quarter of the window shows three lines (TABS-21)
+        for (ToolWindow tw : List.of(documentsWindow, outlineWindow, outputWindow)) toolWindows.register(tw);
+        // The Outline follows the active tab (TABS-23); with no document to outline it is unavailable, which
+        // hides its stripe button without touching the user's own show or hide (TABS-20).
+        tabs.onActiveChanged(this::followActiveTab);
+        followActiveTab();
+        toolWindows.restore();
+        layout.setCenter(toolWindows.node());
         layout.setBottom(statusBar);
 
         Scene scene = Themes.style(new Scene(overlays.root()));
         new KeyDispatcher(services, overlays).install(scene);
         stage.setScene(scene);
         Themes.titleButtons(stage);
-        stage.setTitle(AppInfo.NAME);
+        tabs.updateWindowTitle(); // the file, the project and the app (TABS-10)
         for (int size : new int[] {16, 32, 64, 128, 256}) {
             var icon = MainWindow.class.getResource("/com/example/app/icons/app-" + size + ".png");
             if (icon != null) stage.getIcons().add(new Image(icon.toExternalForm()));
@@ -143,9 +182,16 @@ public final class MainWindow {
         toolbar.node().setManaged(settings.showToolbar);
         statusBar.setVisible(settings.showStatusBar);
         statusBar.setManaged(settings.showStatusBar);
+        tabs.setTabBarShown(settings.showTabBar);
     }
 
-    /** The app's own content goes here. */
+    private void followActiveTab() {
+        toolWindows.setAvailable(outlineWindow, tabs.activeDocument() != null);
+        SamplePanels.Outline built = outline;
+        if (built != null) built.refresh();
+    }
+
+    /** The Welcome tab's page; the app's own content goes in tabs beside it. */
     private VBox placeholder() {
         Label title = new Label(AppInfo.NAME);
         title.getStyleClass().add("welcome-title");
@@ -211,6 +257,39 @@ public final class MainWindow {
     }
 
     // ---- what the commands do ----
+
+    /** Runs {@code action} on the selected tab, if there is one. */
+    void onSelectedTab(java.util.function.Consumer<javafx.scene.control.Tab> action) {
+        javafx.scene.control.Tab tab = tabs.selected();
+        if (tab != null) action.accept(tab);
+    }
+
+    /** The tab switcher (TABS-09), built on first use. */
+    void showSwitcher() {
+        Switcher built = switcher;
+        if (built == null) {
+            built = new Switcher(tabs, overlays);
+            switcher = built;
+        }
+        built.show();
+    }
+
+    /** Runs {@code action} on the tool window a command acts on, if there is one. */
+    void onToolWindow(@Nullable ToolWindow tw, java.util.function.Consumer<ToolWindow> action) {
+        if (tw != null) action.accept(tw);
+    }
+
+    /** Run Sample Task: opens the Output window and runs the task in it. */
+    void runSampleTask() {
+        if (!toolWindows.isOpen(outputWindow)) toolWindows.openWindow(outputWindow, false);
+        SamplePanels.Output built = output;
+        if (built != null) built.run();
+    }
+
+    boolean isSampleTaskRunning() {
+        SamplePanels.Output built = output;
+        return built != null && built.runningProperty().get();
+    }
 
     void openPalette() {
         // Every registered command (PAL-02): one that cannot run now stays listed, grayed with the reason.
@@ -548,6 +627,7 @@ public final class MainWindow {
      * saves the window geometry and the settings, then exits (TRAY-04).
      */
     void quit() {
+        toolWindows.saveForQuit(); // before the floating windows close with the rest
         for (javafx.stage.Window other : List.copyOf(javafx.stage.Window.getWindows())) {
             if (other != stage) other.hide();
         }
@@ -602,6 +682,39 @@ public final class MainWindow {
     /** The top band: the title bar or menu row, then the toolbar. */
     VBox band() {
         return band;
+    }
+
+    DocumentTabs tabs() {
+        return tabs;
+    }
+
+    ToolWindowManager toolWindows() {
+        return toolWindows;
+    }
+
+    ToolWindow documentsWindow() {
+        return documentsWindow;
+    }
+
+    ToolWindow outlineWindow() {
+        return outlineWindow;
+    }
+
+    ToolWindow outputWindow() {
+        return outputWindow;
+    }
+
+    SamplePanels.@Nullable Output output() {
+        return output;
+    }
+
+    SamplePanels.@Nullable Outline outline() {
+        return outline;
+    }
+
+    @Nullable
+    Switcher switcher() {
+        return switcher;
     }
 
     OverlayToggles toggles() {

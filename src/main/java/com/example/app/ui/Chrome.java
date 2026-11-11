@@ -46,6 +46,26 @@ final class Chrome {
         return open ? null : Messages.tr("palette.disabled.findClosed");
     }
 
+    /** Why a command on a tool window cannot run: none is open to act on. */
+    static @Nullable String toolWindowUnavailable(boolean target) {
+        return target ? null : Messages.tr("palette.disabled.noToolWindow");
+    }
+
+    /** Why Open in Split cannot run: no closed window's side has room beside an open one. */
+    static @Nullable String splitUnavailable(boolean possible) {
+        return possible ? null : Messages.tr("palette.disabled.noSplit");
+    }
+
+    /** Why Show Hidden Stripe Buttons cannot run: none is hidden. */
+    static @Nullable String restoreStripeButtonsUnavailable(boolean anyHidden) {
+        return anyHidden ? null : Messages.tr("palette.disabled.noHiddenButtons");
+    }
+
+    /** Why Run Sample Task cannot run: it is running. */
+    static @Nullable String sampleTaskUnavailable(boolean running) {
+        return running ? Messages.tr("palette.disabled.taskRunning") : null;
+    }
+
     /** Why Debug Log: Refresh cannot run, or null when it can. */
     static @Nullable String debugLogRefreshUnavailable(boolean open) {
         return open ? null : Messages.tr("palette.disabled.debugLogClosed");

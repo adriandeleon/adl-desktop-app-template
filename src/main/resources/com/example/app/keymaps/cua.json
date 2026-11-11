@@ -7,6 +7,15 @@
     "app.quit": "Shortcut+Q",
     "view.messageLog": "Shortcut+Shift+M",
     "help.debugLog": "Shortcut+Shift+L",
-    "help.about": "F12"
+    "help.about": "F12",
+    "buffer.close": "Shortcut+W",
+    "buffer.reopenClosed": "Shortcut+Shift+T",
+    "buffer.next": "Shortcut+PAGE_DOWN",
+    "buffer.previous": "Shortcut+PAGE_UP",
+    "switcher.show": "Shortcut+E",
+    "tool.documents": "Alt+1",
+    "tool.outline": "Alt+2",
+    "tool.output": "Alt+3",
+    "view.closeFocusedToolWindow": "Shift+Esc"
   }
 }

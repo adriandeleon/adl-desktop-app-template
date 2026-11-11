@@ -67,6 +67,15 @@ one-line summary written for users.
   keymap; a button looks pressed while what it opened is showing, and Sync Now waits until sync is set up.
   View → Toggle Toolbar, its right-click menu or Settings → General hides it, and the choice is kept.
   Sync Now is in the File menu too.
+- **Tabs and tool windows.** Sample documents open in tabs beside the Welcome page; pin a tab to keep it
+  at the front and out of every bulk close, close others, unmodified or to either side, reopen the last
+  closed file where its caret was, drag tabs to reorder them, and switch with Window → Switch Tab
+  (`C-x C-b` in the Emacs keymap). A tab shows when it is unsaved, pinned or read-only, and its file's Git
+  status, and the window title names the file. Around the tabs, three tool windows (Documents, Outline
+  and Output) dock on the left, right and bottom: a stripe button or `Alt+1`…`Alt+3` (`M-1`… in Emacs)
+  opens each; drag a button to another side, open two on one side, float, maximize or resize one from the
+  keyboard, and they come back as you left them. Every action is in the Window menu and the Command
+  Palette. View → Toggle Tab Bar hides the tab strip.
 
 ### Changed
 

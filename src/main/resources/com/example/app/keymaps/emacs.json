@@ -7,6 +7,23 @@
     "app.quit": "C-x C-c",
     "view.messageLog": "C-h e",
     "help.debugLog": "C-h l",
-    "help.about": "C-h C-a"
+    "help.about": "C-h C-a",
+    "buffer.close": "C-x k",
+    "buffer.reopenClosed": "C-S-t",
+    "buffer.next": "C-x RIGHT",
+    "buffer.previous": "C-x LEFT",
+    "switcher.show": "C-x C-b",
+    "view.toggleTabBar": "C-c b",
+    "tool.documents": "M-1",
+    "tool.outline": "M-2",
+    "tool.output": "M-3",
+    "view.closeFocusedToolWindow": "C-x 0",
+    "view.maximizeToolWindow": "C-x f",
+    "view.floatToolWindow": "C-x 5 2",
+    "view.resizeBottomToolWindow": "C-x S-6",
+    "view.resizeBottomToolWindowLess": "C-x -",
+    "view.resizeHorizontalToolWindowGreater": "C-x S-.",
+    "view.resizeHorizontalToolWindowLess": "C-x S-,",
+    "output.runSample": "C-c r"
   }
 }

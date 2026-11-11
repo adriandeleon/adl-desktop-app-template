@@ -73,7 +73,8 @@ class MainWindowFxTest {
         assertTrue(call(() -> window.stage().isShowing()));
         assertEquals("Ready", echo());
         assertTrue(Files.exists(dir.resolve(DebugLog.FILE)));
-        assertEquals("ExampleApp", call(() -> window.stage().getTitle()));
+        // The window title names the project and the app; a file's tab adds the file (TABS-10).
+        assertEquals("Samples — ExampleApp", call(() -> window.stage().getTitle()));
     }
 
     @Test
@@ -221,7 +222,7 @@ class MainWindowFxTest {
     @Test
     void menusRunCommandsAndGreyUnavailableOnes() throws Exception {
         List<Menu> menus = call(() -> List.copyOf(window.menuBar().getMenus()));
-        assertEquals(3, menus.size());
+        assertEquals(4, menus.size()); // File, View, Window, Help
         run(() -> {
             for (Menu menu : menus) menu.getOnShowing().handle(null);
         });
