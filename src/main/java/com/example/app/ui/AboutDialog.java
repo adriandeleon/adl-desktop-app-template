@@ -98,7 +98,7 @@ public final class AboutDialog {
     }
 
     /**
-     * The edition's link: "Built to Pauta 6.0.0", or at Partial "Working toward Pauta 6.0.0", since the
+     * The edition's link: "Built to Pauta 6.0.1", or at Partial "Working toward Pauta 6.0.1", since the
      * app does not meet that edition yet (ABOUT-07, ABOUT-09).
      */
     static String editionKey(Conformance conformance) {

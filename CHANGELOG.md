@@ -122,6 +122,9 @@ one-line summary written for users.
 
 ### Changed
 
+- **ExampleApp is built to Pauta 6.0.1,** and is still Complete. The patch edition rewords one MAY, WIN-10
+  (an Expert mode now keeps only the status bar), which the template does not have; the copy of the
+  edition's rules is 6.0.1's, and the `pauta-audit` skill is unchanged.
 - **ExampleApp's Pauta conformance is Complete:** every MUST and SHOULD of Pauta 6.0.0 a template can meet
   is met; what is left is each app's own website, screenshots and repository settings (`app-only`).
 - **The palette and every picker move with your keymap's keys** (`C-n`, `C-p`, `C-v`, `M-v` in Emacs) and

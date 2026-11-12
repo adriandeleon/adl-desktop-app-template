@@ -1,18 +1,18 @@
 # ExampleApp: rules for coding agents
 
 ExampleApp is a JavaFX desktop app: JDK 25+, JavaFX 27+, Maven, one JPMS module (`com.example.app`).
-It follows [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [6.0.0](https://pauta-project.dev/6.0.0/).
+It follows [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), edition [6.0.1](https://pauta-project.dev/6.0.1/).
 This file is operational rules, not a changelog: how the app is built lives in [`docs/`](docs/README.md).
 When documentation and code disagree, **the code wins**, and the documentation is fixed in the same change.
 User-facing feature documentation goes to the separate website repository (`exampleapp-website`), never here.
 
 ## Pauta
 
-This app is built to Pauta 6.0.0. Its rules: https://pauta-project.dev/6.0.0/llms.txt
-(every rule in one file: https://pauta-project.dev/6.0.0/llms-full.txt).
+This app is built to Pauta 6.0.1. Its rules: https://pauta-project.dev/6.0.1/llms.txt
+(every rule in one file: https://pauta-project.dev/6.0.1/llms-full.txt).
 
 - Before building a feature, read the rules on its page and copy from the code each rule's Reference names.
-- Cite a rule by its ID and edition: "KBD-07 (Pauta 6.0.0)".
+- Cite a rule by its ID and edition: "KBD-07 (Pauta 6.0.1)".
 - Read the numbered edition, never latest/. Moving to a newer edition is its own change: pauta.version in
   pom.xml, this file and the README change together.
 

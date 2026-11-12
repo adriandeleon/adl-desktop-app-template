@@ -5,7 +5,7 @@ this file in the same change ([docs/conventions.md](docs/conventions.md#docs-in-
 
 ## Next
 
-- **Nothing of Pauta 6.0.0 is pending in the template.** It meets every MUST and SHOULD a template can
+- **Nothing of Pauta 6.0.1 is pending in the template.** It meets every MUST and SHOULD a template can
   (Complete); what is left is `app-only`: each app's own website, screenshots and repository settings.
 - **What an app made from the template inherits.** After `scripts/rename.sh`, `./mvnw verify` lists each
   `app-only` entry and each pending entry that links one of the template's issues; the release build

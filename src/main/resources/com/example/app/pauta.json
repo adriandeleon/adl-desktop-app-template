@@ -4,63 +4,63 @@
     {
       "rule": "DOCS-01",
       "level": "MUST",
-      "url": "https://pauta-project.dev/6.0.0/documentation/#docs-01",
+      "url": "https://pauta-project.dev/6.0.1/documentation/#docs-01",
       "kind": "app-only",
       "reason": "The user guide lives on each app's own website, which a template does not have."
     },
     {
       "rule": "DOCS-02",
       "level": "MUST",
-      "url": "https://pauta-project.dev/6.0.0/documentation/#docs-02",
+      "url": "https://pauta-project.dev/6.0.1/documentation/#docs-02",
       "kind": "app-only",
       "reason": "The user guide's pages under /docs/ belong to each app's own website."
     },
     {
       "rule": "PAUTA-13",
       "level": "MUST",
-      "url": "https://pauta-project.dev/6.0.0/conformance/#pauta-13",
+      "url": "https://pauta-project.dev/6.0.1/conformance/#pauta-13",
       "kind": "app-only",
       "reason": "Each app's user guide has its own page listing its conformance and exceptions."
     },
     {
       "rule": "REL-19",
       "level": "MUST",
-      "url": "https://pauta-project.dev/6.0.0/release/#rel-19",
+      "url": "https://pauta-project.dev/6.0.1/release/#rel-19",
       "kind": "app-only",
       "reason": "Each app's repository requires its own format and test checks before a change is merged."
     },
     {
       "rule": "REPO-01",
       "level": "MUST",
-      "url": "https://pauta-project.dev/6.0.0/repository/#repo-01",
+      "url": "https://pauta-project.dev/6.0.1/repository/#repo-01",
       "kind": "app-only",
       "reason": "Each app's README shows its own screenshots; the template's are placeholders."
     },
     {
       "rule": "DOCS-03",
       "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/documentation/#docs-03",
+      "url": "https://pauta-project.dev/6.0.1/documentation/#docs-03",
       "kind": "app-only",
       "reason": "Each app's website serves its own user guide for each version."
     },
     {
       "rule": "DOCS-04",
       "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/documentation/#docs-04",
+      "url": "https://pauta-project.dev/6.0.1/documentation/#docs-04",
       "kind": "app-only",
       "reason": "Each app's website makes its own command and settings pages and What's new from the app."
     },
     {
       "rule": "DOCS-18",
       "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/documentation/#docs-18",
+      "url": "https://pauta-project.dev/6.0.1/documentation/#docs-18",
       "kind": "app-only",
       "reason": "Each app captures its own screenshots from itself; the template's are placeholders."
     },
     {
       "rule": "PAUTA-14",
       "level": "SHOULD",
-      "url": "https://pauta-project.dev/6.0.0/conformance/#pauta-14",
+      "url": "https://pauta-project.dev/6.0.1/conformance/#pauta-14",
       "kind": "app-only",
       "reason": "Each app's website makes its conformance page from the app's own list of exceptions."
     }

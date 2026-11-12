@@ -31,7 +31,7 @@
         <!-- The Pauta edition this app implements (ABOUT-08): the one source for About, the
              environment block and the version flag. The README's badge and "Built to" line name the same
              number (EditionTest checks). -->
-        <pauta.version>6.0.0</pauta.version>
+        <pauta.version>6.0.1</pauta.version>
         <!-- The release build (the dist profile) sets it: PautaConformanceTest then fails on what an app
              inherited from the template, its app-only entries and the template's issues (PAUTA-16). -->
         <pauta.release>false</pauta.release>
