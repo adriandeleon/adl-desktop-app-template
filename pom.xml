@@ -41,7 +41,7 @@
         <!-- A floor too: JavaFX 27 brings the Headless glass platform the FX tests run on. -->
         <javafx.version>27.0.1</javafx.version>
         <atlantafx.version>3.0.0</atlantafx.version>
-        <jackson.version>2.22.4</jackson.version>
+        <jackson.version>2.23.0</jackson.version>
 
         <jspecify.version>1.0.1</jspecify.version>
         <errorprone.version>2.52.0</errorprone.version>
