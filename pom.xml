@@ -677,7 +677,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>3.6.4</version>
+                        <version>3.7.0</version>
                         <executions>
                             <!-- In POM order, all bound to `package` after jpackage. Through bash, not as
                                  the executable: Windows cannot run a .sh directly. -->
