@@ -50,6 +50,7 @@
 | `UiZoomTest`, `MenuLookFxTest#theUiZoomScalesEveryMenu` | The UI zoom's steps and range, the stylesheets it scales, and every menu at the zoomed size (WIN-12, MENU-16) |
 | `DialogsFxTest` | Cancel is the confirm question's default; every dialog has one button order with Cancel first and its stock buttons worded from the catalog (CONF-13, WIN-11, CONF-14) |
 | `SessionAndWelcomeFxTest` | `session.json` apart from `settings.json`; the open documents come back, `--no-session` leaves them; the Welcome page in Help, Close alone, rebuilt on show; the text zoom on its own (SET-08, WIN-08, WELC-03/05/11, WIN-09) |
+| `ScreenshotsFxTest` | Not a guard: run by `scripts/screenshots.sh`, it renders the real window at 2× in the light and dark theme into `docs/images/` for the README (DOCS-18), and is skipped in a normal build |
 | `SettingsRoundTripFxTest` | Every switch, number and choice of every Settings page survives a restart (QUAL-13) |
 | `PickerFxTest`, `TextInputKeysTest` | The palette's matching, its keymap moves, help chord, title and current value; a text field's editing keys (KBD-06, PAL-06/08, QOPEN-02/04/06, FIND-09) |
 | `AccountPinTest`, `ShellPathTest`, `DoctorTest`, `FxSamplerTest`, `StyleCompilerTest` | The account a sync clone uses, the login shell's PATH, the Doctor's rows, the FX-thread sampler, the `.bss` stylesheets (SET-18, CLI-10, DIAG-07, PERF-20, PERF-17) |

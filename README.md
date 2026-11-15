@@ -30,8 +30,9 @@
 > `rename.sh` turns every `ExampleApp` / `exampleapp` / `EXAMPLEAPP` / `com.example.app` into your
 > names, moves the package folders, gives the Windows installer its own upgrade code, and deletes
 > this box, the rename check in CI and itself. Then replace the icon (`branding/`, then
-> `scripts/make-icons.sh`) and the screenshots, and write your app in tabs and tool windows in place of
-> the samples (`SampleFiles`, `SamplePanels`).
+> `scripts/make-icons.sh`), write your app in tabs and tool windows in place of the samples
+> (`SampleFiles`, `SamplePanels`), then retake the screenshots from your own window with
+> `scripts/screenshots.sh`.
 > Every MUST and SHOULD of Pauta 6.1.0 that a template can meet is here and tested, so the template is
 > Complete; see [docs/architecture.md](docs/architecture.md) for where each piece lives. What only your app
 > can have is listed, rule by rule, in [`pauta.json`](src/main/resources/com/example/app/pauta.json) and in
@@ -47,8 +48,8 @@ Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), 
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-dark.svg">
-    <img src="docs/images/screenshot-light.svg" alt="ExampleApp's main window" width="800">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-dark.png">
+    <img src="docs/images/screenshot-light.png" alt="ExampleApp's main window" width="800">
   </picture>
 </p>
 
@@ -58,18 +59,20 @@ Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), 
   settings and keymaps on every system, with `Ctrl` or `Cmd` where each expects it and a native
   installer for each.
 - **Keyboard first.** A Command Palette (`Ctrl/Cmd+Shift+P`, or `M-x` in the Emacs keymap) finds and
-  runs every command. CUA and Emacs keymaps, with your own bindings on top. A toolbar puts the everyday
-  ones a click away, each button naming its key, and Simple mode trims the menus and the toolbar to the
-  essentials.
+  runs every command. CUA, Emacs, IntelliJ, VS Code and Sublime Text keymaps, each in its macOS form
+  too, with your own bindings on top. A toolbar puts the everyday ones a click away, each button naming
+  its key, and Simple mode trims the menus and the toolbar to the essentials.
 - **Tabs and tool windows.** Documents in tabs you can pin, reorder, switch between and reopen, and tool
   windows docked on three sides that you can move, float, maximize and resize, every action a command.
 - **Settings that apply as you change them.** A searchable Settings window, a palette command for
   every setting, and a versioned config folder that older versions never overwrite.
-- **Light and dark**, following your system: Caret & Ink, the Pauta family palette, with the Inter
-  typeface on every OS.
+- **Light, dark and high contrast**, following your system: Caret & Ink, the Pauta family palette, with
+  the Inter typeface on every OS. Zoom the whole window, or the documents' text on its own.
+- **Your documents come back.** Quitting remembers what was open, and the next start opens it again.
 - **Settings Sync** through a private Git repository you own.
 - **Nothing fails silently.** A Message Log of every status message, a Debug Log of everything
-  logged, and Help → Report a Problem to open a redacted, prefilled GitHub issue.
+  logged, a Doctor that checks what the app needs and says how to fix it, and Help → Report a Problem
+  to open a redacted, prefilled GitHub issue.
 - **Six languages:** English, Spanish, Portuguese, French, Italian and German.
 - **Local first.** No telemetry. The only automatic network call is a once-a-day release check you
   can turn off.
@@ -80,7 +83,7 @@ The user guide lives on the website, [exampleapp-project.dev/docs](https://examp
 and Help → Documentation opens the page for the version you run:
 
 - [Getting started](https://exampleapp-project.dev/docs/getting-started/): install, first launch, the first thing to do
-- [Keyboard reference](https://exampleapp-project.dev/docs/keymaps/): every command and its keys, CUA and Emacs
+- [Keyboard reference](https://exampleapp-project.dev/docs/keymaps/): every command and its keys, in every keymap
 - [Settings](https://exampleapp-project.dev/docs/settings/): every setting, the config folder, Settings Sync
 - [FAQ](https://exampleapp-project.dev/docs/faq/) and [What's new](https://exampleapp-project.dev/docs/whats-new/)
 
@@ -128,7 +131,7 @@ exampleapp [options] [files...]
       --config-dir DIR  Use DIR as the config folder (default ~/.exampleapp)
       --dev             Use ~/.exampleapp-dev, so a development build keeps its own config
       --new-instance    Start a second process instead of handing off to the running one
-      --no-session      Do not restore the last window size and position
+      --no-session      Start afresh: no documents or window position from the last session
       --report          Write a redacted problem report and open a GitHub issue
 ```
 
@@ -142,6 +145,7 @@ names another folder, in that order:
 | File | What |
 |---|---|
 | `settings.json` | Preferences, with a `schemaVersion`; migrated forward on upgrade, backed up when a newer version wrote it |
+| `session.json` | The window's size and place and the documents that were open, apart from your preferences |
 | `exampleapp-session.log` | This session's Debug Log; the previous one is `exampleapp-session.prev.log` |
 | `sync/` | The Settings Sync clone, when sync is set up |
 
