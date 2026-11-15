@@ -10,6 +10,11 @@ one-line summary written for users.
 
 ### Added
 
+- **The README shows the real window,** in the light and the dark theme, rendered at 2× by
+  `scripts/screenshots.sh` from the app itself with no display; run it again after a UI change (Pauta
+  DOCS-18). The README's highlights now name every keymap, the high-contrast theme, the zooms, the
+  restored documents and the Doctor, and its config folder table lists `session.json`.
+
 - **The documents you had open come back.** Quitting remembers the open documents and the selected one, and
   the next start opens them again; `--no-session` starts with the Welcome page and leaves them for next time
   (Pauta WIN-08, CLI-04). The window's place and what was open live in `session.json`, apart from your
@@ -197,6 +202,8 @@ one-line summary written for users.
 
 ### Fixed
 
+- **`--help` says what `--no-session` does:** it starts afresh, with none of the last session's documents
+  or window position, and leaves them for next time (Pauta CLI-04).
 - **git and gh are found from your login shell's PATH** on macOS and Linux, so an app opened from the Finder
   finds Homebrew's tools (Pauta CLI-10).
 - **Faster to start and to type in the palette:** release builds carry precompiled stylesheets, and the
