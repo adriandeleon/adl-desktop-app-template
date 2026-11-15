@@ -122,6 +122,10 @@ one-line summary written for users.
 
 ### Changed
 
+- **ExampleApp is built to Pauta 6.1.0,** and is still Complete. The minor edition makes MENU-14 (an icon on
+  every menu row) a MAY, which the template still meets on every row, and moves the feature matrix, shared
+  features and gaps per app to an appendix outside the editions; the copy of the edition's rules is 6.1.0's,
+  and the `pauta-audit` skill is 6.1.0's.
 - **ExampleApp is built to Pauta 6.0.1,** and is still Complete. The patch edition rewords one MAY, WIN-10
   (an Expert mode now keeps only the status bar), which the template does not have; the copy of the
   edition's rules is 6.0.1's, and the `pauta-audit` skill is unchanged.

@@ -292,7 +292,7 @@ Replace any earlier report: it is a snapshot, regenerated rather than edited by 
   "results": [
     { "id": "KBD-07", "level": "MUST", "status": "pass", "evidence": "src/main/java/com/example/app/ui/CommandPalette.java:57" },
     { "id": "SET-02", "level": "MUST", "status": "manual", "evidence": "Open Settings and find the sidebar of pages, the open page and the search field: src/main/java/com/example/app/ui/SettingsWindow.java:120", "checked": { "edition": "<edition>", "date": "2026-11-02" } },
-    { "id": "MENU-14", "level": "MUST", "status": "pending", "evidence": "Some menu rows have no icon yet." },
+    { "id": "MENU-15", "level": "MUST", "status": "pending", "evidence": "Some right-click menus show no chord yet." },
     { "id": "PWIN-02", "level": "MUST", "status": "manual", "evidence": "Open the Pauta window and compare it with pauta.json, entry by entry: src/main/java/com/example/app/ui/PautaWindow.java:55; not recorded" },
     { "id": "TRAY-01", "level": "MUST", "status": "limited", "evidence": "no tray: no SystemTray or TrayIcon in src/" },
     { "id": "PAUTA-13", "level": "MUST", "status": "not-checked", "evidence": "needs the website's repository (example-website, not checked out beside the app): its src/content/docs/ has a Pauta conformance page that lists the rules of pauta.json" }

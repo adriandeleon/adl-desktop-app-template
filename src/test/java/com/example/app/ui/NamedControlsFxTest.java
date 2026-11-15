@@ -170,7 +170,7 @@ class NamedControlsFxTest {
 
     /**
      * Every row of every menu the app draws reads as its title (and chord), ACC-01, and wears its command's
-     * glyph in the icon column, MENU-14.
+     * glyph in the icon column: MENU-14, a MAY since Pauta 6.1.0, which the template meets on every row.
      */
     @Test
     void everyMenuRowReadsAsItsTitleAndWearsAGlyph() throws Exception {
@@ -207,7 +207,7 @@ class NamedControlsFxTest {
                 item instanceof CustomMenuItem custom ? custom.getContent().getAccessibleText() : item.getText());
         if (name == null || name.isBlank()) unnamed.add(where + ": " + item.getId());
         if (!drawn) return;
-        // MENU-14: the icon column holds a glyph, never an empty slot.
+        // MENU-14 (a MAY): the template gives every row its command's glyph, so the column holds no empty slot.
         boolean glyph = call(() -> item instanceof CustomMenuItem custom
                 ? custom.getContent() instanceof Parent row
                         && !row.getChildrenUnmodifiable().isEmpty()

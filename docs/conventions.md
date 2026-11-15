@@ -81,7 +81,9 @@ Do not suppress a report.
   the app as each OS.
 - Every control a person can reach has a name a screen reader says: its text, a row title's `labelFor`
   (`SettingsWindow.addRow` sets it), or `setAccessibleText` (`NamedControlsFxTest`, ACC-01). Every menu
-  row wears its command's glyph (`Icons.forCommand`): a new command a menu lists gets one (MENU-14).
+  row wears a glyph that depicts it, its command's (`Icons.forCommand`), and a new command a menu lists
+  gets one. MENU-14 is a MAY since Pauta 6.1.0: an app made from the template may leave a row with no
+  fitting glyph bare (and drop that check from `NamedControlsFxTest`), but never borrow another command's.
 - Sizes in code are bound to the UI zoom (`UiZoom.bind(property, px)`), never set in plain pixels; the
   stylesheet's pixel sizes scale on their own (WIN-12).
 
