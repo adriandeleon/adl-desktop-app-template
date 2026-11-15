@@ -45,7 +45,7 @@
 | `MigrationsTest`, `SyncTest#theSyncFilesCarryAVersionAndAnOldBareFileIsMigrated` | Every schema version of `settings.json` and of Settings Sync's files has a migration step |
 | `StartupDeferralFxTest` | The start's file work runs off the FX thread; nothing nobody waits for, Settings Sync included, starts before the first paint |
 | `LogSearchTest`, `FindBarFxTest` | Every find bar (the documents', the Output's, the Debug Log's) is in its window, searches as you type off the FX thread, applies only its latest search, narrows a growing query without searching again, steps with Enter and Shift+Enter, and gives the focus back on Escape; its command, run again, finds the next match, and every keymap binds `find.show` |
-| `NamedControlsFxTest` | Every control in every window and dialog, every Settings page and the palette has a name a screen reader says, and every menu row reads as its title and wears a glyph (ACC-01, MENU-14) |
+| `NamedControlsFxTest` | Every control in every window and dialog, every Settings page and the palette has a name a screen reader says, and every menu row reads as its title and wears a glyph (ACC-01; MENU-14, a MAY the template meets on every row) |
 | `SameOnEveryOsFxTest`, `OsTest` | Run as Windows, macOS and Linux through `Os.override`, the app has the same commands, menu rows and Settings (OS-01, OS-03); `Os` is the one reader of `os.name` (OS-02) |
 | `UiZoomTest`, `MenuLookFxTest#theUiZoomScalesEveryMenu` | The UI zoom's steps and range, the stylesheets it scales, and every menu at the zoomed size (WIN-12, MENU-16) |
 | `DialogsFxTest` | Cancel is the confirm question's default; every dialog has one button order with Cancel first and its stock buttons worded from the catalog (CONF-13, WIN-11, CONF-14) |
