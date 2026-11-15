@@ -73,10 +73,10 @@ None.
 |----|-------|--------|----------|------|
 | PAUTA-13 | MUST | app-only | pauta.json: Each app's user guide has its own page listing its conformance and exceptions. | https://pauta-project.dev/6.1.0/conformance/#pauta-13 |
 | PAUTA-14 | SHOULD | app-only | pauta.json: Each app's website makes its conformance page from the app's own list of exceptions. | https://pauta-project.dev/6.1.0/conformance/#pauta-14 |
-| REPO-01 | MUST | app-only | pauta.json: Each app's README shows its own screenshots; the template's are placeholders. | https://pauta-project.dev/6.1.0/repository/#repo-01 |
+| REPO-01 | MUST | app-only | pauta.json: Each app's README shows its own screenshots; the template's show the template, so an app retakes them from its own window. | https://pauta-project.dev/6.1.0/repository/#repo-01 |
 | DOCS-01 | MUST | app-only | pauta.json: The user guide lives on each app's own website, which a template does not have. | https://pauta-project.dev/6.1.0/documentation/#docs-01 |
 | DOCS-02 | MUST | app-only | pauta.json: The user guide's pages under /docs/ belong to each app's own website. | https://pauta-project.dev/6.1.0/documentation/#docs-02 |
 | DOCS-03 | SHOULD | app-only | pauta.json: Each app's website serves its own user guide for each version. | https://pauta-project.dev/6.1.0/documentation/#docs-03 |
 | DOCS-04 | SHOULD | app-only | pauta.json: Each app's website makes its own command and settings pages and What's new from the app. | https://pauta-project.dev/6.1.0/documentation/#docs-04 |
-| DOCS-18 | SHOULD | app-only | pauta.json: Each app captures its own screenshots from itself; the template's are placeholders. | https://pauta-project.dev/6.1.0/documentation/#docs-18 |
+| DOCS-18 | SHOULD | app-only | pauta.json: Each app retakes its README's and its website's screenshots from its own window; the template has no website, and its screenshots show only the template. | https://pauta-project.dev/6.1.0/documentation/#docs-18 |
 | REL-19 | MUST | app-only | pauta.json: Each app's repository requires its own format and test checks before a change is merged. | https://pauta-project.dev/6.1.0/release/#rel-19 |

@@ -34,7 +34,7 @@
       "level": "MUST",
       "url": "https://pauta-project.dev/6.1.0/repository/#repo-01",
       "kind": "app-only",
-      "reason": "Each app's README shows its own screenshots; the template's are placeholders."
+      "reason": "Each app's README shows its own screenshots; the template's show the template, so an app retakes them from its own window."
     },
     {
       "rule": "DOCS-03",
@@ -55,7 +55,7 @@
       "level": "SHOULD",
       "url": "https://pauta-project.dev/6.1.0/documentation/#docs-18",
       "kind": "app-only",
-      "reason": "Each app captures its own screenshots from itself; the template's are placeholders."
+      "reason": "Each app retakes its README's and its website's screenshots from its own window; the template has no website, and its screenshots show only the template."
     },
     {
       "rule": "PAUTA-14",
