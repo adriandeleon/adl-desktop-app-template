@@ -154,19 +154,32 @@ public final class Icons {
 
     public static final String FIND_PREVIOUS = "M2 12h7M2 8.5h5M12 13V4M9.5 6.5L12 4l2.5 2.5";
 
-    /** General settings: three sliders. */
-    public static final String SLIDERS = "M2 4.5h12M2 8h12M2 11.5h12M5 3v3M10.5 6.5v3M7 10v3";
+    /**
+     * Settings: Editora's cog, a toothed outline (8 teeth, a 32-point polygon) round a hub. Toothed, not rays:
+     * a circle with rays is the sun, and reads as a theme toggle.
+     */
+    public static final String COG =
+            "M6.16 3.57L6.63 1.54L9.37 1.54L9.84 3.57L11.59 2.46L13.54 4.41L12.43 6.16L14.46 6.63L14.46 9.37"
+                    + "L12.43 9.84L13.54 11.59L11.59 13.54L9.84 12.43L9.37 14.46L6.63 14.46L6.16 12.43L4.41 13.54"
+                    + "L2.46 11.59L3.57 9.84L1.54 9.37L1.54 6.63L3.57 6.16L2.46 4.41L4.41 2.46Z"
+                    + "M5.5 8a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0";
 
-    /** Theme: a circle, one half ruled. */
-    public static final String CONTRAST = "M2 8a6 6 0 1 0 12 0a6 6 0 1 0 -12 0M8 2v12M8 4.6h4.4M8 8h6M8 11.4h4.4";
+    /** Theme: Editora's Appearance glyph, a painter's palette and its paint (dots by round caps). */
+    public static final String APPEARANCE =
+            "M8 1.8C4.5 1.8 1.8 4.4 1.8 7.8c0 3.3 2.7 6.4 6 6.4 1.1 0 1.7-.6 1.7-1.4 0-.9-.8-1.2-.8-2"
+                    + " 0-.7.6-1.2 1.4-1.2h1.4c1.7 0 2.7-1.1 2.7-2.7 0-2.9-2.8-5.1-6.2-5.1z"
+                    + "M4.9 7.6h.25M6.8 4.8h.25M9.9 4.8h.25M11.7 7.3h.25";
 
-    /** Keymap: a keyboard, its keys as dots (round caps) and a space bar. */
+    /**
+     * The Command Palette and the Keymap: Editora's keyboard, its keys as dots (round caps) and a space bar.
+     * Editora draws both with it, the palette on its toolbar and Keymaps in its Settings sidebar.
+     */
     public static final String KEYBOARD =
             "M1.75 4.25H14.25V11.75H1.75ZM4.25 6.75H4.5M7 6.75H7.25M9.75 6.75H10M12 6.75H12.25M5 9.25H11";
 
-    /** Sync: two arrows chasing each other round a circle. */
+    /** Sync: Editora's two arrows chasing each other round a circle. */
     public static final String SYNC =
-            "M12.7 6.3A5 5 0 0 0 3.5 5.5M3.3 2.8v2.9h2.9M3.3 9.7A5 5 0 0 0 12.5 10.5M12.7 13.2v-2.9h-2.9";
+            "M13.2 6.6A5.4 5.4 0 0 0 3.3 5.2M2.8 9.4a5.4 5.4 0 0 0 9.9 1.4M3.1 2.6v2.8h2.8M12.9 13.4v-2.8h-2.8";
 
     /** The config folder. */
     public static final String FOLDER = "M1.5 3.5h4.2l1.5 2h7.3v7H1.5z";
@@ -185,9 +198,6 @@ public final class Icons {
 
     /** The Message Log: a speech bubble. */
     public static final String MESSAGES = "M2.5 3h11v7.5H7.2L4.5 13v-2.5h-2zM5 5.8h6M5 7.9h4";
-
-    /** The Command Palette: a prompt in a box. */
-    public static final String PALETTE = "M1.75 2.75H14.25V13.25H1.75ZM4.5 6.25L6.5 8L4.5 9.75M8.5 9.75H11.5";
 
     /** Toggle Toolbar: a window whose top row is a bar of buttons. */
     public static final String TOOLBAR =
@@ -280,9 +290,9 @@ public final class Icons {
      * none: a near miss teaches the wrong meaning.
      */
     private static final Map<String, String> BY_COMMAND = Map.ofEntries(
-            Map.entry("palette.show", PALETTE),
-            Map.entry("app.settings", SLIDERS),
-            Map.entry("settings.theme", CONTRAST),
+            Map.entry("palette.show", KEYBOARD),
+            Map.entry("app.settings", COG),
+            Map.entry("settings.theme", APPEARANCE),
             Map.entry("settings.keymap", KEYBOARD),
             Map.entry("sync.setup", SYNC),
             Map.entry("sync.now", SYNC),

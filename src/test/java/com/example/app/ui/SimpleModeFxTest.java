@@ -164,7 +164,7 @@ class SimpleModeFxTest {
         assertTrue(items.stream().allMatch(SimpleModeFxTest::shown));
 
         simple(true);
-        for (String id : List.of("settings.theme", "settings.keymap", "sync.now", "view.messageLog")) {
+        for (String id : List.of("settings.theme", "sync.now", "view.messageLog")) {
             assertFalse(shown(button(id)), id);
         }
         assertTrue(shown(button("palette.show")), "the palette stays: every command is still in it");

@@ -54,8 +54,8 @@ class IconsTest {
         for (SettingsWindow.Page page : SettingsWindow.Page.values()) {
             assertNotNull(Icons.forCommand(page.command), page + " has no glyph");
         }
-        assertEquals(Icons.SLIDERS, Icons.forCommand(SettingsWindow.Page.GENERAL.command));
-        assertEquals(Icons.CONTRAST, Icons.forCommand(SettingsWindow.Page.APPEARANCE.command));
+        assertEquals(Icons.COG, Icons.forCommand(SettingsWindow.Page.GENERAL.command));
+        assertEquals(Icons.APPEARANCE, Icons.forCommand(SettingsWindow.Page.APPEARANCE.command));
         assertEquals(Icons.KEYBOARD, Icons.forCommand(SettingsWindow.Page.KEYMAP.command));
         assertEquals(Icons.SYNC, Icons.forCommand(SettingsWindow.Page.SYNC.command));
         assertEquals(Icons.FOLDER, Icons.forCommand(SettingsWindow.Page.ADVANCED.command));
