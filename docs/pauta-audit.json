@@ -1,7 +1,7 @@
 {
   "$schema": "https://pauta-project.dev/6.1.0/audit.schema.json",
   "app": "ExampleApp",
-  "commit": "f67183c",
+  "commit": "603a515",
   "edition": "6.1.0",
   "date": "2026-11-15",
   "scope": [],
@@ -107,7 +107,7 @@
       "id": "PAUTA-11",
       "level": "SHOULD",
       "status": "manual",
-      "evidence": "The change raising pauta.version (pom.xml:34, uncommitted) also replaces src/test/resources/pauta-rules.json (identical to 6.1.0 rules.json) and .claude/skills/pauta-audit/SKILL.md (identical to the 6.1.0 skill), touches pauta.json, README.md and AGENTS.md, and leaves no checked entry; confirm it lands as one change ; not recorded"
+      "evidence": "The change raising pauta.version (pom.xml:34; template PR 45, c16a51f) also replaces src/test/resources/pauta-rules.json (identical to 6.1.0 rules.json) and .claude/skills/pauta-audit/SKILL.md (identical to the 6.1.0 skill), touches pauta.json, README.md and AGENTS.md, and leaves no checked entry; confirm it landed as one change ; not recorded"
     },
     {
       "id": "PAUTA-13",
@@ -671,7 +671,7 @@
       "id": "KBD-15",
       "level": "MUST",
       "status": "manual",
-      "evidence": "Tab through every window and dialog and work each control with Space/Enter. Source finds no mouse-only control: toolbar buttons (Icons.java:434-437), tool-window header buttons (ToolWindowManager.java:890-905) and the status bar's update link (StatusBar.java:62-64) run commands; status labels run view.messageLog (StatusBar.java:23-24,59-61); find-bar buttons (FindBar.java:95-104) per FIND-16; picker list driven from its field (Picker.java:119-122) ; not recorded"
+      "evidence": "Tab through every window and dialog and work each control with Space/Enter. Source finds no mouse-only control: toolbar buttons (Icons.java:443-446), tool-window header buttons (ToolWindowManager.java:890-905) and the status bar's update link (StatusBar.java:62-64) run commands; status labels run view.messageLog (StatusBar.java:23-24,59-61); find-bar buttons (FindBar.java:95-104) per FIND-16; picker list driven from its field (Picker.java:119-122) ; not recorded"
     },
     {
       "id": "KBD-16",
@@ -917,19 +917,19 @@
       "id": "ICON-19",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Icons.java:402-415,481-485: line() adds icon-line alone, of() toolbar-icon alone, and no other code adds a family class; held by IconsTest.java:32."
+      "evidence": "src/main/java/com/example/app/ui/Icons.java:411-424,490-494: line() adds icon-line alone, of() toolbar-icon alone, and no other code adds a family class; held by IconsTest.java:33."
     },
     {
       "id": "ICON-20",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Icons.java:292-373: one lookup keyed by command id serves the menu bar, right-click menus, toolbar and panel headers (AppMenus.java:244, AppToolbar.java:135, ToolWindowManager.java:869); stripes use the same constants (MainWindow.java:124-133); held by IconsTest.java:46."
+      "evidence": "src/main/java/com/example/app/ui/Icons.java:301-382: one lookup keyed by command id serves the menu bar, right-click menus, toolbar and panel headers (AppMenus.java:244, AppToolbar.java:135, ToolWindowManager.java:869); stripes use the same constants (MainWindow.java:124-133); held by IconsTest.java:47."
     },
     {
       "id": "ICON-23",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "Icons.forFileName (Icons.java:121-128) is pure, unknown types get FILE; IconsTest.java:84-92 (no toolkit) asserts it; used by SamplePanels.java:67 and TabHeaders.java:60."
+      "evidence": "Icons.forFileName (Icons.java:121-128) is pure, unknown types get FILE; IconsTest.java:101-109 (no toolkit) asserts it; used by SamplePanels.java:67 and TabHeaders.java:60."
     },
     {
       "id": "ICON-24",
@@ -941,7 +941,7 @@
       "id": "TBAR-01",
       "level": "MUST",
       "status": "pass",
-      "evidence": "Icons.button/toolbarButton name every icon-only button through Icons.name or bindName, tooltip and accessible text from one string (Icons.java:417-468); ToolWindowManager.java:902-904 binds the chord into both."
+      "evidence": "Icons.button/toolbarButton name every icon-only button through Icons.name or bindName, tooltip and accessible text from one string (Icons.java:426-477); ToolWindowManager.java:902-904 binds the chord into both."
     },
     {
       "id": "TBAR-03",
@@ -953,7 +953,7 @@
       "id": "TBAR-14",
       "level": "SHOULD",
       "status": "pass",
-      "evidence": "One factory sets 400 ms on every tooltip it makes (src/main/java/com/example/app/ui/Icons.java:382,446-450,460-464; src/main/java/com/example/app/ui/TabHeaders.java:93-97), and the stylesheet sets -fx-show-delay: 400ms on .tooltip (src/main/resources/com/example/app/styles/app.css:419-422), which covers the two tooltips made outside the factory (src/main/java/com/example/app/ui/Picker.java:240, src/main/java/com/example/app/ui/SettingsWindow.java:393-397). AppToolbarFxTest.java:124 asserts the delay."
+      "evidence": "One factory sets 400 ms on every tooltip it makes (src/main/java/com/example/app/ui/Icons.java:391,455-459,469-473; src/main/java/com/example/app/ui/TabHeaders.java:93-97), and the stylesheet sets -fx-show-delay: 400ms on .tooltip (src/main/resources/com/example/app/styles/app.css:419-422), which covers the two tooltips made outside the factory (src/main/java/com/example/app/ui/Picker.java:240, src/main/java/com/example/app/ui/SettingsWindow.java:393-397). AppToolbarFxTest.java:124 asserts the delay."
     },
     {
       "id": "TBAR-06",
@@ -965,7 +965,7 @@
       "id": "TBAR-02",
       "level": "MUST",
       "status": "pass",
-      "evidence": "src/main/java/com/example/app/ui/Icons.java:434-438 toolbarButton sets setFocusTraversable(false) for the main toolbar and stripes; panel header buttons ToolWindowManager.java:901."
+      "evidence": "src/main/java/com/example/app/ui/Icons.java:443-447 toolbarButton sets setFocusTraversable(false) for the main toolbar and stripes; panel header buttons ToolWindowManager.java:901."
     },
     {
       "id": "TBAR-04",
@@ -1169,7 +1169,7 @@
       "id": "MENU-14",
       "level": "MAY",
       "status": "pass",
-      "evidence": "Every row of the menus the app draws wears its own command's glyph from the lookup the toolbar and the palette use (BY_COMMAND in src/main/java/com/example/app/ui/Icons.java:292-373; inWindowRow in ui/AppMenus.java); a glyph two rows share is the same action or thing (COPY, CLEAR, FIND, EXPORT, BIND_KEY, SYNC, KEYBOARD: the Command Palette, Keymap and Keyboard Shortcuts all wear Editora's keyboard), never another command's; NamedControlsFxTest.everyMenuRowReadsAsItsTitleAndWearsAGlyph holds it."
+      "evidence": "Every row of the menus the app draws wears its own command's glyph from the lookup the toolbar and the palette use (BY_COMMAND in src/main/java/com/example/app/ui/Icons.java:301-382; inWindowRow in ui/AppMenus.java); a glyph two rows share is the same action or thing (COPY, CLEAR, FIND, EXPORT, BIND_KEY, SYNC, KEYCAP: Keymap and Keyboard Shortcuts are both the key bindings), never another command's: the Command Palette's keyboard, Editora's, is its own (IconsTest.thePaletteBorrowsNoOtherCommandsGlyph); NamedControlsFxTest.everyMenuRowReadsAsItsTitleAndWearsAGlyph holds it."
     },
     {
       "id": "MENU-15",

@@ -51,7 +51,8 @@ one-line summary written for users.
 - **A console launcher on Windows,** `exampleapp-cli`, so `--help`, `--version` and `--report` print in the
   console they were typed in (Pauta CLI-11). `-V` works as `--version` (CLI-13).
 - **Every menu row has an icon,** drawn for the commands that had none (Pauta MENU-14), and a file's icon
-  follows its type (ICON-23).
+  follows its type (ICON-23). No row borrows another command's: the Command Palette wears Editora's
+  keyboard, and Keymap and Keyboard Shortcuts, the key bindings, a keycap of their own.
 - **A Command Palette that finds and runs every command.** `Ctrl/Cmd+Shift+P`, or `M-x` in the Emacs
   keymap; unavailable commands are listed grayed with the reason.
 - **CUA and Emacs keymaps, with your own bindings on top.** Edit any binding in Settings → Keymap.
