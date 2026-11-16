@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -56,9 +57,25 @@ class IconsTest {
         }
         assertEquals(Icons.COG, Icons.forCommand(SettingsWindow.Page.GENERAL.command));
         assertEquals(Icons.APPEARANCE, Icons.forCommand(SettingsWindow.Page.APPEARANCE.command));
-        assertEquals(Icons.KEYBOARD, Icons.forCommand(SettingsWindow.Page.KEYMAP.command));
+        assertEquals(Icons.KEYCAP, Icons.forCommand(SettingsWindow.Page.KEYMAP.command));
         assertEquals(Icons.SYNC, Icons.forCommand(SettingsWindow.Page.SYNC.command));
         assertEquals(Icons.FOLDER, Icons.forCommand(SettingsWindow.Page.ADVANCED.command));
+    }
+
+    /**
+     * MENU-14: the Command Palette borrows no other command's glyph. Keymap and Keyboard Shortcuts are one thing,
+     * the key bindings, and share theirs; the palette's keyboard is its own.
+     */
+    @Test
+    void thePaletteBorrowsNoOtherCommandsGlyph() {
+        assertEquals(Icons.KEYBOARD, Icons.forCommand("palette.show"));
+        assertEquals(Icons.KEYCAP, Icons.forCommand("settings.keymap"));
+        assertEquals(Icons.KEYCAP, Icons.forCommand("help.keyboardShortcuts"));
+        for (Map.Entry<String, String> glyph : Icons.commandGlyphs().entrySet()) {
+            if (!glyph.getKey().equals("palette.show")) {
+                assertNotEquals(Icons.KEYBOARD, glyph.getValue(), glyph.getKey() + " wears the palette's glyph");
+            }
+        }
     }
 
     /** A command no menu lists, or no such command, draws none. */

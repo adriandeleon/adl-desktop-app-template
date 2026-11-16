@@ -171,11 +171,20 @@ public final class Icons {
                     + "M4.9 7.6h.25M6.8 4.8h.25M9.9 4.8h.25M11.7 7.3h.25";
 
     /**
-     * The Command Palette and the Keymap: Editora's keyboard, its keys as dots (round caps) and a space bar.
-     * Editora draws both with it, the palette on its toolbar and Keymaps in its Settings sidebar.
+     * The Command Palette: Editora's keyboard, its keys as dots (round caps) and a space bar, the surface that
+     * answers "what can this do". The palette's alone: Editora's Keymaps page borrows it, but a row that
+     * borrows another command's glyph teaches the wrong meaning (Pauta MENU-14), so the key bindings wear
+     * {@link #KEYCAP}.
      */
     public static final String KEYBOARD =
             "M1.75 4.25H14.25V11.75H1.75ZM4.25 6.75H4.5M7 6.75H7.25M9.75 6.75H10M12 6.75H12.25M5 9.25H11";
+
+    /**
+     * The key bindings, Keymap and Keyboard Shortcuts: one keycap from above, its top face set high and joined
+     * to the base by four bevels.
+     */
+    public static final String KEYCAP = "M2.25 2.25H13.75V13.75H2.25ZM4.25 3.75H11.75V10.25H4.25Z"
+            + "M2.25 2.25L4.25 3.75M13.75 2.25L11.75 3.75M2.25 13.75L4.25 10.25M13.75 13.75L11.75 10.25";
 
     /** Sync: Editora's two arrows chasing each other round a circle. */
     public static final String SYNC =
@@ -293,7 +302,7 @@ public final class Icons {
             Map.entry("palette.show", KEYBOARD),
             Map.entry("app.settings", COG),
             Map.entry("settings.theme", APPEARANCE),
-            Map.entry("settings.keymap", KEYBOARD),
+            Map.entry("settings.keymap", KEYCAP),
             Map.entry("sync.setup", SYNC),
             Map.entry("sync.now", SYNC),
             Map.entry("config.openFolder", FOLDER),
@@ -327,7 +336,7 @@ public final class Icons {
             Map.entry("output.runSample", RUN),
             Map.entry("app.quit", QUIT),
             Map.entry("help.doctor", PULSE),
-            Map.entry("help.keyboardShortcuts", KEYBOARD),
+            Map.entry("help.keyboardShortcuts", KEYCAP),
             Map.entry("debugLog.refresh", REFRESH),
             Map.entry("debugLog.copy", COPY),
             Map.entry("debugLog.clear", CLEAR),
