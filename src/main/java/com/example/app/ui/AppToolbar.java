@@ -62,7 +62,7 @@ final class AppToolbar {
 
     /** The icon cluster, in groups; {@code null} is a group gap. */
     static final List<@Nullable String> CLUSTER = Collections.unmodifiableList(Arrays.<@Nullable String>asList(
-            "palette.show", null, "settings.theme", "settings.keymap", null, "sync.now", "view.messageLog"));
+            "palette.show", null, "settings.theme", null, "sync.now", "view.messageLog"));
 
     /** The Simple mode toggle: the way into the mode and, lit, the way back out. */
     static final String SIMPLE_TOGGLE = "view.toggleSimpleMode";
@@ -73,7 +73,7 @@ final class AppToolbar {
     /** The blank before the tail's pair, Pauta's tail gap (TBAR-16); a gap, never a separator. */
     static final double TAIL_GAP = 40;
 
-    /** The groups Simple mode hides, each named by one of its commands: Theme and Keymap, Sync and the log. */
+    /** The groups Simple mode hides, each named by one of its commands: Theme, Sync and the log. */
     static final List<String> SIMPLE_HIDES = List.of("settings.theme", "sync.now");
 
     /** The bar's right-click menu: its commands (MENU-05), one menu reused (TBAR-10). */

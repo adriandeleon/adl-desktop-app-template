@@ -101,7 +101,6 @@ class AppToolbarFxTest {
                         "toolbar-palette.show",
                         "|",
                         "toolbar-settings.theme",
-                        "toolbar-settings.keymap",
                         "|",
                         "toolbar-sync.now",
                         "toolbar-view.messageLog"),
@@ -210,8 +209,10 @@ class AppToolbarFxTest {
                 .filter(n -> n instanceof Separator)
                 .map(n -> (Separator) n)
                 .toList());
+        run(() -> toolbar.setGroupVisible("sync.now", false));
+        assertFalse(button("view.messageLog").isVisible(), "the whole group goes");
+        run(() -> toolbar.setGroupVisible("sync.now", true));
         run(() -> toolbar.setGroupVisible("settings.theme", false));
-        assertFalse(button("settings.keymap").isVisible(), "the whole group goes");
         assertEquals(1, gaps.stream().filter(Node::isVisible).count(), "two gaps side by side become one");
         run(() -> toolbar.setGroupVisible("palette.show", false));
         assertEquals(0, gaps.stream().filter(Node::isVisible).count(), "no gap leads the bar");
