@@ -1,6 +1,6 @@
 # Pauta audit
 
-ExampleApp at f67183c, audited against [Pauta 6.1.0](https://pauta-project.dev/6.1.0/) on 2026-11-15. Scope: every rule. Rules from https://pauta-project.dev/6.1.0/rules.json.
+ExampleApp at 603a515, audited against [Pauta 6.1.0](https://pauta-project.dev/6.1.0/) on 2026-11-15. Scope: every rule. Rules from https://pauta-project.dev/6.1.0/rules.json.
 
 |        | pass | fail | manual | not-checked | pending | deviation | not-applicable | app-only | limited |
 |--------|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|
