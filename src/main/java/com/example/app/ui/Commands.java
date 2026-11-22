@@ -3,7 +3,6 @@ package com.example.app.ui;
 import com.example.app.AppInfo;
 import com.example.app.command.Command;
 import com.example.app.command.CommandRegistry;
-import com.example.app.i18n.Messages;
 
 /**
  * Every command the starter registers, in one place. Each needs {@code command.<id>} and
@@ -24,28 +23,6 @@ final class Commands {
         r.register("messageLog.copy", window::copyMessageLog);
         r.register("messageLog.clear", window::clearMessageLog);
         r.register("help.doctor", window::openDoctor); // DIAG-07
-        // The window's regions, in turn (ACC-06): the documents and each open tool window.
-        r.register("window.focusNextRegion", () -> window.toolWindows().focusRegion(1));
-        r.register("window.focusPreviousRegion", () -> window.toolWindows().focusRegion(-1));
-        // The documents' text zoom (WIN-09), Ctrl/Cmd+=, - and 0; kept across launches as a setting.
-        r.register(
-                "view.zoomIn",
-                () -> zoomText(services, services.settings().textZoom + TEXT_ZOOM_STEP),
-                () -> services.settings().textZoom >= com.example.app.config.Settings.MAX_TEXT_ZOOM
-                        ? Messages.tr("palette.disabled.textZoomLargest")
-                        : null);
-        r.register(
-                "view.zoomOut",
-                () -> zoomText(services, services.settings().textZoom - TEXT_ZOOM_STEP),
-                () -> services.settings().textZoom <= com.example.app.config.Settings.MIN_TEXT_ZOOM
-                        ? Messages.tr("palette.disabled.textZoomSmallest")
-                        : null);
-        r.register(
-                "view.zoomReset",
-                () -> zoomText(services, com.example.app.config.Settings.DEFAULT_TEXT_ZOOM),
-                () -> services.settings().textZoom == com.example.app.config.Settings.DEFAULT_TEXT_ZOOM
-                        ? Messages.tr("palette.disabled.textZoomDefault")
-                        : null);
         // The UI zoom (WIN-12): three commands, kept across launches through the setting.
         r.register(
                 "view.uiZoomIn",
@@ -66,11 +43,7 @@ final class Commands {
                     services.echo("status.titleBarRestart");
                 },
                 window::titleBarMenusUnavailable);
-        r.register("view.toggleToolbar", () -> {
-            services.store().update(s -> s.showToolbar = !s.showToolbar);
-            services.echo(services.settings().showToolbar ? "status.toolbarOn" : "status.toolbarOff");
-        });
-        // Simple mode: a setting with its own command, the toolbar's toggle and a View menu row in both menus.
+        // Simple mode: a setting with its own command and a View menu row in both menus.
         r.register("view.toggleSimpleMode", () -> {
             services.store().update(s -> s.simpleMode = !s.simpleMode);
             services.echo(services.settings().simpleMode ? "status.simpleModeOn" : "status.simpleModeOff");
@@ -80,13 +53,7 @@ final class Commands {
             services.echo(services.settings().showStatusBar ? "status.statusBarOn" : "status.statusBarOff");
         });
 
-        r.register("view.toggleTabBar", () -> {
-            services.store().update(s -> s.showTabBar = !s.showTabBar);
-            services.echo(services.settings().showTabBar ? "status.tabBarOn" : "status.tabBarOff");
-        });
-
-        registerTabs(window, r);
-        registerToolWindows(window, r);
+        registerEditing(window, r);
 
         r.register("settings.theme", window::chooseTheme);
         r.register("settings.keymap", window::chooseKeymap);
@@ -183,169 +150,13 @@ final class Commands {
         r.register("help.reportProblem", window::openReportProblem);
     }
 
-    /**
-     * Every tab operation is a command (TABS-01): bound to a chord, in the palette, a row in the Window menu,
-     * and the per-tab ones on the tab's right-click menu ({@link TabContextMenu}). Each acts on the selected
-     * tab. The ids are Editora's.
-     */
-    /** One step of the text zoom, in percent. */
-    static final int TEXT_ZOOM_STEP = 10;
-
-    private static void zoomText(AppServices services, int percent) {
-        int clamped = com.example.app.config.Settings.clampTextZoom(percent);
-        services.store().update(s -> s.textZoom = clamped);
-        services.echo("status.textZoom", clamped);
-    }
-
     private static void zoomUi(AppServices services, int percent) {
         services.store().update(s -> s.uiZoom = percent);
         services.echo("status.uiZoom", percent);
     }
 
-    private static void registerTabs(MainWindow window, CommandRegistry r) {
-        r.register(
-                "buffer.close",
-                () -> window.onSelectedTab(t -> window.tabs().closeTab(t)),
-                () -> window.tabs().closeUnavailable());
-        for (String id : java.util.List.of(
-                "buffer.closeOthers",
-                "buffer.closeAll",
-                "buffer.closeUnmodified",
-                "buffer.closeLeft",
-                "buffer.closeRight")) {
-            r.register(
-                    id,
-                    () -> window.onSelectedTab(t -> {
-                        switch (id) {
-                            case "buffer.closeOthers" -> window.tabs().closeOtherTabs(t);
-                            case "buffer.closeAll" -> window.tabs().closeAllTabs();
-                            case "buffer.closeUnmodified" -> window.tabs().closeUnmodifiedTabs();
-                            case "buffer.closeLeft" -> window.tabs().closeTabsToLeft(t);
-                            default -> window.tabs().closeTabsToRight(t);
-                        }
-                    }),
-                    () -> window.tabs().nothingToClose(id));
-        }
-        r.register(
-                "buffer.togglePin",
-                () -> window.onSelectedTab(t -> window.tabs().togglePin(t)),
-                () -> window.tabs().closeUnavailable());
-        r.register(
-                "buffer.reopenClosed",
-                () -> window.tabs().reopenClosed(),
-                () -> window.tabs().reopenUnavailable());
-        r.register(
-                "buffer.next",
-                () -> window.tabs().selectNext(1),
-                () -> window.tabs().cycleUnavailable());
-        r.register(
-                "buffer.previous",
-                () -> window.tabs().selectNext(-1),
-                () -> window.tabs().cycleUnavailable());
-        r.register("switcher.show", window::showSwitcher, () -> window.tabs().closeUnavailable());
-        r.register("view.welcome", () -> window.tabs().showWelcome());
-    }
-
-    /**
-     * Each tool window's {@code tool.<id>} command (TABS-13), which its stripe button runs, and the commands
-     * that float, maximize, resize, close and re-show them from the keyboard (TABS-18). Those act on the
-     * window whose stripe menu or header was used, else the one holding focus, else the last one opened.
-     */
-    private static void registerToolWindows(MainWindow window, CommandRegistry r) {
-        for (String id : java.util.List.of("documents", "outline", "output")) {
-            r.register(
-                    "tool." + id,
-                    () -> window.toolWindows().toggle(toolWindow(window, id)),
-                    () -> window.toolWindows().unavailableReason(toolWindow(window, id)));
-        }
-        r.register(
-                "toolWindow.openInSplit",
-                () -> window.onToolWindow(
-                        window.toolWindows().target(),
-                        tw -> window.toolWindows().openInSplit(tw)),
-                () -> Chrome.splitUnavailable(splitTarget(window)));
-        r.register(
-                "toolWindow.hide",
-                () -> window.onToolWindow(
-                        window.toolWindows().target(),
-                        tw -> window.toolWindows().setVisible(tw, false)),
-                () -> Chrome.toolWindowUnavailable(window.toolWindows().target() != null));
-        r.register(
-                "view.restoreStripeButtons",
-                () -> window.toolWindows()
-                        .all()
-                        .forEach(tw -> window.toolWindows().setVisible(tw, true)),
-                () -> Chrome.restoreStripeButtonsUnavailable(window.toolWindows().all().stream()
-                        .anyMatch(tw -> !window.toolWindows().isVisible(tw))));
-        r.register(
-                "view.floatToolWindow",
-                () -> window.onToolWindow(
-                        window.toolWindows().target(),
-                        tw -> window.toolWindows().toggleFloating(tw)),
-                () -> Chrome.toolWindowUnavailable(window.toolWindows().target() != null));
-        r.register(
-                "view.maximizeToolWindow",
-                () -> window.onToolWindow(
-                        window.toolWindows().target(),
-                        tw -> window.toolWindows().toggleMaximized(tw)),
-                () -> Chrome.toolWindowUnavailable(
-                        docked(window, window.toolWindows().target())));
-        r.register(
-                "view.closeFocusedToolWindow",
-                () -> window.onToolWindow(
-                        window.toolWindows().target(),
-                        tw -> window.toolWindows().close(tw)),
-                () -> Chrome.toolWindowUnavailable(window.toolWindows().target() != null));
-        r.register(
-                "view.resizeHorizontalToolWindowGreater",
-                () -> window.onToolWindow(
-                        window.toolWindows().horizontalTarget(),
-                        tw -> window.toolWindows().resize(tw, ToolWindowManager.RESIZE_STEP)),
-                () -> Chrome.toolWindowUnavailable(window.toolWindows().horizontalTarget() != null));
-        r.register(
-                "view.resizeHorizontalToolWindowLess",
-                () -> window.onToolWindow(
-                        window.toolWindows().horizontalTarget(),
-                        tw -> window.toolWindows().resize(tw, -ToolWindowManager.RESIZE_STEP)),
-                () -> Chrome.toolWindowUnavailable(window.toolWindows().horizontalTarget() != null));
-        r.register(
-                "view.resizeBottomToolWindow",
-                () -> window.onToolWindow(
-                        window.toolWindows().bottomTarget(),
-                        tw -> window.toolWindows().resize(tw, ToolWindowManager.RESIZE_STEP)),
-                () -> Chrome.toolWindowUnavailable(window.toolWindows().bottomTarget() != null));
-        r.register(
-                "view.resizeBottomToolWindowLess",
-                () -> window.onToolWindow(
-                        window.toolWindows().bottomTarget(),
-                        tw -> window.toolWindows().resize(tw, -ToolWindowManager.RESIZE_STEP)),
-                () -> Chrome.toolWindowUnavailable(window.toolWindows().bottomTarget() != null));
-        // Find (FIND-04): find.show over the documents, output.find over the console; each, run while its
-        // bar is open, finds the next match. The bars hand Enter, Shift+Enter and their buttons to these.
-        r.register(
-                "find.show",
-                () -> {
-                    FindBar bar = window.documentFindBar();
-                    if (bar != null) bar.openOrNext();
-                },
-                () -> Chrome.findUnavailable(window.documentFindBar() != null));
-        r.register(
-                "find.next",
-                () -> stepFind(window.documentFindBar(), true),
-                () -> Chrome.findStepUnavailable(isOpen(window.documentFindBar())));
-        r.register(
-                "find.previous",
-                () -> stepFind(window.documentFindBar(), false),
-                () -> Chrome.findStepUnavailable(isOpen(window.documentFindBar())));
-        r.register("output.find", window::findInOutput);
-        r.register(
-                "output.findNext",
-                () -> stepFind(window.outputFindBar(), true),
-                () -> Chrome.findStepUnavailable(isOpen(window.outputFindBar())));
-        r.register(
-                "output.findPrevious",
-                () -> stepFind(window.outputFindBar(), false),
-                () -> Chrome.findStepUnavailable(isOpen(window.outputFindBar())));
+    /** Cancel and the text commands, which act on whatever has the keyboard. */
+    private static void registerEditing(MainWindow window, CommandRegistry r) {
         // Cancel (PAL-07, QOPEN-07, MLOG-03): the keymap's chord closes the palette, a picker or the Message
         // Log, as Esc does; C-g in the Emacs keymap.
         r.register(
@@ -369,55 +180,11 @@ final class Commands {
                 "edit.selectAll",
                 () -> onText(window, javafx.scene.control.TextInputControl::selectAll),
                 () -> Chrome.editUnavailable(window.focusedText(), false));
-        r.register(
-                "documents.open",
-                () -> {
-                    SamplePanels.Documents list = window.documents();
-                    if (list != null) list.openSelected();
-                },
-                () -> Chrome.documentsOpenUnavailable(
-                        window.documents() != null && window.documents().hasSelection()));
-        r.register(
-                "output.clear",
-                () -> {
-                    SamplePanels.Output output = window.output();
-                    if (output != null) output.clear();
-                },
-                () -> Chrome.outputClearUnavailable(window.output() != null
-                        && !window.output().console().getText().isEmpty()));
-        r.register(
-                "output.runSample",
-                window::runSampleTask,
-                () -> Chrome.sampleTaskUnavailable(window.isSampleTaskRunning()));
     }
 
     private static void onText(
             MainWindow window, java.util.function.Consumer<javafx.scene.control.TextInputControl> action) {
         javafx.scene.control.TextInputControl text = window.focusedText();
         if (text != null) action.accept(text);
-    }
-
-    private static boolean isOpen(@org.jspecify.annotations.Nullable FindBar bar) {
-        return bar != null && bar.isOpen();
-    }
-
-    private static void stepFind(@org.jspecify.annotations.Nullable FindBar bar, boolean forward) {
-        if (bar != null && bar.isOpen()) bar.step(forward);
-    }
-
-    private static ToolWindow toolWindow(MainWindow window, String id) {
-        return java.util.Objects.requireNonNull(window.toolWindows().get(id), id);
-    }
-
-    /** The window Open in Split would open: the stripe button's whose menu is open, if it can. */
-    private static boolean splitTarget(MainWindow window) {
-        ToolWindow tw = window.toolWindows().target();
-        return tw != null && window.toolWindows().canSplitWith(tw);
-    }
-
-    private static boolean docked(MainWindow window, @org.jspecify.annotations.Nullable ToolWindow tw) {
-        return tw != null
-                && window.toolWindows().isOpen(tw)
-                && !window.toolWindows().isFloating(tw);
     }
 }

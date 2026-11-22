@@ -69,29 +69,9 @@ final class Chrome {
         return null;
     }
 
-    /** Why Open cannot run in the Documents window: no file is selected. */
-    static @Nullable String documentsOpenUnavailable(boolean selected) {
-        return selected ? null : Messages.tr("palette.disabled.noDocumentSelected");
-    }
-
-    /** Why Clear cannot run in the Output: there is nothing in it. */
-    static @Nullable String outputClearUnavailable(boolean any) {
-        return any ? null : Messages.tr("palette.disabled.outputEmpty");
-    }
-
     /** Why Cancel cannot run: no palette, picker or Message Log is open. */
     static @Nullable String cancelUnavailable(boolean overlay) {
         return overlay ? null : Messages.tr("palette.disabled.nothingToCancel");
-    }
-
-    /** Why Find Next or Find Previous cannot run: their find bar is not open. */
-    static @Nullable String findStepUnavailable(boolean open) {
-        return open ? null : Messages.tr("palette.disabled.findBarClosed");
-    }
-
-    /** Why Find cannot run: the active tab is the Welcome page, which has no text to search. */
-    static @Nullable String findUnavailable(boolean document) {
-        return document ? null : Messages.tr("palette.disabled.noDocument");
     }
 
     /** Why Sync Now cannot run, or null when it can. */
@@ -117,26 +97,6 @@ final class Chrome {
     /** Why Find Next or Previous cannot run: the Debug Log's find bar is not open. */
     static @Nullable String findBarUnavailable(boolean open) {
         return open ? null : Messages.tr("palette.disabled.findClosed");
-    }
-
-    /** Why a command on a tool window cannot run: none is open to act on. */
-    static @Nullable String toolWindowUnavailable(boolean target) {
-        return target ? null : Messages.tr("palette.disabled.noToolWindow");
-    }
-
-    /** Why Open in Split cannot run: no closed window's side has room beside an open one. */
-    static @Nullable String splitUnavailable(boolean possible) {
-        return possible ? null : Messages.tr("palette.disabled.noSplit");
-    }
-
-    /** Why Show Hidden Stripe Buttons cannot run: none is hidden. */
-    static @Nullable String restoreStripeButtonsUnavailable(boolean anyHidden) {
-        return anyHidden ? null : Messages.tr("palette.disabled.noHiddenButtons");
-    }
-
-    /** Why Run Sample Task cannot run: it is running. */
-    static @Nullable String sampleTaskUnavailable(boolean running) {
-        return running ? Messages.tr("palette.disabled.taskRunning") : null;
     }
 
     /** Why Debug Log: Refresh cannot run, or null when it can. */

@@ -148,107 +148,31 @@ class FindBarFxTest {
     }
 
     /**
-     * FIND-01, FIND-02, FIND-04, FIND-06, FIND-07: the open document has a find bar of its own in the window,
-     * opened by find.show, which steps to the next match when run again; the keymaps bind it.
-     */
-    @Test
-    void aDocumentHasAFindBarThatFindShowOpensAndSteps() throws Exception {
-        MainWindow window = app.window();
-        run(() -> window.tabs().tabPane().getSelectionModel().select(1)); // the first sample after Welcome
-        DocumentView document = call(() -> window.tabs().activeDocument());
-        assertNotNull(document);
-        FindBar bar = document.findBar();
-        assertFalse(call(bar::isOpen));
-        assertTrue(call(() -> app.services().commands().run("find.show")));
-        assertTrue(call(bar::isOpen));
-        assertTrue(call(() -> bar.getScene() == window.stage().getScene()), "in the window, not a popup");
-        String text = call(() -> document.text().getText());
-        String word = text.substring(0, Math.max(1, text.indexOf(' '))).strip();
-        run(() -> bar.field().setText(word));
-        FxTestSupport.waitUntil(() -> !bar.searching());
-        assertTrue(call(bar::countText).matches("\\d+\\+? of \\d+\\+?"), call(bar::countText));
-        int at = call(() -> document.text().getSelection().getStart());
-        // find.show again, with the bar open, finds the next match (or wraps to the same one when it is alone).
-        run(() -> app.services().commands().run("find.show"));
-        int next = call(() -> document.text().getSelection().getStart());
-        assertTrue(next != at || call(bar::countText).startsWith("1 of 1"), "stepped from " + at);
-        run(() -> press(bar.field(), KeyCode.ENTER, true, false, false, false));
-        assertEquals(at, (int) call(() -> document.text().getSelection().getStart()), "Shift+Enter went back");
-        run(() -> press(bar.field(), KeyCode.ESCAPE, false, false, false, false));
-        assertFalse(call(bar::isOpen));
-        assertTrue(call(() -> window.stage().getScene().getFocusOwner() == document.text()), "focus is back");
-        assertNotNull(app.services().commands().get("find.next").unavailableReason(), "closed bar");
-
-        // On the Welcome tab there is nothing to search: find.show says why.
-        run(() -> window.tabs().tabPane().getSelectionModel().select(0));
-        assertNotNull(app.services().commands().get("find.show").unavailableReason());
-    }
-
-    /** FIND-01, FIND-04: the Output console has a find bar of its own, opened by output.find. */
-    @Test
-    void theOutputConsoleHasAFindBarOfItsOwn() throws Exception {
-        MainWindow window = app.window();
-        assertTrue(call(() -> app.services().commands().run("output.find")));
-        SamplePanels.Output output = call(window::output);
-        assertNotNull(output);
-        run(() -> output.append("first line\nsecond line\n"));
-        FindBar bar = output.findBar();
-        assertTrue(call(bar::isOpen));
-        run(() -> bar.field().setText("line"));
-        FxTestSupport.waitUntil(() -> !bar.searching());
-        assertTrue(call(bar::countText).endsWith("of 2"), call(bar::countText));
-        run(() -> app.services().commands().run("output.findNext"));
-        assertTrue(call(bar::countText).startsWith("2 of"), call(bar::countText));
-        run(() -> press(bar.field(), KeyCode.ESCAPE, false, false, false, false));
-        assertTrue(call(() -> window.stage().getScene().getFocusOwner() == output.console()));
-    }
-
-    /** FIND-04: every bundled keymap binds find.show to its chord; CUA's F3 (Cmd+G on macOS) runs it too. */
-    @Test
-    void everyKeymapBindsFindShow() throws Exception {
-        for (boolean mac : new boolean[] {false, true}) {
-            var bindings = new com.example.app.command.Keybindings(
-                    com.example.app.command.Keymap.load("cua", mac), java.util.Map.of(), mac);
-            var also = com.example.app.command.KeyStroke.parseSequence(mac ? "Cmd+G" : "F3").stream()
-                    .map(s -> s.resolve(mac))
-                    .toList();
-            assertEquals("find.show", bindings.commandFor(also), mac ? "Cmd+G" : "F3");
-        }
-        assertEquals(
-                "Shortcut+F",
-                com.example.app.command.Keymap.load("cua", false).bindings().get("find.show"));
-        assertEquals(
-                "Cmd+F",
-                com.example.app.command.Keymap.load("cua", true).bindings().get("find.show"));
-        assertEquals(
-                "C-s",
-                com.example.app.command.Keymap.load("emacs", false).bindings().get("find.show"));
-    }
-
-    /**
      * FIND-05: a search starts from where the caret was when the bar opened. FIND-09: in the Emacs keymap the
      * field's C-a, C-e and C-k act on the field, never on a command bound to the same keys.
      */
     @Test
     void theSearchStartsAtTheCaretAndTheFieldKeepsItsEditingKeys() throws Exception {
         MainWindow window = app.window();
-        run(() -> window.tabs().tabPane().getSelectionModel().select(1));
-        DocumentView document = call(() -> window.tabs().activeDocument());
-        String text = call(() -> document.text().getText());
+        run(window::openDebugLog);
+        DebugLogWindow log = call(window::debugLogWindow);
         // A word that occurs twice: the caret sits after the first one when the bar opens.
+        String text = "the first line\nand the second\n";
         String word = "the";
-        int first = text.toLowerCase(java.util.Locale.ROOT).indexOf(word);
-        int second = text.toLowerCase(java.util.Locale.ROOT).indexOf(word, first + 1);
-        org.junit.jupiter.api.Assumptions.assumeTrue(first >= 0 && second > first, "the sample has the word twice");
-        run(() -> document.text().positionCaret(first + 1));
-        run(() -> app.services().commands().run("find.show"));
-        FindBar bar = document.findBar();
+        int first = text.indexOf(word);
+        int second = text.indexOf(word, first + 1);
+        run(() -> {
+            log.text().setText(text);
+            log.text().positionCaret(first + 1);
+        });
+        run(log::find);
+        FindBar bar = log.findBar();
         run(() -> bar.field().setText(word));
         FxTestSupport.waitUntil(() -> !bar.searching());
-        assertEquals(second, (int) call(() -> document.text().getSelection().getStart()), "from the anchor");
+        assertEquals(second, (int) call(() -> log.text().getSelection().getStart()), "from the anchor");
         run(() -> bar.field().setText(word.substring(0, 2)));
         FxTestSupport.waitUntil(() -> !bar.searching());
-        assertTrue(call(() -> document.text().getSelection().getStart()) >= first + 1, "refining stays put");
+        assertTrue(call(() -> log.text().getSelection().getStart()) >= first + 1, "refining stays put");
 
         run(() -> app.services().store().update(s -> {
             s.keymap = "emacs";

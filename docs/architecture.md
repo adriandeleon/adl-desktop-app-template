@@ -44,33 +44,13 @@ The tests start the app through the same `Startup.prepare` and `Startup.start`, 
 - `AppMenus`: the menu bar, every row a command with its key binding drawn beside it (Emacs
   sequences too). No accelerators: see the class comment for why. Two tables, the full one and Simple
   mode's shorter one (`menus(simple)`); `setSimple` rebuilds the bar only when the mode changes (MENU-04).
-- `AppToolbar`: the main toolbar, every button a command that a menu also lists. Two containers in
-  one row: the icon cluster (a `ToolBar`, in groups, overflowing into its chevron) and the pinned tail
-  (the Simple mode toggle, then Settings). Buttons are built by `Icons.toolbarButton`, named by
-  `Icons.withChord` of the title and the chord, and look pressed (`:open`) while their overlay is up
-  (`OverlayToggles`) or, for the Simple mode toggle, while the mode is on. Simple mode hides the groups
-  `SIMPLE_HIDES` names, the gaps they leave go with them, and the row keeps its height. The class comment
-  maps each Toolbars and tooltips rule to the code that meets it. **Put your app's commands in
-  `CLUSTER`, and the groups a newcomer can do without in `SIMPLE_HIDES`.**
 - `MainWindow`: the top band (the title bar, a JavaFX `HeaderBar` holding the menus and the title, where
   the platform supports extended windows and the menus are in the window; a plain menu row otherwise,
-  and the screen menu bar on macOS; then the toolbar), the tool windows round the document tabs,
-  `StatusBar`, and an `OverlayHost` (the root `StackPane`) that carries the in-scene overlays. The
-  Welcome tab's page is `placeholder()`. **Put your app's documents in tabs, and its panels in tool
-  windows.**
-- The tabs (Pauta's Tabs and tool panels, after Editora): `DocumentTabs` owns the `TabPane`, the pinned
-  group, the closed list and the window title; `TabStrip` is the pure arithmetic (bulk closes skip pinned
-  tabs, the pin boundary, where a dragged tab lands); `TabHeaders` draws each header (the header is the
-  title, carrying the unsaved, pinned and read-only states, and is the drag handle); `ClosedTabs` is
-  Reopen Closed Tab's list; `TabContextMenu` the per-tab commands; `Switcher` the tab switcher;
-  `TabGitStatus` the Git colors. The documents are `SampleFiles` in a `DocumentView`: placeholders that
-  exist only in memory. **Replace them with your files.**
-- The tool windows: `ToolWindowManager` lays out a stripe on each of three sides and the open windows
-  (at most two a side) between the stripes and the tabs, keeps the arrangement in `settings.json`
-  (`window.toolWindows`), and lines the side stripes' first icon up with the documents' first line of
-  text. A `ToolWindow` builds its content on first open; `ToolWindowVisibility` and `ToolWindowDock` are
-  its pure decisions. The three windows' content is `SamplePanels` (Documents, Outline, Output).
-  The class comments map each rule to the code that meets it.
+  and the screen menu bar on macOS), the content, `StatusBar`, and an `OverlayHost` (the root
+  `StackPane`) that carries the in-scene overlays. The content is the empty state, `placeholder()`: the
+  ways in, each with its chord (WELC-02). **Put your app's content there.** The template has no toolbar,
+  no tool windows and no document tabs: Pauta makes each optional, and an app that wants one takes it
+  from an app that has it (Editora has all three) with the rules its page scopes to it.
 - `Commands`: every command, in one place. Menus, buttons, the palette and keys all run them by id. The
   text commands (`edit.cut`, `edit.copy`, `edit.paste`, `edit.selectAll`) act on the text that has the
   keyboard; every editor and console has a `CommandMenu` of them in place of JavaFX's stock one.
@@ -84,7 +64,7 @@ The tests start the app through the same `Startup.prepare` and `Startup.start`, 
   every window gets a copy with each pixel size scaled (made off the FX thread), and the few sizes the code
   fixes are bound to `UiZoom.factor`. **Size new controls in the stylesheet, or bind them with
   `UiZoom.bind`, never in plain pixels.**
-- `PickerKeys`: the keys of every list overlay, the palette, the pickers and the tab switcher: the keymap's
+- `PickerKeys`: the keys of every list overlay, the palette and the pickers: the keymap's
   `nav.*` chords and the fixed arrows, page keys and Ctrl/Cmd+Home/End, and the palette's help chord.
   `TextInputKeys`: the keymap's caret and editing chords a text field keeps.
 - `DoctorWindow` over `sync/Doctor`: the tools and the folder the app depends on, each checked.
@@ -107,7 +87,7 @@ The tests start the app through the same `Startup.prepare` and `Startup.start`, 
 - **A command**: `CommandRegistry.run(id)` → the action. Its title and description come from
   `command.<id>` / `command.<id>.desc`. An unavailable command explains itself in the palette.
 - **A setting**: a control or a command calls `store.update(s -> …)`, which saves `settings.json`
-  atomically and notifies every listener: `MainWindow` re-applies theme, toolbar, tab bar, status bar and Simple mode, the Settings
+  atomically and notifies every listener: `MainWindow` re-applies the theme, the UI zoom, the status bar and Simple mode, the Settings
   window reloads its controls, `AppServices` rebuilds the key bindings.
 - **A message**: `services.echo("status.key", args)` → `MessageLog` → the status bar's echo line.
   Severity comes from the key's name. Logging goes to `DebugLog` (memory + session file).
@@ -115,8 +95,7 @@ The tests start the app through the same `Startup.prepare` and `Startup.start`, 
 ## Config folder
 
 `~/.exampleapp` (`--config-dir`, then `--dev` (`~/.exampleapp-dev`), then `EXAMPLEAPP_CONFIG_DIR`, then the
-default): `settings.json` (preferences only), `session.json` (the window's place, the tool windows and the
-open documents: Pauta SET-08, WIN-08), `exampleapp-session.log` (+ `.prev.log`), `instance.sock`, `sync/`
+default): `settings.json` (preferences only), `session.json` (the window's place: Pauta SET-08, WIN-08), `exampleapp-session.log` (+ `.prev.log`), `instance.sock`, `sync/`
 (the clone, `base.json`, and `account.json`, the GitHub account pinned to the clone: SET-18), `backups/`
 (`settings-<time>.json`, kept before a sync replaces your settings: SET-20) and the backups of files that
 could not be read (`settings.json.v<n>.bak`, `settings.json.broken.bak`, the same for `session.json`). Every JSON file there has a `schemaVersion` and a

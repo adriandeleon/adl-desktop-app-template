@@ -113,8 +113,7 @@ class KeybindingsTest {
 
     /**
      * KBD-10: IntelliJ, VS Code and Sublime keymaps beside CUA and Emacs, each with its macOS form; every bundled
-     * keymap parses whole, has no two commands on the same keys, and binds find.show (FIND-04) and the region
-     * commands (ACC-06).
+     * keymap parses whole, has no two commands on the same keys, and binds the Command Palette.
      */
     @Test
     void everyBundledKeymapParsesWholeAndBindsWhatEveryKeymapMust() {
@@ -128,10 +127,7 @@ class KeybindingsTest {
                                 assertNotNull(KeyStroke.parseSequence(chord), where + ": " + command + " = " + chord));
                 Keybindings bindings = new Keybindings(keymap, java.util.Map.of(), mac);
                 assertTrue(bindings.conflicts().isEmpty(), where + ": " + bindings.conflicts());
-                for (String command : java.util.List.of(
-                        "palette.show", "find.show", "window.focusNextRegion", "window.focusPreviousRegion")) {
-                    assertFalse(bindings.label(command).isEmpty(), where + " binds " + command);
-                }
+                assertFalse(bindings.label("palette.show").isEmpty(), where + " binds palette.show");
             }
         }
         for (String id : java.util.List.of("intellij", "vscode", "sublime")) {
@@ -141,6 +137,19 @@ class KeybindingsTest {
                     Keymap.load(id, false).bindings().keySet(),
                     Keymap.load(id, true).bindings().keySet(),
                     id + ".mac.json binds the same commands");
+        }
+    }
+
+    /** A keymap may give a command more chords: each runs it, the first is the one a menu shows (VS Code's F1). */
+    @Test
+    void aSecondChordRunsTheCommandAndTheFirstIsTheLabel() {
+        for (boolean mac : new boolean[] {false, true}) {
+            Keybindings bindings = new Keybindings(Keymap.load("vscode", mac), java.util.Map.of(), mac);
+            assertEquals("palette.show", bindings.commandFor(KeyStroke.parseSequence("F1")));
+            assertFalse(bindings.label("palette.show").contains("F1"), "the menu shows the first chord");
+            // A user binding replaces every chord the keymap gave the command.
+            Keybindings own = new Keybindings(Keymap.load("vscode", mac), java.util.Map.of("palette.show", "F2"), mac);
+            assertEquals(null, own.commandFor(KeyStroke.parseSequence("F1")));
         }
     }
 }

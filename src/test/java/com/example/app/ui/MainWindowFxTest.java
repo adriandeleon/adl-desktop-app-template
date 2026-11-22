@@ -75,7 +75,7 @@ class MainWindowFxTest {
         assertEquals("Ready", echo());
         assertTrue(Files.exists(dir.resolve(DebugLog.FILE)));
         // The window title names the project and the app; a file's tab adds the file (TABS-10).
-        assertEquals("Samples — ExampleApp", call(() -> window.stage().getTitle()));
+        assertEquals("ExampleApp", call(() -> window.stage().getTitle()));
     }
 
     @Test
@@ -228,7 +228,7 @@ class MainWindowFxTest {
     @Test
     void menusRunCommandsAndGreyUnavailableOnes() throws Exception {
         List<Menu> menus = call(() -> List.copyOf(window.menuBar().getMenus()));
-        assertEquals(5, menus.size()); // File, Edit, View, Window, Help
+        assertEquals(4, menus.size()); // File, Edit, View, Help
         run(() -> {
             for (Menu menu : menus) menu.getOnShowing().handle(null);
         });
@@ -329,36 +329,6 @@ class MainWindowFxTest {
         host.openAnswer = null;
         run(window::exportConfig);
         run(window::importConfig);
-    }
-
-    /** WIN-13, CONF-01: quitting with typing in the documents asks first; Cancel keeps the app running. */
-    @Test
-    void quitAsksBeforeTheSessionsTypingIsLost() throws Exception {
-        assertTrue(call(() -> window.tabs().unsavedNames()).isEmpty(), "nothing typed yet");
-        run(() -> {
-            window.tabs().tabPane().getSelectionModel().select(1);
-            window.tabs().activeDocument().text().appendText("\nmore");
-        });
-        java.util.List<String> unsaved = call(() -> window.tabs().unsavedNames());
-        assertEquals(1, unsaved.size());
-        int exits = host.exits;
-        host.confirmAnswer = false;
-        run(window::quit);
-        Confirmations.Question asked = host.questions.getLast();
-        assertEquals(Messages.tr("confirm.quitUnsaved.title"), asked.title());
-        assertTrue(asked.message().contains(unsaved.getFirst()), asked.message());
-        assertEquals("Quit Without Saving", asked.action());
-        assertTrue(call(() -> window.stage().isShowing()), "Cancel keeps the window");
-        assertEquals(exits, host.exits);
-        // The window's close button is the same quit: it asks too.
-        run(() -> window.stage()
-                .fireEvent(
-                        new javafx.stage.WindowEvent(window.stage(), javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST)));
-        assertEquals(
-                Messages.tr("confirm.quitUnsaved.title"),
-                host.questions.getLast().title());
-        assertTrue(call(() -> window.stage().isShowing()));
-        host.confirmAnswer = true;
     }
 
     @Test

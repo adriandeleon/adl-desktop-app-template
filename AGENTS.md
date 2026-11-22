@@ -84,7 +84,7 @@ Run Maven from the repository root, **on JDK 25** (Palantir Java Format breaks o
       at the top of `app.css`, everything else a `-color-*` role; never a hex outside `.root`
       (`StyleContrastTest` checks, contrast included). A glyph is `Icons.line` or `Icons.of`, never both,
       and a command's glyph comes from `Icons.forCommand`. An icon-only button is built by `Icons.button`
-      or `Icons.toolbarButton` (or named by `Icons.name`): tooltip and accessible text are one string.
+      (or named by `Icons.name`): tooltip and accessible text are one string.
 - [ ] Failures reach the status bar (`services.echo`, a `status.*` key whose last part has `Failed` or
       `Error`; `cannot`/`invalid` for a warning) or the Debug Log
       (`java.util.logging`). Never a stack-trace dialog, never silence.

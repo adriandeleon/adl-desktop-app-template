@@ -93,7 +93,6 @@ class SettingsWindowFxTest {
         assertFalse(services.settings().checkForUpdates);
         run(() -> settings.statusBarSwitch().fire());
         assertFalse(services.settings().showStatusBar);
-        assertEquals("Off", call(() -> settings.statusBarSwitch().getText()));
 
         // A change made elsewhere (a palette command) reaches the open window.
         run(() -> services.commands().run("view.toggleStatusBar"));

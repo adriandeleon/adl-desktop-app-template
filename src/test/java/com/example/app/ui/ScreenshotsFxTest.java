@@ -10,7 +10,6 @@ import java.util.zip.CRC32;
 import java.util.zip.DeflaterOutputStream;
 
 import javafx.scene.SnapshotParameters;
-import javafx.scene.control.Tab;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.transform.Transform;
@@ -23,7 +22,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static com.example.app.ui.FxTestSupport.call;
 import static com.example.app.ui.FxTestSupport.run;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
@@ -60,14 +58,7 @@ class ScreenshotsFxTest {
             run(() -> {
                 window.stage().setWidth(WIDTH);
                 window.stage().setHeight(HEIGHT);
-                Tab notes = window.tabs().tabs().stream()
-                        .filter(t -> "notes.md".equals(window.tabs().title(t)))
-                        .findFirst()
-                        .orElseThrow();
-                window.tabs().tabPane().getSelectionModel().select(notes);
             });
-            assertTrue(call(() -> app.services().commands().run("tool.documents")));
-            assertTrue(call(() -> app.services().commands().run("tool.outline")));
             shoot(window, ThemeChoice.LIGHT, out.resolve("screenshot-light.png"));
             shoot(window, ThemeChoice.DARK, out.resolve("screenshot-dark.png"));
         } finally {

@@ -172,57 +172,6 @@ class RightClickMenusFxTest {
         assertFalse(call(() -> open.getFirst().isShowing()));
     }
 
-    /**
-     * MENU-05: the editor, the Output console and the Documents list each have a right-click menu of
-     * commands, and its rows act on that thing.
-     */
-    @Test
-    void theEditorTheOutputAndTheDocumentsListHaveMenusOfCommands() throws Exception {
-        MainWindow window = app.window();
-        run(() -> window.tabs().tabPane().getSelectionModel().select(1));
-        javafx.scene.control.TextArea editor =
-                call(() -> window.tabs().activeDocument().text());
-        ContextMenu editorMenu = call(editor::getContextMenu);
-        assertNotNull(editorMenu, "the editor's menu is the app's, not the stock one");
-        assertEquals(
-                List.of("edit.cut", "edit.copy", "edit.paste", "edit.selectAll", "find.show"),
-                call(() -> editorMenu.getItems().stream()
-                        .map(javafx.scene.control.MenuItem::getId)
-                        .filter(java.util.Objects::nonNull)
-                        .toList()));
-        run(() -> {
-            editor.requestFocus();
-            editor.selectRange(0, 3);
-        });
-        String selected = call(editor::getSelectedText);
-        run(() -> services.commands().run("edit.copy"));
-        assertEquals(
-                selected,
-                call(() -> javafx.scene.input.Clipboard.getSystemClipboard().getString()));
-
-        assertTrue(call(() -> services.commands().run("output.find")));
-        SamplePanels.Output output = call(window::output);
-        ContextMenu outputMenu = call(() -> output.console().getContextMenu());
-        assertNotNull(outputMenu);
-        assertTrue(call(() -> outputMenu.getItems().stream().anyMatch(i -> "output.clear".equals(i.getId()))));
-        run(() -> output.append("a line\n"));
-        assertTrue(call(() -> services.commands().run("output.clear")));
-        assertEquals("", call(() -> output.console().getText()));
-
-        assertTrue(call(() -> services.commands().run("tool.documents")));
-        SamplePanels.Documents documents = call(window::documents);
-        assertNotNull(documents);
-        assertNotNull(services.commands().get("documents.open").unavailableReason(), "nothing selected yet");
-        run(() -> documents.list().getSelectionModel().select(0));
-        int tabs = call(() -> window.tabs().tabPane().getTabs().size());
-        assertTrue(call(() -> services.commands().run("documents.open")));
-        assertTrue(call(() -> window.tabs().tabPane().getTabs().size()) >= tabs);
-        assertEquals(
-                call(() ->
-                        documents.list().getSelectionModel().getSelectedItem().name()),
-                call(() -> window.tabs().activeDocument().title()));
-    }
-
     @Test
     void theDebugLogConsoleMenuIsItsCommands() throws Exception {
         run(app.window()::openDebugLog);
@@ -372,20 +321,18 @@ class RightClickMenusFxTest {
     /** KBD-04: a row whose command can't run stays in the menu, grayed, its reason in a tooltip and said aloud. */
     @Test
     void anUnavailableRowStaysAndSaysWhy() throws Exception {
-        CommandMenu tabs = app.window().tabs().menu();
+        // Sync Now can't run until sync is set up.
+        CommandMenu tabs = call(() -> new CommandMenu(services, java.util.List.of("sync.now")));
         run(() -> {
             tabs.menu();
             tabs.refresh();
         });
-        // On the first tab nothing is left of it: Close Tabs to the Left can't run.
-        run(() -> app.window().tabs().tabPane().getSelectionModel().select(0));
-        run(tabs::refresh);
         javafx.scene.control.CustomMenuItem reopen =
                 (javafx.scene.control.CustomMenuItem) call(() -> tabs.items().stream()
-                        .filter(i -> "buffer.closeLeft".equals(i.getId()))
+                        .filter(i -> "sync.now".equals(i.getId()))
                         .findFirst()
                         .orElseThrow());
-        String reason = services.commands().get("buffer.closeLeft").unavailableReason();
+        String reason = services.commands().get("sync.now").unavailableReason();
         assertNotNull(reason);
         assertFalse(call(reopen::isDisable), "not hidden, not dead: a tooltip shows on it");
         assertTrue(call(() -> reopen.getStyleClass().contains("unavailable")));

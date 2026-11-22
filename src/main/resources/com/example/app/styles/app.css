@@ -25,11 +25,7 @@
     -state-accent: -color-accent-fg;
     -state-accent-bg: -color-accent-subtle;
     -focus-ring: -color-accent-emphasis;
-    /* Git's untracked olive and renamed violet (TABS-08), as in Editora: ladders of the theme's ground, a
-       light ink on a dark ground and a deep one on a light ground, since the themes have no role for them. */
-    -state-olive: ladder(-color-bg-default, #a9b84a 0%, #b3c157 10%, #c3cf73 20%, #d3dc92 30%, #dde4a8 49%, #4f5c10 50%);
-    -state-violet: ladder(-color-bg-default, #b392f0 0%, #bc9ff3 10%, #cab5f6 20%, #dacbf9 30%, #e4d9fb 49%, #6538c2 50%);
-    /* The keyboard's one hue (ICON-06), periwinkle, as in Editora: a ladder of the ground like the two above,
+    /* The keyboard's one hue (ICON-06), periwinkle, as in Editora: a ladder of the ground,
        a deep ink on a light ground and a lighter one the darker it gets. Every key chord a menu shows wears it
        (MENU-15); it reads at 4.5:1 or more on the default and subtle grounds of both themes. */
     -state-key: ladder(-color-bg-default, #b0b6e0 0%, #b8bee5 10%, #cdd1f1 20%, #e3e6f9 30%, #ecedfb 49%, #3c4380 50%);
@@ -237,12 +233,31 @@
     -fx-background-color: -state-red-bg;
     -fx-text-fill: -state-red;
 }
-.setting-switch {
-    -fx-min-width: 56px;
+/* Switches, as Editora draws them. AtlantaFX draws an off switch as a -color-fg-emphasis knob on a
+   -color-bg-subtle track: in a dark theme a near-black knob on a near-black track, about 1.1:1 against a
+   card (a control needs 3:1). The off knob and the track outline take -color-fg-muted. A disabled switch is
+   gray in both states: a lit knob would read "on" though the setting is not in force. The text-fill lines
+   keep the emphasis-fill rule (StyleContrastTest); a switch has no text of its own. */
+.toggle-switch > .thumb {
+    -fx-background-color: -color-fg-muted, -color-fg-muted;
+    -fx-opacity: 1;
 }
-.setting-switch:selected {
-    -fx-background-color: -color-accent-emphasis;
+.toggle-switch > .thumb-area {
+    -fx-background-color: -color-fg-muted, -color-bg-subtle;
+}
+.toggle-switch:selected > .thumb {
+    -fx-background-color: -color-accent-emphasis, -color-fg-emphasis;
     -fx-text-fill: -color-fg-emphasis;
+}
+.toggle-switch:selected > .thumb-area {
+    -fx-background-color: -color-accent-emphasis, -color-accent-emphasis;
+    -fx-text-fill: -color-fg-emphasis;
+}
+.toggle-switch:disabled:selected > .thumb {
+    -fx-background-color: -color-fg-muted, -color-bg-default;
+}
+.toggle-switch:disabled:selected > .thumb-area {
+    -fx-background-color: -color-fg-muted, -color-fg-muted;
 }
 
 /* ---- about ---- */
@@ -324,15 +339,13 @@
 }
 
 /* ---- title bar and menus ---- */
-/* One chrome band (TBAR-06): the title bar or menu row and the toolbar share -color-bg-subtle with no rule
-   between them; the one rule is under the whole band. The theme draws a 1px rule under .menu-bar and
-   .tool-bar as a second background layer; each collapses to its fill alone. */
+/* The chrome band: the title bar or the menu row on -color-bg-subtle, with one rule under it. The theme draws
+   a 1px rule under .menu-bar as a second background layer; it collapses to its fill alone. */
 .chrome-band {
     -fx-background-color: -color-bg-subtle;
     -fx-border-color: transparent transparent -color-border-muted transparent;
 }
-.menu-bar,
-.tool-bar {
+.menu-bar {
     -fx-background-color: -color-bg-subtle;
     -fx-background-insets: 0;
 }
@@ -349,7 +362,7 @@
     -fx-font-size: 12.5px;
 }
 /* Every menu, whatever node it was opened from (MENU-16): a popup inherits the font of the node that showed
-   it, and em sizes resolve against it, so a menu opened from the toolbar or a monospaced view would draw
+   it, and em sizes resolve against it, so a menu opened from a monospaced view would draw
    at their size. The font is pinned in pixels on the menu and its rows' labels. */
 /* MENU-18: the card's radius 8 and a shadow of radius 16 at offset Y 16; a row 34 px high (padding 8 × 12). */
 .context-menu {
@@ -387,234 +400,10 @@
     -fx-text-fill: -state-key;
 }
 
-/* ---- toolbar (Toolbars and tooltips) ----
-   Two containers in one row (AppToolbar): the cluster, a ToolBar that overflows into its chevron, and the
-   pinned tail, which never does. Both paint the band's ground, so the seam between them is invisible.
-   The insets are asymmetric as in Editora: nothing sits above the bar but the menus. */
-.tool-bar {
-    -fx-padding: 5 1 2 6;
-    -fx-spacing: 5;
-}
-.toolbar-tail {
-    -fx-padding: 5 6 2 0;
-    -fx-spacing: 5;
-}
-/* An icon button: 28px, padding 3 x 5, radius 4, no border; the glyph muted, full strength under the
-   pointer. The stroke is thinned so a 20px toolbar glyph draws the same weight as an 18px menu glyph. */
-.toolbar-button {
-    -fx-padding: 3 5 3 5;
-    -fx-background-radius: 4;
-    -fx-min-height: 28px;
-    -fx-pref-height: 28px;
-    -fx-max-height: 28px;
-}
-.toolbar-button .icon-line {
-    -fx-stroke-width: 1.17;
-}
-.toolbar-button:hover .icon-line {
-    -fx-stroke: -color-fg-default;
-}
-/* Groups are separated by spacing, not rules (TBAR-04): the Separator's padding is the gap, its line goes. */
-.tool-bar .separator:vertical > .line {
-    -fx-border-color: transparent;
-}
-/* A button whose overlay is up looks pressed (TBAR-07): an accent-subtle fill, the glyph in the accent. */
-.button:open {
-    -fx-background-color: -color-accent-subtle;
-}
-.button:open .icon-line {
-    -fx-stroke: -color-accent-fg;
-}
 /* Tooltips share the menus' card radius. */
 .tooltip {
     -fx-background-radius: 8px, 7px;
     -fx-show-delay: 400ms; /* every tooltip, whoever made it (TBAR-14) */
-}
-
-/* ---- document tabs (Tabs and tool panels) ----
-   The header is the title (TABS-02): .tab-header holds the pin, the file glyph and .tab-title. Order matters
-   below: the Git colors follow read-only, so a read-only file still shows its status, and the unsaved rule is
-   more specific, so an unsaved tab is amber whatever its status (TABS-08). */
-.document-tabs > .tab-header-area {
-    -fx-padding: 3 6 0 6;
-}
-.tab .tab-title {
-    -fx-text-fill: -color-fg-muted;
-}
-.tab:selected .tab-title {
-    -fx-text-fill: -color-fg-default;
-}
-.tab-header.pinned .tab-title {
-    -fx-font-weight: bold;
-}
-.tab-header.read-only .tab-title {
-    -fx-text-fill: -color-fg-muted;
-    -fx-font-style: italic;
-}
-.tab.git-status-modified .tab-title,
-.documents-list .git-status-modified {
-    -fx-text-fill: -state-accent;
-}
-.tab.git-status-added .tab-title,
-.documents-list .git-status-added {
-    -fx-text-fill: -state-green;
-}
-.tab.git-status-untracked .tab-title,
-.documents-list .git-status-untracked {
-    -fx-text-fill: -state-olive;
-}
-.tab.git-status-renamed .tab-title,
-.documents-list .git-status-renamed {
-    -fx-text-fill: -state-violet;
-}
-.tab.git-status-deleted .tab-title,
-.documents-list .git-status-deleted {
-    -fx-text-fill: -color-fg-muted;
-}
-.tab.git-status-conflict .tab-title,
-.documents-list .git-status-conflict {
-    -fx-text-fill: -state-red;
-}
-/* The Git status's letter after a tab's name (ACC-05): a little smaller, in the status's color. */
-.tab-header .git-letter {
-    -fx-font-size: 11px;
-    -fx-font-weight: bold;
-    -fx-padding: 0 0 0 2px;
-}
-/* Unsaved (TABS-03): a "• " prefix, amber italic, over any Git color. */
-.tab .tab-header.dirty .tab-title {
-    -fx-text-fill: -state-amber;
-    -fx-font-style: italic;
-}
-/* Dragging a tab (TABS-07): the dragged header dims, an accent line marks the edge where it will land. */
-.tab-header.tab-dragging {
-    -fx-opacity: 0.4;
-}
-.tab-header.tab-drop-before {
-    -fx-border-color: -color-accent-emphasis;
-    -fx-border-width: 0 0 0 2;
-}
-.tab-header.tab-drop-after {
-    -fx-border-color: -color-accent-emphasis;
-    -fx-border-width: 0 2 0 0;
-}
-/* Toggle Tab Bar (TABS-12): the strip folds away, the documents stay. */
-.tab-pane.no-tab-header > .tab-header-area {
-    -fx-pref-height: 0;
-    -fx-min-height: 0;
-    -fx-max-height: 0;
-    visibility: hidden;
-}
-.document-text {
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-    -fx-border-width: 0;
-}
-.document-text .content {
-    -fx-padding: 6 12 6 12;
-}
-.switcher-header {
-    -fx-font-weight: bold;
-}
-.switcher-path {
-    -fx-text-fill: -color-fg-muted;
-    -fx-font-size: 11.5px;
-}
-
-/* ---- tool windows (Tabs and tool panels, Tool panels) ----
-   A stripe is a toolbar (TBAR-12): its buttons are toolbar buttons. The vertical stripes' top padding is set
-   in code so the first glyph sits on the documents' first line of text (TBAR-13); keep the button's top
-   padding here in step with ToolWindowManager.STRIPE_BUTTON_TOP_INSET. */
-.tool-stripe {
-    -fx-background-color: -color-bg-subtle;
-    -fx-border-color: -color-border-muted;
-    -fx-spacing: 6;
-}
-.tool-stripe-vertical {
-    -fx-pref-width: 34;
-    -fx-min-width: 34;
-    -fx-padding: 8 0 8 0;
-}
-.tool-stripe-horizontal {
-    -fx-pref-height: 32;
-    -fx-min-height: 32;
-    -fx-padding: 0 4 0 4;
-}
-.tool-stripe-left {
-    -fx-border-width: 0 1 0 0;
-}
-.tool-stripe-right {
-    -fx-border-width: 0 0 0 1;
-}
-.tool-stripe-bottom {
-    -fx-border-width: 1 0 0 0;
-}
-.tool-stripe-button:tw-active {
-    -fx-background-color: -color-accent-muted;
-}
-.tool-stripe-button:tw-active .icon-line {
-    -fx-stroke: -color-accent-fg;
-}
-/* The busy badge (TABS-22): small, over the glyph's corner, so the button keeps its size. */
-.tool-stripe-busy {
-    -fx-progress-color: -color-accent-fg;
-}
-/* Re-docking (TABS-17): the dragged button dims, an accent line marks where it lands, and an empty stripe
-   shows as a dashed accent drop zone for as long as the drag lasts. */
-.tool-stripe-button.tool-stripe-button-dragging {
-    -fx-opacity: 0.4;
-}
-.tool-stripe-button.tool-drop-top {
-    -fx-border-color: -color-accent-emphasis;
-    -fx-border-width: 2 0 0 0;
-}
-.tool-stripe-button.tool-drop-bottom {
-    -fx-border-color: -color-accent-emphasis;
-    -fx-border-width: 0 0 2 0;
-}
-.tool-stripe-button.tool-drop-left {
-    -fx-border-color: -color-accent-emphasis;
-    -fx-border-width: 0 0 0 2;
-}
-.tool-stripe-button.tool-drop-right {
-    -fx-border-color: -color-accent-emphasis;
-    -fx-border-width: 0 2 0 0;
-}
-.tool-stripe.tool-stripe-drop-target {
-    -fx-background-color: -color-accent-subtle;
-    -fx-border-color: -color-accent-emphasis;
-    -fx-border-width: 1;
-    -fx-border-style: segments(4, 4) line-cap round;
-    -fx-min-width: 34;
-    -fx-min-height: 32;
-}
-.tool-stripe.tool-stripe-drop-over {
-    -fx-background-color: -color-accent-muted;
-}
-.tool-window-panel {
-    -fx-background-color: -color-bg-default;
-}
-.tool-window-header {
-    -fx-padding: 3 4 3 8;
-    -fx-background-color: -color-bg-subtle;
-    -fx-border-color: transparent transparent -color-border-muted transparent;
-}
-.tool-window-title {
-    -fx-font-weight: bold;
-    -fx-graphic-text-gap: 6;
-}
-.tool-window-header-button {
-    -fx-padding: 2 4 2 4;
-}
-.tool-window-split > .split-pane-divider {
-    -fx-padding: 0 1 0 1;
-}
-.output-bar {
-    -fx-padding: 4 8 4 8;
-}
-.output-console {
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
 }
 
 /* ---- Keyboard focus ----
@@ -633,10 +422,16 @@
 .hyperlink:focus-visible,
 .combo-box-base:focus-visible,
 .check-box:focus-visible,
-.radio-button:focus-visible {
+.radio-button:focus-visible,
+.toggle-switch:focus-visible > .thumb-area {
+    -fx-border-color: -focus-ring;
     -fx-border-width: 2;
     -fx-border-insets: -3;
     -fx-border-radius: 6;
+}
+/* The switch's ring follows its track. */
+.toggle-switch:focus-visible > .thumb-area {
+    -fx-border-radius: 999;
 }
 /* A text field draws it inside, by widening its own focus border to 2 px. */
 .text-input:focus-visible {

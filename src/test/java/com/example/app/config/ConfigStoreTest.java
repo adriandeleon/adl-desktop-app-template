@@ -122,10 +122,7 @@ class ConfigStoreTest {
                 {"schemaVersion": %d, "theme": "SEPIA", "language": "xx", "keymap": "vim",
                  "keybindings": {"palette.show": "Hyper-Q", "app.quit": "", "view.messageLog": "Ctrl+M"},
                  "lastUpdateCheck": -5,
-                 "window": {"x": 1e12, "y": 10, "width": 2000000, "height": -1, "maximized": true,
-                            "toolWindows": {"open": ["outline", null, "outline"], "sides": {"outline": "TOP"},
-                                            "sizes": {"outline": 7.5, "output": -1}, "splits": {"LEFT": 0},
-                                            "maximized": "gone", "hidden": null}},
+                 "window": {"x": 1e12, "y": 10, "width": 2000000, "height": -1, "maximized": true},
                  "sync": {"repoUrl": null, "branch": "a..b", "intervalMinutes": 0, "lastSync": -1}}
                 """.formatted(Settings.SCHEMA_VERSION));
         ConfigStore store = ConfigStore.open(dir);
@@ -147,13 +144,6 @@ class ConfigStoreTest {
         assertNull(s.window.x, "a position far off every screen is forgotten");
         assertNull(s.window.y);
         assertTrue(s.window.maximized);
-        assertEquals(java.util.List.of("outline"), s.window.toolWindows.open);
-        assertTrue(s.window.toolWindows.sides.isEmpty());
-        assertEquals(Settings.MAX_SHARE, s.window.toolWindows.sizes.get("outline"));
-        assertEquals(Settings.MIN_SHARE, s.window.toolWindows.sizes.get("output"));
-        assertEquals(Settings.MIN_SHARE, s.window.toolWindows.splits.get("LEFT"));
-        assertEquals("", s.window.toolWindows.maximized);
-        assertTrue(s.window.toolWindows.hidden.isEmpty());
         assertEquals("", s.sync.repoUrl);
         assertEquals("main", s.sync.branch);
         assertEquals(1, s.sync.intervalMinutes);

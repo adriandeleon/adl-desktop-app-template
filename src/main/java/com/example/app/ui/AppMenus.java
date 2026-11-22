@@ -75,23 +75,9 @@ final class AppMenus {
 
     private static final List<Spec> FULL = List.of(
             spec("menu.file", "app.settings", null, "config.export", "config.import", "sync.now", null, "app.quit"),
-            spec(
-                    "menu.edit",
-                    "edit.cut",
-                    "edit.copy",
-                    "edit.paste",
-                    null,
-                    "edit.selectAll",
-                    null,
-                    "find.show",
-                    "find.next",
-                    "find.previous",
-                    null,
-                    "output.find"),
+            spec("menu.edit", "edit.cut", "edit.copy", "edit.paste", null, "edit.selectAll"),
             spec(
                     "menu.view",
-                    "view.toggleToolbar",
-                    "view.toggleTabBar",
                     "view.toggleStatusBar",
                     null,
                     "settings.theme",
@@ -103,46 +89,12 @@ final class AppMenus {
                     "view.uiZoomReset",
                     null,
                     "view.toggleSimpleMode"),
-            // The tabs and the tool windows: every one of their commands has a row (TABS-01).
-            spec(
-                    "menu.window",
-                    "switcher.show",
-                    "buffer.next",
-                    "buffer.previous",
-                    null,
-                    "buffer.close",
-                    "buffer.closeOthers",
-                    "buffer.closeLeft",
-                    "buffer.closeRight",
-                    "buffer.closeUnmodified",
-                    "buffer.closeAll",
-                    null,
-                    "buffer.togglePin",
-                    "buffer.reopenClosed",
-                    null,
-                    "tool.documents",
-                    "tool.outline",
-                    "tool.output",
-                    "output.runSample",
-                    null,
-                    "toolWindow.openInSplit",
-                    "view.floatToolWindow",
-                    "view.maximizeToolWindow",
-                    "view.resizeHorizontalToolWindowGreater",
-                    "view.resizeHorizontalToolWindowLess",
-                    "view.resizeBottomToolWindow",
-                    "view.resizeBottomToolWindowLess",
-                    "view.closeFocusedToolWindow",
-                    null,
-                    "toolWindow.hide",
-                    "view.restoreStripeButtons"),
             // Pauta's Help order (DOCS-07); an app without a feature drops its row.
             spec(
                     "menu.help",
                     "palette.show",
                     "help.documentation",
                     "help.keyboardShortcuts",
-                    "view.welcome",
                     null,
                     "help.checkForUpdates",
                     "view.messageLog",
@@ -154,30 +106,13 @@ final class AppMenus {
 
     /**
      * Simple mode's menus: the same four, each cut to what a person new to the app reaches for. Every
-     * button the toolbar keeps in Simple mode has its row here too (TBAR-08), and every command is still
-     * in the palette.
+     * command is still in the palette.
      */
     private static final List<Spec> SIMPLE = List.of(
             spec("menu.file", "app.settings", null, "app.quit"),
-            spec("menu.edit", "edit.copy", "edit.paste", null, "find.show"),
-            spec(
-                    "menu.view",
-                    "view.toggleToolbar",
-                    "view.toggleTabBar",
-                    "view.toggleStatusBar",
-                    null,
-                    "view.toggleSimpleMode"),
-            spec(
-                    "menu.window",
-                    "switcher.show",
-                    null,
-                    "buffer.close",
-                    "buffer.reopenClosed",
-                    null,
-                    "tool.documents",
-                    "tool.outline",
-                    "tool.output"),
-            spec("menu.help", "palette.show", "help.documentation", "view.welcome", null, "help.about"));
+            spec("menu.edit", "edit.copy", "edit.paste"),
+            spec("menu.view", "view.toggleStatusBar", null, "view.toggleSimpleMode"),
+            spec("menu.help", "palette.show", "help.documentation", null, "help.about"));
 
     private static Spec spec(String key, @Nullable String... ids) {
         return new Spec(key, java.util.Collections.unmodifiableList(java.util.Arrays.<@Nullable String>asList(ids)));
@@ -266,8 +201,8 @@ final class AppMenus {
      * The rows that delete, discard or reset, styled as dangerous (MENU-12): their title in the red. Whether
      * each asks first is the confirm dialog's business, not the row's.
      */
-    static final java.util.Set<String> DESTRUCTIVE = java.util.Set.of(
-            "messageLog.clear", "debugLog.clear", "output.clear", "keymap.resetBinding", "config.import");
+    static final java.util.Set<String> DESTRUCTIVE =
+            java.util.Set.of("messageLog.clear", "debugLog.clear", "keymap.resetBinding", "config.import");
 
     static Row inWindowRow(String id) {
         Node glyph = Icons.commandGlyph(id);

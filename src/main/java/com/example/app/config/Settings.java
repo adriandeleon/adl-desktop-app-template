@@ -1,7 +1,5 @@
 package com.example.app.config;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -18,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 public final class Settings {
 
     /** Bump with every change to the shape of this file, and add the matching {@link Migrations} step. */
-    public static final int SCHEMA_VERSION = 8;
+    public static final int SCHEMA_VERSION = 9;
 
     public int schemaVersion = SCHEMA_VERSION;
 
@@ -39,13 +37,7 @@ public final class Settings {
     /** When the update check last ran, epoch milliseconds; 0 for never. */
     public long lastUpdateCheck;
 
-    /** The main toolbar under the menus (TBAR-18). */
-    public boolean showToolbar = true;
-
     public boolean showStatusBar = true;
-
-    /** The strip of document tabs (TABS-12). */
-    public boolean showTabBar = true;
 
     /**
      * The menus and the title in one bar drawn by the app (JavaFX's {@code HeaderBar}), where the
@@ -54,7 +46,7 @@ public final class Settings {
     public boolean titleBarMenus = true;
 
     /**
-     * Simple mode (MENU-04, TBAR-16): a shorter menu bar and fewer toolbar groups. It hides, it never
+     * Simple mode (MENU-04): a shorter menu bar. It hides, it never
      * changes another preference, so turning it off brings back the window as it was.
      */
     public boolean simpleMode;
@@ -75,26 +67,12 @@ public final class Settings {
     }
 
     /**
-     * Session state, not a preference (SET-08): where the window was and what was open. Kept in
+     * Session state, not a preference (SET-08): where the window was. Kept in
      * {@code session.json} beside {@code settings.json}, never in it ({@link ConfigStore}); machine-local,
      * never synced.
      */
     @com.fasterxml.jackson.annotation.JsonIgnore
     public Window window = new Window();
-
-    /** The documents' text size (WIN-09), in percent: the content zoom, apart from the UI zoom. */
-    public int textZoom = DEFAULT_TEXT_ZOOM;
-
-    public static final int DEFAULT_TEXT_ZOOM = 100;
-
-    public static final int MIN_TEXT_ZOOM = 50;
-
-    public static final int MAX_TEXT_ZOOM = 300;
-
-    /** {@code percent} within the text zoom's range. */
-    public static int clampTextZoom(int percent) {
-        return Math.min(MAX_TEXT_ZOOM, Math.max(MIN_TEXT_ZOOM, percent));
-    }
 
     public Sync sync = new Sync();
 
@@ -108,14 +86,6 @@ public final class Settings {
 
     /** The longest sync interval: a day. */
     public static final int MAX_SYNC_INTERVAL_MINUTES = 24 * 60;
-
-    /** A tool window's share of the window, and a side's split, are kept within these. */
-    public static final double MIN_SHARE = 0.05;
-
-    public static final double MAX_SHARE = 0.95;
-
-    /** The sides a tool window can be moved to ({@code ToolWindow.Side}'s names). */
-    static final java.util.Set<String> SIDES = java.util.Set.of("LEFT", "RIGHT", "BOTTOM");
 
     /**
      * Brings every value read from the file into its range (SET-11): the file is plain JSON that people edit
@@ -147,7 +117,6 @@ public final class Settings {
         keybindings = bindings;
         lastUpdateCheck = Math.max(0, lastUpdateCheck);
         uiZoom = clampUiZoom(uiZoom);
-        textZoom = clampTextZoom(textZoom);
         if (window == null) window = new Window();
         window.clamp();
         if (sync == null) sync = new Sync();
@@ -172,13 +141,10 @@ public final class Settings {
         c.language = language;
         c.keymap = keymap;
         c.uiZoom = uiZoom;
-        c.textZoom = textZoom;
         c.keybindings = new TreeMap<>(keybindings);
         c.checkForUpdates = checkForUpdates;
         c.lastUpdateCheck = lastUpdateCheck;
-        c.showToolbar = showToolbar;
         c.showStatusBar = showStatusBar;
-        c.showTabBar = showTabBar;
         c.titleBarMenus = titleBarMenus;
         c.simpleMode = simpleMode;
         c.window.x = window.x;
@@ -186,9 +152,6 @@ public final class Settings {
         c.window.width = window.width;
         c.window.height = window.height;
         c.window.maximized = window.maximized;
-        c.window.toolWindows = window.toolWindows.copy();
-        c.window.documents = window.documents == null ? null : new java.util.ArrayList<>(window.documents);
-        c.window.activeDocument = window.activeDocument;
         c.sync.repoUrl = sync.repoUrl;
         c.sync.branch = sync.branch;
         c.sync.auto = sync.auto;
@@ -208,21 +171,6 @@ public final class Settings {
         public double height = 640;
         public boolean maximized;
 
-        /** The tool windows' arrangement, restored on the next launch (TABS-15). */
-        public ToolWindows toolWindows = new ToolWindows();
-
-        /**
-         * The documents open at the last quit, in tab order (WIN-08), or null before the first quit: the next
-         * launch opens them again, unless it was started with {@code --no-session} (CLI-04).
-         */
-        public java.util.@Nullable List<String> documents;
-
-        /** The document that was selected, or null for the Welcome page. */
-        public @Nullable String activeDocument;
-
-        /** At most this many documents are reopened: a hand-edited file can't open a thousand tabs. */
-        public static final int MAX_DOCUMENTS = 100;
-
         void clamp() {
             Window defaults = new Window();
             width = Settings.clamp(width, MIN_WINDOW_SIZE, MAX_WINDOW_SIZE, defaults.width);
@@ -231,106 +179,10 @@ public final class Settings {
                 x = null;
                 y = null;
             }
-            if (toolWindows == null) toolWindows = new ToolWindows();
-            toolWindows.clamp();
-            if (documents != null) {
-                documents = documents.stream()
-                        .filter(d -> d != null && !d.isBlank())
-                        .distinct()
-                        .limit(MAX_DOCUMENTS)
-                        .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
-            }
-            if (activeDocument != null && (documents == null || !documents.contains(activeDocument))) {
-                activeDocument = null;
-            }
         }
 
         private static boolean onScreen(@Nullable Double position) {
             return position != null && Double.isFinite(position) && Math.abs(position) <= MAX_WINDOW_POSITION;
-        }
-    }
-
-    /**
-     * The workspace state of the tool windows (TABS-15): which are open, on which side, in what order,
-     * hidden or shown, floating, and every size. Machine-local, with the window it belongs to.
-     */
-    public static final class ToolWindows {
-        /** The windows open, docked or floating, in the order they opened. */
-        public List<String> open = new ArrayList<>();
-
-        /** A window's side where the user moved it from its home: {@code LEFT}, {@code RIGHT} or {@code BOTTOM}. */
-        public Map<String, String> sides = new TreeMap<>();
-
-        /** The stripe buttons' order, one list across the three stripes; empty for the app's own order. */
-        public List<String> order = new ArrayList<>();
-
-        /** The stripe buttons the user hid. */
-        public List<String> hidden = new ArrayList<>();
-
-        /** The windows that float in a window of their own. */
-        public List<String> floating = new ArrayList<>();
-
-        /** Each window's share of the window's width (left, right) or height (bottom), once it has one. */
-        public Map<String, Double> sizes = new TreeMap<>();
-
-        /** Each side's split between its two stacked windows, by side. */
-        public Map<String, Double> splits = new TreeMap<>();
-
-        /** The maximized window's id, or blank. */
-        public String maximized = "";
-
-        void clamp() {
-            open = known(open);
-            order = known(order);
-            hidden = known(hidden);
-            floating = known(floating);
-            Map<String, String> keptSides = new TreeMap<>();
-            if (sides != null) {
-                sides.forEach((id, side) -> {
-                    if (id != null && side != null && SIDES.contains(side)) keptSides.put(id, side);
-                });
-            }
-            sides = keptSides;
-            sizes = shares(sizes);
-            splits = shares(splits);
-            if (maximized == null || !open.contains(maximized)) maximized = "";
-        }
-
-        /** The list without nulls, blanks or repeats. */
-        private static List<String> known(@Nullable List<String> ids) {
-            List<String> kept = new ArrayList<>();
-            if (ids != null) {
-                for (String id : ids) {
-                    if (id != null && !id.isBlank() && !kept.contains(id)) kept.add(id);
-                }
-            }
-            return kept;
-        }
-
-        /** Each share within {@link #MIN_SHARE} and {@link #MAX_SHARE}; one that is not a number is dropped. */
-        private static Map<String, Double> shares(@Nullable Map<String, Double> raw) {
-            Map<String, Double> kept = new TreeMap<>();
-            if (raw != null) {
-                raw.forEach((id, share) -> {
-                    if (id != null && share != null && !share.isNaN()) {
-                        kept.put(id, Settings.clamp(share, MIN_SHARE, MAX_SHARE, share));
-                    }
-                });
-            }
-            return kept;
-        }
-
-        public ToolWindows copy() {
-            ToolWindows c = new ToolWindows();
-            c.open = new ArrayList<>(open);
-            c.sides = new TreeMap<>(sides);
-            c.order = new ArrayList<>(order);
-            c.hidden = new ArrayList<>(hidden);
-            c.floating = new ArrayList<>(floating);
-            c.sizes = new TreeMap<>(sizes);
-            c.splits = new TreeMap<>(splits);
-            c.maximized = maximized;
-            return c;
         }
     }
 

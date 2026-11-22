@@ -128,6 +128,12 @@ one-line summary written for users.
 
 ### Changed
 
+- **Settings' switches are Editora's:** a sliding switch in place of an On/Off button, accent-filled when on
+  and outlined when off, in every theme; Space and Enter flip it, and a screen reader says whether it is on.
+- **The window is the template's minimum:** the menus, the content and the status bar. The content is an
+  empty state with the ways in, each showing its key (Pauta WELC-02). The VS Code keymap opens the Command
+  Palette with `F1` too, as VS Code does.
+
 - **ExampleApp is built to Pauta 6.1.0,** and is still Complete. The minor edition makes MENU-14 (an icon on
   every menu row) a MAY, which the template still meets on every row, and moves the feature matrix, shared
   features and gaps per app to an appendix outside the editions; the copy of the edition's rules is 6.1.0's,
@@ -200,6 +206,15 @@ one-line summary written for users.
   as far as JReleaser with `--dry-run` and publishes nothing. CI keeps the test reports of every run,
   coverage also has a 0.79 branch floor and a line floor per package, and tests fail when `NOTICE`
   misses a bundled library or `LICENSE` and `NOTICE` stop being packaged.
+
+### Removed
+
+- **No toolbar, no tool windows, no document tabs.** Pauta makes each optional, and the template now has
+  none of them: the toolbar and its Simple mode groups, the Documents, Outline and Output tool windows and
+  their stripes, the document tabs with their switcher, the sample documents and their find bar, the text
+  zoom, Next and Previous Region, and the question before quitting with typed changes. Their settings go
+  from `settings.json` (schema 9) and from `session.json` on the next save. An app that wants one takes
+  it from Editora, which has all three.
 
 ### Fixed
 

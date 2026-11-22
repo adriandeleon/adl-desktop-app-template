@@ -36,12 +36,28 @@ class MigrationsTest {
         ObjectNode v2 =
                 JsonNodeFactory.instance.objectNode().put("schemaVersion", 2).put("keymap", "emacs");
         // 2 to 3 (titleBarMenus), 3 to 4 (showToolbar), 4 to 5 (showTabBar, window.toolWindows), 5 to 6
-        // (simpleMode) and 6 to 7 (uiZoom) only add fields, and 7 to 8 moves the window out to session.json:
-        // the rest of the tree comes through as it was.
+        // (simpleMode) and 6 to 7 (uiZoom) only add fields, 7 to 8 moves the window out to session.json and
+        // 8 to 9 drops the toolbar, tab bar and text zoom: the rest of the tree comes through as it was.
         ObjectNode current = Migrations.migrate(v2);
         assertEquals(Settings.SCHEMA_VERSION, Migrations.versionOf(current));
-        assertEquals(8, Settings.SCHEMA_VERSION);
+        assertEquals(9, Settings.SCHEMA_VERSION);
         assertEquals("emacs", current.get("keymap").asText());
+    }
+
+    @Test
+    void version9DropsTheToolbarTheTabBarAndTheTextZoom() {
+        ObjectNode v8 = JsonNodeFactory.instance
+                .objectNode()
+                .put("schemaVersion", 8)
+                .put("showToolbar", false)
+                .put("showTabBar", false)
+                .put("textZoom", 120)
+                .put("showStatusBar", false);
+        ObjectNode v9 = Migrations.migrate(v8);
+        assertFalse(v9.has("showToolbar"));
+        assertFalse(v9.has("showTabBar"));
+        assertFalse(v9.has("textZoom"));
+        assertFalse(v9.get("showStatusBar").asBoolean(), "the settings that stay are kept");
     }
 
     @Test
