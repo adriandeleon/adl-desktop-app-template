@@ -89,7 +89,7 @@ public record CommandLine(
                       --config-dir DIR  Use DIR as the config folder (default ~/.%1$s)
                       --dev             Use ~/.%1$s-dev, so a development build keeps its own config
                       --new-instance    Start a second process instead of handing off to the running one
-                      --no-session      Start afresh: no documents or window position from the last session
+                      --no-session      Start afresh: not where the window was last time
                       --report          Write a redacted problem report and open a GitHub issue
 
                 Environment:

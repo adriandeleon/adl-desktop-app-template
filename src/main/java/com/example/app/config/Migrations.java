@@ -30,7 +30,9 @@ public final class Migrations {
             6,
             UnaryOperator.identity(),
             7,
-            Migrations::v7SessionApart);
+            Migrations::v7SessionApart,
+            8,
+            Migrations::v8NoToolbarOrTabs);
 
     private Migrations() {}
 
@@ -62,12 +64,22 @@ public final class Migrations {
 
     // Version 2 to 3 added titleBarMenus, 3 to 4 showToolbar, 4 to 5 showTabBar and the tool windows' state
     // (window.toolWindows), 5 to 6 simpleMode and 6 to 7 uiZoom: purely additive, so the identity steps
-    // above; their defaults fill in. 7 to 8 adds textZoom and takes the window out: it moves to session.json
+    // above; their defaults fill in. 7 to 8 added textZoom and took the window out: it moves to session.json
     // (SET-08), which ConfigStore writes from the old file's window the first time.
 
     /** Version 8 keeps no session state in settings.json: the window block goes (ConfigStore carries it over). */
     static ObjectNode v7SessionApart(ObjectNode tree) {
         tree.remove("window");
+        return tree;
+    }
+
+    /**
+     * Version 9 has no toolbar, no document tabs and no documents to zoom: their settings go. The template
+     * dropped those parts (Pauta 6.2.0 makes them optional); the tool windows' state was in the window block,
+     * which session.json now holds, and an unknown key there is ignored and dropped on the next save.
+     */
+    static ObjectNode v8NoToolbarOrTabs(ObjectNode tree) {
+        tree.remove(java.util.List.of("showToolbar", "showTabBar", "textZoom"));
         return tree;
     }
 

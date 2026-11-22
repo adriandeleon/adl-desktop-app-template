@@ -36,9 +36,8 @@
 | Test | Guards |
 |---|---|
 | `CommandSweepFxTest` | Every registered command runs in a real headless window, and has a title and description |
-| `TabsAndPanelsTest`, `TabsAndPanelsFxTest` | Pauta's Tabs and tool panels, a test per rule a test can check: bulk closes skip pinned tabs, Reopen Closed Tab's list, no tool window built before the first paint, the arrangement back after a restart, the stripe's first icon on the first line of text |
-| `SimpleModeFxTest` | Simple mode, a test per rule it shows: a shorter menu rebuilt only when the mode changes (MENU-04), hidden groups take their gaps (TBAR-05), the toggle lit while on (TBAR-07), the toggle just before Settings (TBAR-16), the bar's height kept (TBAR-19) |
-| `MenuLookFxTest` | Every menu, opened from the toolbar, a tab, a list row, a console or the menu bar, draws in Inter 14 px; chords are Inter 11 px in `-state-key`, follow the keymap, and that color reads at 4.5:1 on both themes |
+| `SimpleModeFxTest` | Simple mode: its command, setting and switch agree, and a shorter menu is rebuilt only when the mode changes (MENU-04) |
+| `MenuLookFxTest` | Every menu, opened from a list row, a console or the menu bar, draws in Inter 14 px; chords are Inter 11 px in `-state-key`, follow the keymap, and that color reads at 4.5:1 on both themes |
 | `MessagesTest` | Every catalog has every key; apostrophes follow the pattern rule; translations are not English copies |
 | `ConfigStoreTest#everySettingSurvivesARestart` | The settings round trip |
 | `ConfigStoreTest#outOfRangeAndUnknownValuesAreCorrectedAsTheFileIsRead` | Every value read from `settings.json` is clamped or falls back to its default |
@@ -49,7 +48,6 @@
 | `SameOnEveryOsFxTest`, `OsTest` | Run as Windows, macOS and Linux through `Os.override`, the app has the same commands, menu rows and Settings (OS-01, OS-03); `Os` is the one reader of `os.name` (OS-02) |
 | `UiZoomTest`, `MenuLookFxTest#theUiZoomScalesEveryMenu` | The UI zoom's steps and range, the stylesheets it scales, and every menu at the zoomed size (WIN-12, MENU-16) |
 | `DialogsFxTest` | Cancel is the confirm question's default; every dialog has one button order with Cancel first and its stock buttons worded from the catalog (CONF-13, WIN-11, CONF-14) |
-| `SessionAndWelcomeFxTest` | `session.json` apart from `settings.json`; the open documents come back, `--no-session` leaves them; the Welcome page in Help, Close alone, rebuilt on show; the text zoom on its own (SET-08, WIN-08, WELC-03/05/11, WIN-09) |
 | `ScreenshotsFxTest` | Not a guard: run by `scripts/screenshots.sh`, it renders the real window at 2× in the light and dark theme into `docs/images/` for the README (DOCS-18), and is skipped in a normal build |
 | `SettingsRoundTripFxTest` | Every switch, number and choice of every Settings page survives a restart (QUAL-13) |
 | `PickerFxTest`, `TextInputKeysTest` | The palette's matching, its keymap moves, help chord, title and current value; a text field's editing keys (KBD-06, PAL-06/08, QOPEN-02/04/06, FIND-09) |

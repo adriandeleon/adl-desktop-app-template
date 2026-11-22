@@ -72,8 +72,6 @@ public final class SettingsWindow {
                     java.util.Arrays.asList(
                             "settings.language",
                             "settings.toggleUpdateCheck",
-                            "view.toggleToolbar",
-                            "view.toggleTabBar",
                             "view.toggleStatusBar",
                             "view.toggleSimpleMode"),
             Page.APPEARANCE, java.util.Arrays.asList("settings.theme", "view.toggleTitleBarMenus"),
@@ -118,13 +116,10 @@ public final class SettingsWindow {
 
     private final ComboBox<String> language = new ComboBox<>();
     private final SettingSwitch updates = new SettingSwitch(Messages.tr("settings.updates.title"));
-    private final SettingSwitch toolbar = new SettingSwitch(Messages.tr("settings.toolbar.title"));
-    private final SettingSwitch tabBar = new SettingSwitch(Messages.tr("settings.tabBar.title"));
     private final SettingSwitch simpleMode = new SettingSwitch(Messages.tr("settings.simpleMode.title"));
     private final SettingSwitch statusBar = new SettingSwitch(Messages.tr("settings.statusBar.title"));
     private final ComboBox<ThemeChoice> theme = new ComboBox<>();
     private final ComboBox<Integer> uiZoom = new ComboBox<>();
-    private final ComboBox<Integer> textZoom = new ComboBox<>();
     private final SettingSwitch titleBar = new SettingSwitch(Messages.tr("settings.titleBar.title"));
     private final ComboBox<String> keymap = new ComboBox<>();
     private final TextField syncUrl = new TextField();
@@ -237,24 +232,18 @@ public final class SettingsWindow {
                 }));
         VBox card = card(Page.GENERAL, null);
         row(card, Page.GENERAL, "settings.language", language, "locale translation");
-        updates.setOnAction(e -> services.store().update(s -> s.checkForUpdates = updates.isSelected()));
+        updates.setOnChange(() -> services.store().update(s -> s.checkForUpdates = updates.isSelected()));
         row(card, Page.GENERAL, "settings.updates", updates, "release version network");
-        toolbar.setOnAction(e -> services.store().update(s -> s.showToolbar = toolbar.isSelected()));
-        row(card, Page.GENERAL, "settings.toolbar", toolbar, "buttons icons");
-        tabBar.setOnAction(e -> services.store().update(s -> s.showTabBar = tabBar.isSelected()));
-        row(card, Page.GENERAL, "settings.tabBar", tabBar, "tabs documents strip");
-        statusBar.setOnAction(e -> services.store().update(s -> s.showStatusBar = statusBar.isSelected()));
+        statusBar.setOnChange(() -> services.store().update(s -> s.showStatusBar = statusBar.isSelected()));
         row(card, Page.GENERAL, "settings.statusBar", statusBar, "echo messages");
-        simpleMode.setOnAction(e -> services.store().update(s -> s.simpleMode = simpleMode.isSelected()));
-        row(card, Page.GENERAL, "settings.simpleMode", simpleMode, "beginner basic minimal fewer menus buttons");
+        simpleMode.setOnChange(() -> services.store().update(s -> s.simpleMode = simpleMode.isSelected()));
+        row(card, Page.GENERAL, "settings.simpleMode", simpleMode, "beginner basic minimal fewer menus");
         loaders.add(() -> {
             Settings s = services.settings();
             language.setValue(s.language);
-            updates.setSelected(s.checkForUpdates);
-            toolbar.setSelected(s.showToolbar);
-            tabBar.setSelected(s.showTabBar);
-            statusBar.setSelected(s.showStatusBar);
-            simpleMode.setSelected(s.simpleMode);
+            updates.show(s.checkForUpdates);
+            statusBar.show(s.showStatusBar);
+            simpleMode.show(s.simpleMode);
         });
     }
 
@@ -274,16 +263,7 @@ public final class SettingsWindow {
                 .addListener((obs, old, picked) -> commitIfChanged(
                         picked, s -> s.uiZoom, v -> services.store().update(s -> s.uiZoom = v)));
         row(card, Page.APPEARANCE, "settings.uiZoom", uiZoom, "zoom scale size larger smaller bigger interface font");
-        // The documents' text size (WIN-09), apart from the window's zoom.
-        for (int p = Settings.MIN_TEXT_ZOOM; p <= Settings.MAX_TEXT_ZOOM; p += Commands.TEXT_ZOOM_STEP) {
-            textZoom.getItems().add(p);
-        }
-        textZoom.setConverter(converter(p -> Messages.tr("settings.uiZoom.value", p)));
-        textZoom.valueProperty()
-                .addListener((obs, old, picked) -> commitIfChanged(
-                        picked, s -> s.textZoom, v -> services.store().update(s -> s.textZoom = v)));
-        row(card, Page.APPEARANCE, "settings.textZoom", textZoom, "text font size zoom document larger smaller");
-        titleBar.setOnAction(e -> {
+        titleBar.setOnChange(() -> {
             services.store().update(s -> s.titleBarMenus = titleBar.isSelected());
             services.echo("status.titleBarRestart");
         });
@@ -299,8 +279,7 @@ public final class SettingsWindow {
         loaders.add(() -> {
             theme.setValue(services.settings().theme);
             uiZoom.setValue(services.settings().uiZoom);
-            textZoom.setValue(services.settings().textZoom);
-            titleBar.setSelected(services.settings().titleBarMenus);
+            titleBar.show(services.settings().titleBarMenus);
         });
     }
 
@@ -481,7 +460,7 @@ public final class SettingsWindow {
         row(repo, Page.SYNC, "settings.sync.status", status, "status");
 
         VBox automatic = card(Page.SYNC, null);
-        syncAuto.setOnAction(e -> services.store().update(s -> s.sync.auto = syncAuto.isSelected()));
+        syncAuto.setOnChange(() -> services.store().update(s -> s.sync.auto = syncAuto.isSelected()));
         syncInterval.setPrefColumnCount(3);
         syncInterval.setAccessibleText(Messages.tr("settings.sync.interval.prompt"));
         syncInterval.setOnAction(e -> commitInterval());
@@ -502,7 +481,7 @@ public final class SettingsWindow {
             syncUrl.getStyleClass().remove("invalid");
             syncBranch.setText(s.branch);
             syncBranch.getStyleClass().remove("invalid");
-            syncAuto.setSelected(s.auto);
+            syncAuto.show(s.auto);
             syncInterval.setText(String.valueOf(s.intervalMinutes));
             syncInterval.getStyleClass().remove("invalid");
             loadSyncStatus();
@@ -800,14 +779,6 @@ public final class SettingsWindow {
 
     SettingSwitch simpleModeSwitch() {
         return simpleMode;
-    }
-
-    SettingSwitch toolbarSwitch() {
-        return toolbar;
-    }
-
-    SettingSwitch tabBarSwitch() {
-        return tabBar;
     }
 
     SettingSwitch statusBarSwitch() {

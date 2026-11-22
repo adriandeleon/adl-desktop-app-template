@@ -5,8 +5,7 @@
 #   docs/images/screenshot-light.png
 #   docs/images/screenshot-dark.png
 #
-# ScreenshotsFxTest builds the window the way a launch does, opens the sample documents, the Documents
-# and the Outline tool windows, and writes each theme's PNG. Run it after a UI change and commit the
+# ScreenshotsFxTest builds the window the way a launch does and writes each theme's PNG. Run it after a UI change and commit the
 # results. Needs only the JDK: the Maven Wrapper fetches the rest, and no display is used.
 #
 # Usage: scripts/screenshots.sh [folder]   (default docs/images)

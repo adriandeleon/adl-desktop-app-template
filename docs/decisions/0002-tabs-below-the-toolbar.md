@@ -1,7 +1,7 @@
 # 2. The tab strip sits over the documents, not in the title bar
 
-- Status: accepted; its rule, TABS-11, was retired in Pauta 6.0.0 with nothing in its place, so the
-  layout stands with no deviation to record
+- Status: superseded (2026-11-22): the template no longer has a toolbar or document tabs, so there is
+  no strip to place. Kept for an app that adds both. Its rule, TABS-11, was retired in Pauta 6.0.0
 - Date: 2026-11-10
 
 ## Context

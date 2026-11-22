@@ -30,9 +30,11 @@
 > `rename.sh` turns every `ExampleApp` / `exampleapp` / `EXAMPLEAPP` / `com.example.app` into your
 > names, moves the package folders, gives the Windows installer its own upgrade code, and deletes
 > this box, the rename check in CI and itself. Then replace the icon (`branding/`, then
-> `scripts/make-icons.sh`), write your app in tabs and tool windows in place of the samples
-> (`SampleFiles`, `SamplePanels`), then retake the screenshots from your own window with
-> `scripts/screenshots.sh`.
+> `scripts/make-icons.sh`), put your app's content where the empty state is (`MainWindow.placeholder`),
+> then retake the screenshots from your own window with `scripts/screenshots.sh`. The template has the
+> parts every app needs and no optional chrome: no toolbar, no tool windows, no document tabs. Pauta
+> makes those your choice; when your app wants one, take it from an app that has it (Editora has all
+> three) and meet the rules its page scopes to it.
 > Every MUST and SHOULD of Pauta 6.1.0 that a template can meet is here and tested, so the template is
 > Complete; see [docs/architecture.md](docs/architecture.md) for where each piece lives. What only your app
 > can have is listed, rule by rule, in [`pauta.json`](src/main/resources/com/example/app/pauta.json) and in
@@ -60,15 +62,12 @@ Built to [Pauta (the adl desktop apps guidelines)](https://pauta-project.dev/), 
   installer for each.
 - **Keyboard first.** A Command Palette (`Ctrl/Cmd+Shift+P`, or `M-x` in the Emacs keymap) finds and
   runs every command. CUA, Emacs, IntelliJ, VS Code and Sublime Text keymaps, each in its macOS form
-  too, with your own bindings on top. A toolbar puts the everyday ones a click away, each button naming
-  its key, and Simple mode trims the menus and the toolbar to the essentials.
-- **Tabs and tool windows.** Documents in tabs you can pin, reorder, switch between and reopen, and tool
-  windows docked on three sides that you can move, float, maximize and resize, every action a command.
+  too, with your own bindings on top, and Simple mode trims the menus to the essentials.
 - **Settings that apply as you change them.** A searchable Settings window, a palette command for
   every setting, and a versioned config folder that older versions never overwrite.
 - **Light, dark and high contrast**, following your system: Caret & Ink, the Pauta family palette, with
-  the Inter typeface on every OS. Zoom the whole window, or the documents' text on its own.
-- **Your documents come back.** Quitting remembers what was open, and the next start opens it again.
+  the Inter typeface on every OS. Zoom the whole window from the keyboard.
+- **The window comes back** where you left it, at the size you left it.
 - **Settings Sync** through a private Git repository you own.
 - **Nothing fails silently.** A Message Log of every status message, a Debug Log of everything
   logged, a Doctor that checks what the app needs and says how to fix it, and Help → Report a Problem
@@ -131,7 +130,7 @@ exampleapp [options] [files...]
       --config-dir DIR  Use DIR as the config folder (default ~/.exampleapp)
       --dev             Use ~/.exampleapp-dev, so a development build keeps its own config
       --new-instance    Start a second process instead of handing off to the running one
-      --no-session      Start afresh: no documents or window position from the last session
+      --no-session      Start afresh: not where the window was last time
       --report          Write a redacted problem report and open a GitHub issue
 ```
 
@@ -145,7 +144,7 @@ names another folder, in that order:
 | File | What |
 |---|---|
 | `settings.json` | Preferences, with a `schemaVersion`; migrated forward on upgrade, backed up when a newer version wrote it |
-| `session.json` | The window's size and place and the documents that were open, apart from your preferences |
+| `session.json` | The window's size and place, apart from your preferences |
 | `exampleapp-session.log` | This session's Debug Log; the previous one is `exampleapp-session.prev.log` |
 | `sync/` | The Settings Sync clone, when sync is set up |
 

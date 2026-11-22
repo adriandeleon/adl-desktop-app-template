@@ -199,7 +199,7 @@ class StyleContrastTest {
             }
         }
         assertTrue(filled.contains(".status-bar .unread-errors"), "the unread badge is an emphasis fill");
-        assertTrue(filled.contains(".setting-switch:selected"), "an on switch is an emphasis fill");
+        assertTrue(filled.contains(".toggle-switch:selected > .thumb-area"), "an on switch is an emphasis fill");
     }
 
     /** ICON-12, KBD-16: one ring color on .root, drawn by the :focus-visible layer that ends app.css. */

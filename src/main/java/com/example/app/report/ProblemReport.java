@@ -27,7 +27,6 @@ public final class ProblemReport {
                 + ", language=" + (settings.language.isBlank() ? "system" : settings.language)
                 + ", keymap=" + settings.keymap
                 + ", updateCheck=" + settings.checkForUpdates
-                + ", toolbar=" + settings.showToolbar
                 + ", simpleMode=" + settings.simpleMode
                 + ", uiZoom=" + settings.uiZoom
                 + ", statusBar=" + settings.showStatusBar

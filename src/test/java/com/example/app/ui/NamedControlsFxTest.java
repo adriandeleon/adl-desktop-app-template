@@ -83,11 +83,6 @@ class NamedControlsFxTest {
     void everyControlInEveryWindowHasAName() throws Exception {
         MainWindow window = app.window();
         run(() -> {
-            window.tabs().tabPane().getSelectionModel().select(1);
-            app.services().commands().run("tool.documents");
-            app.services().commands().run("tool.outline");
-            app.services().commands().run("output.find");
-            app.services().commands().run("find.show");
             window.openMessageLog();
             window.openSettings(SettingsWindow.Page.GENERAL);
             window.openAbout();
@@ -152,7 +147,7 @@ class NamedControlsFxTest {
         // A question before something is lost, and a text prompt: dialogs of their own.
         run(() -> {
             javafx.scene.control.Alert question =
-                    Confirm.dialog(Confirmations.quitUnsaved(List.of("notes.md")), window.stage());
+                    Confirm.dialog(Confirmations.resetBinding("About", "Ctrl+Alt+J", "F12"), window.stage());
             question.show();
             Scene scene = question.getDialogPane().getScene();
             scene.getRoot().applyCss();
@@ -187,8 +182,6 @@ class NamedControlsFxTest {
         }
         run(window::openDebugLog);
         List<CommandMenu> menus = List.of(
-                window.tabs().menu(),
-                window.toolbar().menu(),
                 window.messageLog().rowMenu(),
                 call(() -> window.debugLogWindow().menu()));
         for (CommandMenu menu : menus) {
