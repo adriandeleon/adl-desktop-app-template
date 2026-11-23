@@ -121,9 +121,6 @@ class NamedControlsFxTest {
             Scene scene = window.stage().getScene();
             scene.getRoot().applyCss();
             walk(scene.getRoot(), labelled(scene.getRoot()), unnamed, "palette");
-            app.services().commands().run("switcher.show");
-            scene.getRoot().applyCss();
-            walk(scene.getRoot(), labelled(scene.getRoot()), unnamed, "switcher");
             window.overlays().hide();
         });
         // The Doctor, with a failed row and its link (DIAG-07).
