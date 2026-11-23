@@ -8,8 +8,8 @@
     "view.messageLog": "Shortcut+Shift+M",
     "help.debugLog": "Shortcut+Shift+L",
     "help.about": "F12",
-    "view.uiZoomIn": "Shortcut+Alt+=",
-    "view.uiZoomOut": "Shortcut+Alt+-",
-    "view.uiZoomReset": "Shortcut+Alt+0"
+    "view.uiZoomIn": "Shortcut+=",
+    "view.uiZoomOut": "Shortcut+-",
+    "view.uiZoomReset": "Shortcut+0"
   }
 }
