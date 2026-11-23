@@ -27,7 +27,7 @@ import org.jspecify.annotations.Nullable;
  * fill rule meant for the other family would paint its outline solid. A glyph that moves family moves
  * its CSS with it.
  *
- * <p>One action wears one glyph wherever it is drawn: a sidebar, a menu row or a toolbar asks
+ * <p>One action wears one glyph wherever it is drawn: a menu row or a button asks
  * {@link #forCommand} (or {@link #commandGlyph}) by command id instead of naming a path itself.
  *
  * <p>An icon-only button is built here too ({@link #button}), so its tooltip and

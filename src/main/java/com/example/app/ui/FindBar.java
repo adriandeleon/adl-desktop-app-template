@@ -20,8 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A find bar over a text area (Pauta's find bar template, after Editora's {@code ConsoleFindBar}): the
- * documents' ({@code find.*}), the Output console's ({@code output.find*}) and the Debug Log's
- * ({@code debugLog.find*}). A node in the window, never a popup (FIND-01). It searches as you type, once
+ * Debug Log's ({@code debugLog.find*}), the one text the template shows. A node in the window, never a popup (FIND-01). It searches as you type, once
  * typing pauses, and shows the count (FIND-02); Enter steps to the next match and Shift+Enter to the
  * previous one, wrapping (FIND-06); Escape or Close drops a pending search, clears the match and gives
  * the keyboard back to the log (FIND-07).

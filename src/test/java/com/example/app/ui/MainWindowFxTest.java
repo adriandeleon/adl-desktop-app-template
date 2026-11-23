@@ -74,7 +74,7 @@ class MainWindowFxTest {
         assertTrue(call(() -> window.stage().isShowing()));
         assertEquals("Ready", echo());
         assertTrue(Files.exists(dir.resolve(DebugLog.FILE)));
-        // The window title names the project and the app; a file's tab adds the file (TABS-10).
+        // The window title is the app's name: the template opens no files to name (TABS-10).
         assertEquals("ExampleApp", call(() -> window.stage().getTitle()));
     }
 
@@ -312,12 +312,7 @@ class MainWindowFxTest {
             window.quit();
         });
         FxTestSupport.waitUntil(() -> window.importsDropped() == 2);
-        assertEquals(
-                asked + 1,
-                host.questions.stream()
-                        .filter(q -> !q.title().equals(Messages.tr("confirm.quitUnsaved.title")))
-                        .count(),
-                "a dropped import asked anyway");
+        assertEquals(asked + 1, host.questions.size(), "a dropped import asked anyway");
 
         host.saveAnswer = dir.resolve("missing/folder/backup.zip");
         run(window::exportConfig);

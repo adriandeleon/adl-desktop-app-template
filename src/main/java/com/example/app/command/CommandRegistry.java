@@ -69,7 +69,8 @@ public final class CommandRegistry {
 
     /**
      * The command running now (the innermost, when one runs another), or null between commands. What a
-     * command opens can ask this who opened it: a toolbar button lights while its overlay is up (TBAR-07).
+     * command opens can ask this who opened it: in an app with a toolbar, the button lights while its overlay is up
+     * (TBAR-07).
      */
     public @Nullable String running() {
         return running.peek();

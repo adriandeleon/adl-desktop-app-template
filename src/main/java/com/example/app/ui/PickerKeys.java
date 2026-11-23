@@ -10,8 +10,7 @@ import com.example.app.command.Keybindings;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The keys of every list overlay, the palette, the pickers and the tab switcher alike (PAL-06, QOPEN-06,
- * QOPEN-12), after Editora's {@code PickerKeys}: the active keymap's line and page chords (the {@code nav.*}
+ * The keys of every list overlay, the palette and the pickers alike (PAL-06, QOPEN-06, QOPEN-12), after Editora's {@code PickerKeys}: the active keymap's line and page chords (the {@code nav.*}
  * commands, {@code C-n}, {@code C-p}, {@code C-v} and {@code M-v} in Emacs) move the selection, as do the keys
  * that always work: ↑ ↓, Page Up and Down, and Ctrl+Home and Ctrl+End (Cmd on macOS). Plain Home and End stay
  * with the field's caret. Pure but for reading the event.
