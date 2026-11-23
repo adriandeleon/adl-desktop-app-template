@@ -5,8 +5,8 @@
     "palette.show": "Ctrl+Shift+P",
     "app.settings": "Ctrl+,",
     "app.quit": "Ctrl+Q",
-    "view.uiZoomIn": "Shortcut+Alt+=",
-    "view.uiZoomOut": "Shortcut+Alt+-",
-    "view.uiZoomReset": "Shortcut+Alt+0"
+    "view.uiZoomIn": "Shortcut+=",
+    "view.uiZoomOut": "Shortcut+-",
+    "view.uiZoomReset": "Shortcut+0"
   }
 }

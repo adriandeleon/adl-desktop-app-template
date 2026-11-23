@@ -785,7 +785,7 @@
       "id": "WIN-12",
       "level": "MUST",
       "status": "pass",
-      "evidence": "ui/UiZoom.java and Themes.zoom: one setting scales the chrome; view.uiZoomIn/Out/Reset on Ctrl+Alt (Cmd+Alt on macOS), leaving Ctrl/Cmd+=, - and 0 to the documents' text zoom in every keymap (keymaps/emacs.json: C-=, C--, C-0)"
+      "evidence": "ui/UiZoom.java and Themes.zoom: one setting, uiZoom, scales the chrome and is kept; with no content zoom, view.uiZoomIn/Out/Reset are on Ctrl+=, Ctrl+- and Ctrl+0 (Cmd on macOS) in every keymap, C-=, C-- and C-0 in Emacs (keymaps/*.json; KeybindingsTest#theZoomChordsZoomTheUiInEveryKeymap). Re-checked after 814867a, when the chords moved off Ctrl+Alt."
     },
     {
       "id": "WIN-13",

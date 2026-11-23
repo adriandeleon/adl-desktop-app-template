@@ -140,6 +140,24 @@ class KeybindingsTest {
         }
     }
 
+    /**
+     * WIN-12: the template has no content of its own to zoom, so in every bundled keymap {@code Ctrl+=}, {@code
+     * Ctrl+-} and {@code Ctrl+0} ({@code Cmd} on macOS, {@code C-} in Emacs everywhere) zoom the whole UI.
+     */
+    @Test
+    void theZoomChordsZoomTheUiInEveryKeymap() {
+        for (String id : Keymap.PRESETS) {
+            for (boolean mac : new boolean[] {false, true}) {
+                Keybindings bindings = new Keybindings(Keymap.load(id, mac), java.util.Map.of(), mac);
+                String modifier = mac && !bindings.keymap().emacs() ? "Meta+" : "Ctrl+";
+                String where = id + (mac ? " (mac)" : "");
+                assertEquals("view.uiZoomIn", bindings.commandFor(KeyStroke.parseSequence(modifier + "=")), where);
+                assertEquals("view.uiZoomOut", bindings.commandFor(KeyStroke.parseSequence(modifier + "-")), where);
+                assertEquals("view.uiZoomReset", bindings.commandFor(KeyStroke.parseSequence(modifier + "0")), where);
+            }
+        }
+    }
+
     /** A keymap may give a command more chords: each runs it, the first is the one a menu shows (VS Code's F1). */
     @Test
     void aSecondChordRunsTheCommandAndTheFirstIsTheLabel() {

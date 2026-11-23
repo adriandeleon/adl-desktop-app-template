@@ -32,10 +32,10 @@ one-line summary written for users.
   says what to do about anything that fails (Pauta DIAG-07).
 - **The palette opens a command's help page** with the first of `Ctrl+H`, `F1` and `Shift+F1` your keymap
   leaves free, and its key legend is your keymap's (Pauta PAL-08, PAL-09).
-- **Zoom the whole window.** View → Zoom In, Zoom Out and Actual Size (`Ctrl+Alt+=`, `Ctrl+Alt+-` and
-  `Ctrl+Alt+0`, `Cmd+Option` on macOS; `Ctrl/Cmd+=` stays free for zooming a document's text), or Settings →
-  Appearance → Zoom, from 80 % to 200 %: menus, toolbar, tabs, status bar and dialogs grow and shrink together, at once, and the size is
-  kept (Pauta WIN-12, MENU-16).
+- **Zoom the whole window.** View → Zoom In, Zoom Out and Actual Size (`Ctrl+=`, `Ctrl+-` and `Ctrl+0`,
+  `Cmd` on macOS, `C-=`, `C--` and `C-0` in Emacs), or Settings → Appearance → Zoom, from 80 % to 200 %:
+  menus, content, status bar and dialogs grow and shrink together, at once, and the size is kept (Pauta
+  WIN-12, MENU-16).
 - **Find in a document and in the Output.** Edit → Find… (`Ctrl/Cmd+F` or `F3`, `Cmd+G` on macOS, `C-s` in
   Emacs; again for the next match) opens a find bar over the open document, and Output: Find… one over the Output
   console: they search as you type, count the matches, and Enter and Shift+Enter step (Pauta FIND-01,

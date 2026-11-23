@@ -12,6 +12,9 @@
     "nav.lineDown": "C-n",
     "nav.lineUp": "C-p",
     "nav.pageDown": "C-v",
-    "nav.pageUp": "M-v"
+    "nav.pageUp": "M-v",
+    "view.uiZoomIn": "C-=",
+    "view.uiZoomOut": "C--",
+    "view.uiZoomReset": "C-0"
   }
 }

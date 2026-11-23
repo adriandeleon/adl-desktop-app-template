@@ -6,8 +6,8 @@
     "app.settings": "Ctrl+Alt+S",
     "app.quit": "Ctrl+Q",
     "view.messageLog": "Alt+0",
-    "view.uiZoomIn": "Shortcut+Alt+=",
-    "view.uiZoomOut": "Shortcut+Alt+-",
-    "view.uiZoomReset": "Shortcut+Alt+0"
+    "view.uiZoomIn": "Shortcut+=",
+    "view.uiZoomOut": "Shortcut+-",
+    "view.uiZoomReset": "Shortcut+0"
   }
 }
