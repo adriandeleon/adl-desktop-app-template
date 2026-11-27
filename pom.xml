@@ -39,7 +39,7 @@
         <glass.mac.option>-Dexampleapp.glassMac=none</glass.mac.option>
 
         <!-- A floor too: JavaFX 27 brings the Headless glass platform the FX tests run on. -->
-        <javafx.version>27.0.1</javafx.version>
+        <javafx.version>27.0.1.1</javafx.version>
         <atlantafx.version>3.0.0</atlantafx.version>
         <jackson.version>2.23.0</jackson.version>
 
